@@ -1,0 +1,12 @@
+---
+- name: config localtime
+  file:
+    src: "/usr/share/zoneinfo/{{ tzdata_timezone }}"
+    dest: /etc/localtime
+    state: link
+
+- name: config timezone
+  template:
+    src: etc/timezone.j2
+    dest: /etc/timezone
+    mode: '0644'

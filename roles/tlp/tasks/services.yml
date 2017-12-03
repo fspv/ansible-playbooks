@@ -1,0 +1,11 @@
+- name: service ondemand tlp
+  service:
+    name: ondemand
+    enabled: no
+    state: stopped
+
+- name: service tlp
+  service:
+    name: tlp
+    enabled: yes
+    state: started

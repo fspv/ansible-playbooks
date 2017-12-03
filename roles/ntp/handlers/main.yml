@@ -1,0 +1,4 @@
+- name: handler restart
+  service:
+    name: ntp
+    state: restarted

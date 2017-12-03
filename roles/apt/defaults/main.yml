@@ -1,0 +1,7 @@
+apt_repos:
+  - ubuntu
+  - ubuntu-proposed
+  - ubuntu-security
+  - ubuntu-updates
+  - ubuntu-backports
+  - ubuntu-partner

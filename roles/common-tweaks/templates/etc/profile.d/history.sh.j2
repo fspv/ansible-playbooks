@@ -1,0 +1,28 @@
+# HIST* variables not really working for regular users
+# but will be useful for root
+# Ignore duplicates in .bash_history
+export HISTCONTROL=ignoredups 2>/dev/null
+# The  maximum  number of lines contained in the history file.
+export HISTFILESIZE=99999 2>/dev/null
+# Controls output of `history` command end enables time logging in .bash_history
+export HISTTIMEFORMAT="%a, %d %b %Y %T %z " 2>/dev/null
+
+# Append to ~/.bash_history immediately
+export PROMPT_COMMAND='history -a' 2>/dev/null
+readonly PROMPT_COMMAND
+
+declare PREV_COMMAND
+
+# Log to syslog
+function log2syslog {
+    declare COMMAND
+    COMMAND=$(fc -ln 0)
+    if ! test "x$COMMAND" = "x$PREV_COMMAND"; then
+        logger -p local1.notice -t bashhistory -i -- "${USER}[$$]:$(pwd):$SSH_CONNECTION:${COMMAND}"
+    fi
+    PREV_COMMAND=$COMMAND
+}
+
+# NOTICE: This trap is only invoked before next command executed
+# and prints previous command
+trap log2syslog DEBUG

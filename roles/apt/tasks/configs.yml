@@ -1,0 +1,25 @@
+---
+- name: config allow-unauthenticated
+  template:
+    src: etc/apt/apt.conf.d/30allowunauth.j2
+    dest: /etc/apt/apt.conf.d/30allowunauth
+
+- name: config default-release
+  template:
+    src: etc/apt/apt.conf.d/00release.j2
+    dest: /etc/apt/apt.conf.d/00release
+
+- name: config timeout
+  template:
+    src: etc/apt/apt.conf.d/00timeout.j2
+    dest: /etc/apt/apt.conf.d/00timeout
+
+- name: config debug
+  template:
+    src: etc/apt/apt.conf.d/99debug.j2
+    dest: /etc/apt/apt.conf.d/99debug
+
+- name: config disable-motd-update-on-login
+  file:
+    path: /etc/update-motd.d/90-updates-available
+    state: absent

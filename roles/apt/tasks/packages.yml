@@ -1,0 +1,28 @@
+# For better support of PPA repos
+- name: package python-software-properties
+  apt:
+    name: python-software-properties
+
+- name: package python-pycurl
+  apt:
+    name: python-pycurl
+
+- name: package python-apt
+  apt:
+    name: python-apt
+
+# For handling https repositories
+- name: package apt-transport-https
+  apt:
+    name: apt-transport-https
+
+# For handling ssh repositories
+- name: package openssh-client
+  apt:
+    name: openssh-client
+
+# For solving problems apt-get not able to solve
+- name: package aptitude
+  apt:
+    name: aptitude
+

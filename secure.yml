@@ -1,0 +1,6 @@
+---
+- hosts: all
+  connection: local
+  sudo: True
+  roles:
+    - { role: common, tzdata_timezone: "Etc/UTC" }

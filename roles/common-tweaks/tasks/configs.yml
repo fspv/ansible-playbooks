@@ -1,0 +1,15 @@
+# https://wiki.ubuntu.com/DashAsBinSh
+# Too many bugs because of dash as /bin/sh
+# So we have choosen to hardcode this workaround
+- name: config sh-bash
+  file:
+    state: link
+    src: /bin/bash
+    dest: /bin/sh
+
+# Log bash history to syslog
+- name: config bash-history-log
+  template:
+    src: etc/profile.d/history.sh.j2
+    dest: /etc/profile.d/history.sh
+    mode: '0700'

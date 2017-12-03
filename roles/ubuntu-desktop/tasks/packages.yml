@@ -1,0 +1,47 @@
+- name: remove unnecessary packages
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - account-plugin-facebook
+    - account-plugin-flickr
+    - account-plugin-google
+    - activity-log-manager
+    - app-install-data-partner
+    - aisleriot
+    - apport
+    - apport-gtk
+    - apport-symptoms
+    - avahi-autoipd
+    - avahi-daemon
+    - avahi-utils
+    - baobab
+    - deja-dup
+    - evince
+    - evince-common
+    - evolution-data-server
+    - dnsmasq
+    - gnome-software
+    - gnome-software-common
+    - gnome-disk-utility
+    - gnome-mahjongg
+    - rhythmbox
+    - rhythmbox-data
+    - rhythmbox-plugins
+    - rhythmbox-plugin-zeitgeist
+    - totem
+    - totem-common
+    - totem-plugins
+    - transmission-common
+    - transmission-gtk
+    - ubuntu-release-upgrader-core
+    - ubuntu-release-upgrader-gtk
+    - ubuntu-software
+    - unattended-upgrades
+    - update-manager
+    - update-manager-core
+    - update-notifier
+    - update-notifier-common
+    - whoopsie
+    - zeitgeist-core
+    - zeitgeist-datahub

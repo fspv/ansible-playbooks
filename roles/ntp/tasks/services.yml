@@ -1,0 +1,5 @@
+- name: service
+  service:
+    name: ntp
+    enabled: yes
+    state: started

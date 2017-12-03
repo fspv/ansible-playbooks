@@ -1,0 +1,4 @@
+- name: packages
+  apt:
+    name: "{{ item }}"
+  with_items: "{{ common_tools }}"

@@ -1,0 +1,42 @@
+---
+- name: repo remove old files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - '/var/cache/apt/'
+    - '/var/lib/apt/lists/'
+  tags: build-child
+
+### Preferences (pins)
+- name: repo ubuntu pins
+  template:
+    src: "etc/apt/preferences.d/{{ item }}.pref.j2"
+    dest: "/etc/apt/preferences.d/{{ item }}.pref"
+  with_items: "{{ apt_repos }}"
+
+### Repos
+- name: repo ubuntu
+  template:
+    src: "etc/apt/sources.list.d/{{ item }}.list.j2"
+    dest: "/etc/apt/sources.list.d/{{ item }}.list"
+  with_items: "{{ apt_repos }}"
+
+### Clean-up /etc/apt/sources.list
+- name: repo sources.list
+  template:
+    src: etc/apt/sources.list.j2
+    dest: /etc/apt/sources.list
+
+### Run apt-get update after all
+# FIXME: First run must use straight 'apt-get update' because the default way
+# breaks on code "import apt; apt = apt.Cache()" used by ansible with:
+# E:The value 'xenial' is invalid for APT::Default-Release as such a release
+# is not available in the sources
+- name: repo update
+  shell:
+    cmd: apt-get update
+  args:
+    warn: false
+  tags:
+    - build-child
