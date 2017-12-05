@@ -1,0 +1,21 @@
+- name: config rc files
+  copy:
+    src: home/
+    dest: "{{ item.home }}"
+  with_items: "{{ users }}"
+
+- name: config user-dir
+  file:
+    path: "{{ item.home }}"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0700'
+  with_items: "{{ users }}"
+
+- name: config ssh-dir
+  file:
+    path: "{{ item.home }}/.ssh/"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0700'
+  with_items: "{{ users }}"

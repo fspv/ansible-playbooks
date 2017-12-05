@@ -1,4 +1,7 @@
 ---
 - import_tasks: configs.yml
+  tags: apt
 - import_tasks: repos.yml
+  tags: apt
 - import_tasks: packages.yml
+  tags: apt

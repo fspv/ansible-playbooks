@@ -1,0 +1,9 @@
+- name: user
+  user:
+    name: "{{ item.user }}"
+    comment: "{{ item.comment }}"
+    uid: "{{ item.uid }}"
+    password: "{{ item.password }}"
+    createhome: yes
+    shell: /bin/bash
+  with_items: "{{ users }}"

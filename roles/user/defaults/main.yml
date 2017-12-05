@@ -1,0 +1,4 @@
+users:
+  - { user: prius, uid: 1000, home: '/home/prius', comment: 'Pavel Safronov', admin: true, password: '$6$9ddFp9qBgi$eAKB4AQgPyCku/VU3P8tKCzFmFK4/sG85psODk7REv4S5Z4fL1Uv4Fjw9w8dUmdMsz9k/H/xfMqGmSo.A6/wk0' }
+  - { user: suirp, uid: 1488, home: '/home/suirp', comment: 'Vonorfas Levap', admin: true, password: '$6$9ddFp9qBgi$eAKB4AQgPyCku/VU3P8tKCzFmFK4/sG85psODk7REv4S5Z4fL1Uv4Fjw9w8dUmdMsz9k/H/xfMqGmSo.A6/wk0' }
+  - { user: root, uid: 0, home: '/root', comment: '', admin: true, password: '$6$9ddFp9qBgi$eAKB4AQgPyCku/VU3P8tKCzFmFK4/sG85psODk7REv4S5Z4fL1Uv4Fjw9w8dUmdMsz9k/H/xfMqGmSo.A6/wk0' }

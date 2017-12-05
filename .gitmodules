@@ -1,0 +1,3 @@
+[submodule "roles/user/files/home"]
+	path = roles/user/files/home
+	url = git@github.com:prius/.bashrc.git
