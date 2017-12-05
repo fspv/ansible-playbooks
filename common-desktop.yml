@@ -4,3 +4,4 @@
   sudo: True
   roles:
     - common
+    - ubuntu-desktop
