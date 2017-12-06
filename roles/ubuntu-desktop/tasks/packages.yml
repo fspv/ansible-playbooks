@@ -17,8 +17,6 @@
     - avahi-utils
     - baobab
     - deja-dup
-    - evince
-    - evince-common
     - evolution-data-server
     - dnsmasq
     - gnome-software
