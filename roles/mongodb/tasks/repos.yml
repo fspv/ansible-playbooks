@@ -1,0 +1,20 @@
+- name: repo apt key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+  notify:
+    - apt-get update
+
+- name: repo sources
+  template:
+    src: etc/apt/sources.list.d/mongodb.list.j2
+    dest: /etc/apt/sources.list.d/mongodb.list
+  notify:
+    - apt-get update
+
+- name: repo pin
+  template:
+    src: etc/apt/preferences.d/mongodb-org.pref.j2
+    dest: /etc/apt/preferences.d/mongodb-org.pref
+  notify:
+    - apt-get update

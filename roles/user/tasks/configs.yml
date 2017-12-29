@@ -19,3 +19,55 @@
     owner: "{{ item.user }}"
     mode: '0700'
   with_items: "{{ users }}"
+
+- name: config .config dir
+  file:
+    path: "{{ item.home }}/.config/"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0700'
+  with_items: "{{ users }}"
+
+- name: config .config/systemd dir
+  file:
+    path: "{{ item.home }}/.config/systemd/"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0700'
+  with_items: "{{ users }}"
+
+- name: config .config/systemd/user dir
+  file:
+    path: "{{ item.home }}/.config/systemd/user/"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0700'
+  with_items: "{{ users }}"
+
+- name: config .cache mount
+  copy:
+    content: |
+      [Unit]
+      Description=Mount tmpfs to /home/{{ item.user }}/.cache
+
+      [Mount]
+      Where=/home/{{ item.user }}/.cache
+      Options=defaults,noatime,nodiratime,nosuid,nodev,mode=1777
+      What=tmpfs
+      Type=tmpfs
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: "/etc/systemd/system/home-{{ item.user }}-.cache.mount"
+    owner: "root"
+  with_items: "{{ users }}"
+  when: item.user != 'root'
+
+- name: config .cache mount enable systemd
+  systemd:
+    name: "home-{{ item.user }}-.cache.mount"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  with_items: "{{ users }}"
+  when: item.user != 'root'

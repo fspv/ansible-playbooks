@@ -1,4 +1,5 @@
 dependencies:
+  - { role: user }
   - { role: apt }
   - { role: tzdata }
   - { role: ntp }

@@ -1,4 +1,5 @@
 dependencies:
-  - { role: apt }
   - { role: tlp }
+  - { role: chromium-browser }
+  - { role: mongodb }
 #  - { role: docker }
