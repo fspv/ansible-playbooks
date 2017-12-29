@@ -1,0 +1,12 @@
+- name: repo key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+
+- name: repo
+  template:
+    src: etc/apt/sources.list.d/docker-ce.list
+    dest: /etc/apt/sources.list.d/docker-ce.list
+  notify:
+    - apt-get update
+
+- meta: flush_handlers

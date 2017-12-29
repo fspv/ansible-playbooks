@@ -1,0 +1,27 @@
+- name: config systemd dir
+  file:
+    path: /etc/systemd/system/docker.service.d/
+    state: directory
+
+- name: config systemd custom docker opts
+  template:
+    src: etc/systemd/system/docker.service.d/custom-docker-opts.conf
+    dest: /etc/systemd/system/docker.service.d/custom-docker-opts.conf
+  notify:
+    - docker restart
+
+- name: config user dir
+  file:
+    path: "{{ item.home }}/.config/docker-user/"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0700'
+  with_items: "{{ users }}"
+
+- name: config user mounts
+  copy:
+    content: "{{ docker_config_run_args }}"
+    dest: "{{ item.home }}/.config/docker-user/run-args"
+    owner: "{{ item.user }}"
+    mode: '0600'
+  with_items: "{{ users }}"
