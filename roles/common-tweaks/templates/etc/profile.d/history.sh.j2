@@ -7,22 +7,49 @@ export HISTFILESIZE=99999 2>/dev/null
 # Controls output of `history` command end enables time logging in .bash_history
 export HISTTIMEFORMAT="%a, %d %b %Y %T %z " 2>/dev/null
 
-# Append to ~/.bash_history immediately
-export PROMPT_COMMAND='history -a' 2>/dev/null
-readonly PROMPT_COMMAND
+declare LOG2SYSLOG_PREV_COMMAND
+declare LOG2SYSLOG_FIRST_RUN="yes"
 
-declare PREV_COMMAND
-
-# Log to syslog
 function log2syslog {
+    # Append to histfile
+    history -a
+
+    # Get last command
     declare COMMAND
-    COMMAND=$(fc -ln 0)
-    if ! test "x$COMMAND" = "x$PREV_COMMAND"; then
-        logger -p local1.notice -t bashhistory -i -- "${USER}[$$]:$(pwd):$SSH_CONNECTION:${COMMAND}"
+    LAST_HISTORY_UNFORMATTED=$(
+        HISTTIMEFORMAT="" history 1 | awk '{ $1=""; print }')
+    # Remove whitespace from the beginning
+    COMMAND=$(echo ${LAST_HISTORY_UNFORMATTED})
+
+    # Return if there is nothing to log
+    test "x$COMMAND" = "" && return
+
+    # Test if command hasn't been already written to log
+    if ! test "x$COMMAND" = "x$LOG2SYSLOG_PREV_COMMAND"
+    then
+        if test "x$LOG2SYSLOG_FIRST_RUN" = "xyes"
+        then
+            LOG2SYSLOG_FIRST_RUN="no"
+            readonly LOG2SYSLOG_FIRST_RUN
+        else
+            logger -p local1.notice -t bashhistory -i -- \
+                "${USER}[$$]:$(pwd):$SSH_CONNECTION:${COMMAND}"
+        fi
     fi
-    PREV_COMMAND=$COMMAND
+
+    LOG2SYSLOG_PREV_COMMAND=$COMMAND
 }
 
-# NOTICE: This trap is only invoked before next command executed
-# and prints previous command
+readonly log2syslog
+
+# Trap executes before and after function.
+# So if trap successfully enoked it does all the magick right after
+# command has been started.
 trap log2syslog DEBUG
+
+# Trap has one security issue: it can be redefined
+
+# So here we are using readonly PROMPT_COMMAND to write something to log
+# even if some bad guy removed trap
+export PROMPT_COMMAND='log2syslog' 2>/dev/null
+readonly PROMPT_COMMAND
