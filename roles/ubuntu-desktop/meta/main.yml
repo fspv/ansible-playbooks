@@ -2,4 +2,4 @@ dependencies:
   - { role: tlp }
   - { role: chromium-browser }
   - { role: mongodb }
-#  - { role: docker }
+  - { role: docker }
