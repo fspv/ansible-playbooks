@@ -18,3 +18,5 @@
     dest: /etc/apt/preferences.d/mongodb-org.pref
   notify:
     - apt-get update
+
+- meta: flush_handlers
