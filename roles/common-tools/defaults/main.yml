@@ -30,3 +30,4 @@ common_tools:
   - net-tools
   - less
   - sudo
+  - nasm
