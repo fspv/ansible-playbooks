@@ -1,0 +1,15 @@
+- name: repo
+  template:
+    src: etc/apt/sources.list.d/ppa-ponysay.list.j2
+    dest: /etc/apt/sources.list.d/ppa-ponysay.list
+  notify:
+    - apt-get update
+
+- name: repo key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: C2079EE53D4B33595B07BDA9FE1FFCE65CB95493
+  notify:
+    - apt-get update
+
+- meta: flush_handlers

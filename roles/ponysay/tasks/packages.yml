@@ -1,0 +1,3 @@
+- name: package
+  apt:
+    name: ponysay
