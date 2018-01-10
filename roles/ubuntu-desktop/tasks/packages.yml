@@ -1,4 +1,4 @@
-- name: remove unnecessary packages
+- name: packages remove unnecessary
   apt:
     name: "{{ item }}"
     state: absent
@@ -44,7 +44,13 @@
     - zeitgeist-core
     - zeitgeist-datahub
 
-- name: latest LTS kernel
+- name: packages install necessary
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - fortune
+
+- name: packages latest LTS kernel
   apt:
     name: "{{ item }}"
     state: latest
