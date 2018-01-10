@@ -3,3 +3,4 @@ dependencies:
   - { role: chromium-browser }
   - { role: mongodb }
   - { role: docker }
+  - { role: ponysay }
