@@ -1,0 +1,13 @@
+- name: group
+  group:
+    name: drouz
+    gid: 1955
+
+- name: user
+  user:
+    name: drouz
+    comment: Drouz app user
+    uid: 1955
+    group: drouz
+    shell: /usr/sbin/nologin
+    createhome: no

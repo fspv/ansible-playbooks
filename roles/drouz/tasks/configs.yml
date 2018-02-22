@@ -1,0 +1,24 @@
+- name: config configs directory
+  file:
+    path: /etc/drouz
+    state: directory
+    owner: root
+    group: drouz
+    mode: '0750'
+
+- name: config sessions directory
+  file:
+    path: /etc/drouz/sessions
+    state: directory
+    owner: drouz
+    group: root
+    mode: '0750'
+
+- name: config main config
+  template:
+    src: etc/drouz/secrets.yml
+    dest: /etc/drouz/secrets-{{ item.environment }}.yml
+    owner: drouz
+    group: root
+    mode: '0640'
+  with_items: "{{ applications['drouz'] }}"
