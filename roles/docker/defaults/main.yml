@@ -1,5 +1,5 @@
 docker_service_systemd_custom_opts: "--experimental=true"
 docker_config_run_args: >
-  --mount="type=bind,source=~/git/github/ansible-playbooks,destination=/mnt/my/ansible-work"
-  --mount="type=bind,source=~/git/github-work/ansible-playbooks-work,destination=/mnt/my/ansible"
-  --mount="type=bind,source=~/.bash_history.docker.d/,destination=/root/.bash_history.d/
+  --mount="type=bind,source=${HOME}/.config/docker-user/ansible-playbooks-work,destination=/mnt/my/ansible-work"
+  --mount="type=bind,source=${HOME}/.config/docker-user/ansible-playbooks,destination=/mnt/my/ansible"
+  --mount="type=bind,source=${HOME}/.gnupg/,destination=/root/.gnupg/"
