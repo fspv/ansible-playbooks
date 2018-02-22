@@ -1,0 +1,22 @@
+- name: config copy gpg key to file
+  copy:
+    dest: "{{ item[0].home }}/.private/{{ item[1].filename }}.gpg"
+    content: "{{ item[1]['private_key'] }}"
+    owner: "{{ item[0].user }}"
+    mode: '0600'
+  with_subelements:
+    - "{{ users }}"
+    - gpg_keys
+  register: gpg_private_key_files
+
+- name: config import gpg private key
+  become: true
+  become_user: "{{ item[0].user }}"
+  shell: >
+    gpg --import {{ item[0].home }}/.private/{{ item[1].filename }}.gpg 2>&1
+    | head -n1
+    | grep -P '^gpg: key [0-9A-Z]*: (already in secret keyring|secret key imported)$'
+  when: gpg_private_key_files.changed
+  with_subelements:
+    - "{{ users }}"
+    - gpg_keys
