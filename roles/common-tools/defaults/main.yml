@@ -31,3 +31,4 @@ common_tools:
   - less
   - sudo
   - nasm
+  - pgpgpg
