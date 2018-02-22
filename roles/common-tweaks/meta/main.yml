@@ -3,3 +3,4 @@ dependencies:
   - { role: apt }
   - { role: tzdata }
   - { role: ntp }
+  - { role: gpg }
