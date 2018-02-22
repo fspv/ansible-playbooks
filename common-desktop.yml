@@ -2,6 +2,8 @@
 - hosts: all
   connection: local
   become: True
+  vars_files:
+    - manual/common.yml
   roles:
     - common
     - ubuntu-desktop
