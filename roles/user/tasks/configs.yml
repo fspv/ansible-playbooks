@@ -20,6 +20,15 @@
     mode: '0700'
   with_items: "{{ users }}"
 
+
+- name: config .private dir
+  file:
+    path: "{{ item.home }}/.private/"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0700'
+  with_items: "{{ users }}"
+
 - name: config .config dir
   file:
     path: "{{ item.home }}/.config/"
