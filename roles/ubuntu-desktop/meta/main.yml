@@ -4,3 +4,4 @@ dependencies:
   - { role: mongodb }
   - { role: docker }
   - { role: ponysay }
+  - { role: i3 }
