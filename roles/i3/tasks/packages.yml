@@ -1,0 +1,9 @@
+- name: packages
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - i3
+    - i3-wm
+    - i3lock
+    - i3status
+    - libanyevent-i3-perl

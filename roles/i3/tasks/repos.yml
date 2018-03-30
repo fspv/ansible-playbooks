@@ -1,0 +1,26 @@
+- name: repo sources
+  template:
+    src: etc/apt/sources.list.d/i3.list.j2
+    dest: /etc/apt/sources.list.d/i3.list
+  notify:
+    - apt-get update
+
+- name: repo pin
+  template:
+    src: etc/apt/preferences.d/i3.pref.j2
+    dest: /etc/apt/preferences.d/i3.pref
+  notify:
+    - apt-get update
+
+# We have to install keyring first and the run apt-get update one more time
+# to install next packages
+- name: package sur5r-keyring
+  apt:
+    name: sur5r-keyring
+    allow_unauthenticated: yes
+    state: latest
+    update_cache: yes
+  notify:
+    - apt-get update
+
+- meta: flush_handlers
