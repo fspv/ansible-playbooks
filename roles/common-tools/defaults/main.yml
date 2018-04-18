@@ -32,3 +32,4 @@ common_tools:
   - sudo
   - nasm
   - pgpgpg
+  - mercurial
