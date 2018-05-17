@@ -50,6 +50,7 @@
   with_items:
     - cowsay
     - fortune
+    - pavucontrol
 
 - name: packages latest LTS kernel
   apt:
