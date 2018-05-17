@@ -2,7 +2,7 @@
   copy:
     src: home/
     dest: "{{ item.home }}"
-  with_items: "{{ users }}"
+  with_items: "{{ users.values() }}"
 
 - name: config user-dir
   file:
@@ -10,7 +10,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users }}"
+  with_items: "{{ users.values() }}"
 
 - name: config ssh-dir
   file:
@@ -18,7 +18,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users }}"
+  with_items: "{{ users.values() }}"
 
 
 - name: config .private dir
@@ -27,7 +27,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users }}"
+  with_items: "{{ users.values() }}"
 
 - name: config .config dir
   file:
@@ -35,7 +35,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users }}"
+  with_items: "{{ users.values() }}"
 
 - name: config .config/systemd dir
   file:
@@ -43,7 +43,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users }}"
+  with_items: "{{ users.values() }}"
 
 - name: config .config/systemd/user dir
   file:
@@ -51,7 +51,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users }}"
+  with_items: "{{ users.values() }}"
 
 - name: config .cache mount
   copy:
@@ -69,8 +69,8 @@
       WantedBy=multi-user.target
     dest: "/etc/systemd/system/home-{{ item.user }}-.cache.mount"
     owner: "root"
-  with_items: "{{ users }}"
-  when: item.user != 'root'
+  with_items: "{{ users.values() }}"
+  when: item.user != 'root' and ansible_virtualization_type != 'docker'
 
 - name: config .cache mount enable systemd
   systemd:
@@ -78,5 +78,5 @@
     state: started
     enabled: yes
     daemon_reload: yes
-  with_items: "{{ users }}"
-  when: item.user != 'root'
+  with_items: "{{ users.values() }}"
+  when: item.user != 'root' and ansible_virtualization_type != 'docker'

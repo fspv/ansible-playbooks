@@ -1,1 +1,9 @@
-users: []
+users:
+  user:
+    user: user
+    uid: 1111
+    home: '/home/user'
+    comment: ''
+    admin: false
+    password: ''
+    gpg_keys: []
