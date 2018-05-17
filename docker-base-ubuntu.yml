@@ -1,0 +1,16 @@
+---
+- hosts: all
+  connection: local
+  become: True
+  vars:
+    users:
+      prius:
+        user: prius
+        uid: 1000
+        home: '/home/prius'
+        comment: 'Pavel Safronov'
+        admin: false
+        password: ''
+        gpg_keys: []
+  roles:
+    - common

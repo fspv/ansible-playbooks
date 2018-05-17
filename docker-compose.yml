@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  base-ubuntu:
+    image: prius/base-ubuntu
+    build:
+      context: /home/prius/git/github.com/prius/ansible-playbooks
+      dockerfile: /home/prius/git/github.com/prius/ansible-playbooks/docker-base-ubuntu.Dockerfile
+    entrypoint: sleep infinity
+    volumes:
+      - "/home/prius/git/github.com/prius/ansible-playbooks:/etc/my/ansible"
+      - "/home/prius/.bashrc:/home/prius/.bashrc"
+      - "/home/prius/.vim:/home/prius/.vim"
+      - "/home/prius/.vimrc:/home/prius/.vimrc"
