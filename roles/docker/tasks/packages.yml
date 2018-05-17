@@ -1,3 +1,6 @@
 - name: package
   apt:
-    name: docker-ce
+    name: "{{ item }}"
+  with_items:
+    - docker-ce
+    - docker-compose
