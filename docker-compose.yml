@@ -2,13 +2,31 @@ version: '2'
 
 services:
   base-ubuntu:
+    extends:
+      file: docker-compose-default.yml
+      service: default
     image: prius/base-ubuntu
     build:
-      context: /home/prius/git/github.com/prius/ansible-playbooks
       dockerfile: /home/prius/git/github.com/prius/ansible-playbooks/docker-base-ubuntu.Dockerfile
-    entrypoint: sleep infinity
+
+  chromium-browser:
+    extends:
+      file: docker-compose-default.yml
+      service: default
+    image: prius/chromium-browser
+    entrypoint: /sbin/init
+    build:
+      dockerfile: /home/prius/git/github.com/prius/ansible-playbooks/docker-chromium-browser.Dockerfile
     volumes:
-      - "/home/prius/git/github.com/prius/ansible-playbooks:/etc/my/ansible"
-      - "/home/prius/.bashrc:/home/prius/.bashrc"
-      - "/home/prius/.vim:/home/prius/.vim"
-      - "/home/prius/.vimrc:/home/prius/.vimrc"
+      - "/home/prius/.config/chromium/:/home/prius/.config/chromium/"
+      - "/tmp/.X11-unix/:/tmp/.X11-unix/"
+      - "/sys/fs/cgroup:/sys/fs/cgroup"
+      - "/dev/snd:/dev/snd"
+#      - "/var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket"
+    environment:
+      - container=docker
+      - DISPLAY=unix${DISPLAY}
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+      - SYS_PTRACE
