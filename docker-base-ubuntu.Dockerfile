@@ -25,5 +25,6 @@ ADD docker-base-ubuntu.yml /etc/my/ansible/
 # Apply ansible
 RUN . /usr/lib/my/ansible/bin/activate && \
     cd /etc/my/ansible/ && \
-    ansible-playbook --diff -i hosts docker-base-ubuntu.yml && \
+    ansible-playbook --diff -i hosts --skip-tags skip_docker \
+                     docker-base-ubuntu.yml && \
     rm -rf /var/lib/apt/lists/ /var/cache/apt/
