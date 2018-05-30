@@ -1,0 +1,52 @@
+*mangle
+:PREROUTING ACCEPT -
+:INPUT ACCEPT -
+:FORWARD ACCEPT -
+:OUTPUT ACCEPT -
+:POSTROUTING ACCEPT -
+COMMIT
+*nat
+:NF_PERSIST_POSTROUTING -
+-A NF_PERSIST_POSTROUTING -j MASQUERADE
+:PREROUTING ACCEPT -
+:INPUT ACCEPT -
+:OUTPUT ACCEPT -
+:POSTROUTING ACCEPT -
+-A POSTROUTING -j NF_PERSIST_POSTROUTING
+COMMIT
+*filter
+:NF_PERSIST_INPUT -
+-A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d ::1/128 -j ACCEPT
+-A NF_PERSIST_INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A NF_PERSIST_INPUT -m tcp -p tcp --dport 22 -j ACCEPT
+
+# Allow some ICMPv6 types in the INPUT chain
+# Using ICMPv6 type names to be clear.
+
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type destination-unreachable -j ACCEPT
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type packet-too-big -j ACCEPT
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type time-exceeded -j ACCEPT
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type parameter-problem -j ACCEPT
+
+# Allow some other types in the INPUT chain
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type echo-request -j ACCEPT
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type echo-reply -j ACCEPT
+
+# Allow others ICMPv6 types but only if the hop limit field is 255.
+
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type router-advertisement -m hl --hl-eq 255 -j ACCEPT
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type neighbor-solicitation -m hl --hl-eq 255 -j ACCEPT
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type neighbor-advertisement -m hl --hl-eq 255 -j ACCEPT
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type redirect -m hl --hl-eq 255 -j ACCEPT
+
+-A NF_PERSIST_INPUT -i docker+ -j ACCEPT
+-A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
+-A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
+-A NF_PERSIST_INPUT -i br-+ -j ACCEPT
+-A NF_PERSIST_INPUT -j DROP
+:INPUT ACCEPT -
+-A INPUT -j NF_PERSIST_INPUT
+:FORWARD ACCEPT -
+:OUTPUT ACCEPT -
+COMMIT
+

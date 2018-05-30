@@ -1,0 +1,9 @@
+- include_tasks: packages.yml
+  tags:
+    - skip_docker
+- include_tasks: configs.yml
+  tags:
+    - skip_docker
+- include_tasks: services.yml
+  tags:
+    - skip_docker

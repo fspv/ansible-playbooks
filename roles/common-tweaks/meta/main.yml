@@ -4,3 +4,4 @@ dependencies:
   - { role: tzdata }
   - { role: ntp }
   - { role: gpg }
+  - { role: iptables }

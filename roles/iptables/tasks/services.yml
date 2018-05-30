@@ -1,0 +1,5 @@
+- name: service
+  systemd:
+    name: netfilter-persistent
+    enabled: true
+    state: started

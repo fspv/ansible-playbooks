@@ -1,0 +1,15 @@
+- name: config rules.v4
+  template:
+    src: etc/iptables/rules.v4
+    dest: /etc/iptables/rules.v4
+    mode: '0640'
+  notify:
+    - netfilter-persistent restart
+
+- name: config rules.v6
+  template:
+    src: etc/iptables/rules.v6
+    dest: /etc/iptables/rules.v6
+    mode: '0640'
+  notify:
+    - netfilter-persistent restart
