@@ -33,3 +33,7 @@ common_tools:
   - nasm
   - pgpgpg
   - mercurial
+  - iputils-ping
+  - iputils-arping
+  - fping
+  - kpartx
