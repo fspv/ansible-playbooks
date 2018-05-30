@@ -10,6 +10,13 @@
   notify:
     - docker restart
 
+- name: config default config
+  template:
+    src: etc/docker/daemon.json
+    dest: /etc/docker/daemon.json
+  notify:
+    - docker restart
+
 - name: config user dir
   file:
     path: "{{ item.home }}/.config/docker-user/"

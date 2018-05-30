@@ -1,0 +1,5 @@
+{
+  "iptables": false,
+  "ipv6": true,
+  "fixed-cidr-v6": "1488::/112"
+}
