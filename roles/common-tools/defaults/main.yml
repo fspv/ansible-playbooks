@@ -37,3 +37,13 @@ common_tools:
   - iputils-arping
   - fping
   - kpartx
+  - powertop
+  - testdisk
+  - ebtables
+  - nmap
+  - ipython
+  - ipython3
+  - lm-sensors
+  - psensor
+  - fancontrol
+  - aptitude
