@@ -1,3 +1,18 @@
+- name: user check group exists
+  shell: "getent group {{ item }} | grep -o {{ item }}"
+  register: groups
+  ignore_errors: True
+  with_items: "{{ default_groups }}"
+
+- name: user check admin group exists
+  shell: "getent group {{ item }} | grep -o {{ item }}"
+  register: admin_groups
+  ignore_errors: True
+  with_items: "{{ default_admin_groups }}"
+
+- debug:
+    msg: "{{ (groups.results + admin_groups.results)|map(attribute='stdout')|reject('equalto', '')|join(',') }}"
+
 - name: user
   user:
     name: "{{ item.user }}"
@@ -6,4 +21,20 @@
     password: "{{ item.password }}"
     createhome: yes
     shell: /bin/bash
-  with_items: "{{ users.values() }}"
+    groups: "{{ groups.results|map(attribute='stdout')|reject('equalto', '')|join(',') }}"
+  when: not item.admin
+  with_items:
+    - "{{ users.values() }}"
+
+- name: admin user
+  user:
+    name: "{{ item.user }}"
+    comment: "{{ item.comment }}"
+    uid: "{{ item.uid }}"
+    password: "{{ item.password }}"
+    createhome: yes
+    shell: /bin/bash
+    groups: "{{ (groups.results + admin_groups.results)|map(attribute='stdout')|reject('equalto', '')|join(',') }}"
+  when: item.admin
+  with_items:
+    - "{{ users.values() }}"

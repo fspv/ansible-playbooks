@@ -1,3 +1,13 @@
+default_groups:
+  - audio
+  - cdrom
+  - dip
+  - plugdev
+  - lpadmin
+
+default_admin_groups:
+  - sudo
+
 users:
   user:
     user: user
