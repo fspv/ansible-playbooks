@@ -14,18 +14,19 @@ services:
       file: docker-compose-default.yml
       service: default
     image: prius/chromium-browser
-    entrypoint: /sbin/init
     build:
       dockerfile: /home/prius/git/github.com/prius/ansible-playbooks/docker-chromium-browser.Dockerfile
     volumes:
       - "/home/prius/.config/chromium/:/home/prius/.config/chromium/"
       - "/tmp/.X11-unix/:/tmp/.X11-unix/"
       - "/sys/fs/cgroup:/sys/fs/cgroup"
+      - "/run/dbus/:/run/dbus/"
+    devices:
       - "/dev/snd:/dev/snd"
-#      - "/var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket"
+      - "/dev/shm:/dev/shm"
     environment:
       - container=docker
-      - DISPLAY=unix${DISPLAY}
+      - DISPLAY=${DISPLAY}
     privileged: true
     cap_add:
       - SYS_ADMIN
