@@ -1,0 +1,11 @@
+- name: package python-pip
+  apt:
+    name: python-pip
+
+- name: package python3-pip
+  apt:
+    name: python3-pip
+
+- name: package python-virtualenv
+  apt:
+    name: python-virtualenv
