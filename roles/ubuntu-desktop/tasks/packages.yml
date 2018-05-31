@@ -51,6 +51,19 @@
     - cowsay
     - fortune
     - pavucontrol
+    - qbittorrent
+    - vlc
+    - adb
+    - samba-common-bin
+    - dupload
+    - virt-manager
+    - qemu-kvm
+    - qemu
+    - libvirt-bin
+    - vagrant
+    - ruby-libvirt
+    - virtualbox
+    - dia
 
 - name: packages latest LTS kernel
   apt:
