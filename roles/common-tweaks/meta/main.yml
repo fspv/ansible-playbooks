@@ -5,3 +5,4 @@ dependencies:
   - { role: ntp }
   - { role: gpg }
   - { role: iptables }
+  - { role: locales }

@@ -1,0 +1,7 @@
+- name: config locale.gen
+  template:
+    src: etc/locale.gen
+    dest: /etc/locale.gen
+
+- name: config run locale-gen
+  shell: locale-gen
