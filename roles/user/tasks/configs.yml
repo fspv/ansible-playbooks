@@ -80,3 +80,23 @@
     daemon_reload: yes
   with_items: "{{ users.values() }}"
   when: item.user != 'root' and ansible_virtualization_type != 'docker'
+
+- name: config .private dir for user
+  file:
+    name: "{{ item.home }}/.private"
+    owner: "{{ item.user }}"
+    mode: '0700'
+    state: directory
+  when: "'custom_secrets' in item"
+  with_items: "{{ users.values() }}"
+
+- name: config custom secret
+  template:
+    src: custom_secret.j2
+    dest: "{{ item.0.home }}/.private/{{ item.1.filename }}"
+    owner: "{{ item.0.user }}"
+    mode: '0600'
+  with_subelements:
+    - "{{ users.values() }}"
+    - custom_secrets
+    - skip_missing: True
