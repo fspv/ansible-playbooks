@@ -47,3 +47,5 @@ common_tools:
   - psensor
   - fancontrol
   - aptitude
+  - mtr
+  - whois
