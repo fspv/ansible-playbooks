@@ -6,3 +6,4 @@ dependencies:
   - { role: ponysay }
   - { role: i3 }
   - { role: skype }
+  - { role: pulseaudio }
