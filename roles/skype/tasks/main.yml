@@ -1,0 +1,3 @@
+- import_tasks: repos.yml
+- import_tasks: packages.yml
+- import_tasks: configs.yml

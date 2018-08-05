@@ -5,3 +5,4 @@ dependencies:
   - { role: docker }
   - { role: ponysay }
   - { role: i3 }
+  - { role: skype }
