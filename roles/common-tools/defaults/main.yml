@@ -49,3 +49,4 @@ common_tools:
   - aptitude
   - mtr
   - whois
+  - jq
