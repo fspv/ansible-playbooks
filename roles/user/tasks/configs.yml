@@ -37,6 +37,14 @@
     mode: '0700'
   with_items: "{{ users.values() }}"
 
+- name: config .config/autostart dir
+  file:
+    path: "{{ item.home }}/.config/autostart/"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0700'
+  with_items: "{{ users.values() }}"
+
 - name: config .config/systemd dir
   file:
     path: "{{ item.home }}/.config/systemd/"
