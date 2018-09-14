@@ -1,0 +1,6 @@
+- name: openvpn config
+  copy:
+    dest: "/etc/openvpn/{{ item.key }}.conf"
+    content: "{{ item.value }}"
+    mode: '0600'
+  with_dict: "{{ openvpn['configs'] }}"

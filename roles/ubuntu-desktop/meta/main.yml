@@ -7,3 +7,4 @@ dependencies:
   - { role: i3 }
   - { role: skype }
   - { role: pulseaudio }
+  - { role: openvpn }
