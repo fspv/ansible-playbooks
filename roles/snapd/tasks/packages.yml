@@ -1,0 +1,7 @@
+- name: snapd package default
+  apt:
+    name: snapd
+
+- name: snapd package snapd-xdg-open
+  apt:
+    name: snapd-xdg-open
