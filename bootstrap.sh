@@ -2,20 +2,34 @@
 
 set -uex
 
-apt-get update
-
-apt-get -y install python-dev build-essential libssl-dev libffi-dev \
-                       python-pip python-virtualenv git
-
-mkdir -p /opt/venvs/
-
-cd /opt/venvs/
-
-if ! test -d /opt/venvs/ansible/
+if [ "$#" -eq 2 ]
 then
-    virtualenv ansible
-
-    export VIRTUAL_ENV_DISABLE_PROMPT=yes
-
-    . /opt/venvs/ansible/bin/activate && pip install ansible==2.4.0.0
+    ./bootstrap-ansible.sh $2
+else
+    ./bootstrap-ansible.sh REMOTE
 fi
+
+ANSIBLE_ROLE=$1
+ANSIBLE_ARGS=""
+
+. bootstrap-config.sh
+
+if test -f ${ANSIBLE_REPO_DIR}/ansible-default
+then
+    . ${ANSIBLE_REPO_DIR}/ansible-default
+fi
+
+if test -f ${ANSIBLE_REPO_DIR}/manual/ansible-default
+then
+    . ${ANSIBLE_REPO_DIR}/manual/ansible-default
+fi
+
+ANSIBLE_ARGS="${ANSIBLE_ARGS} $1"
+
+cd ${ANSIBLE_REPO_DIR}
+
+set +u
+. ${ANSIBLE_VENV_DIR}/bin/activate
+set -u
+
+ansible-playbook ${ANSIBLE_ARGS}
