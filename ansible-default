@@ -1,0 +1,1 @@
+ANSIBLE_ARGS="${ANSIBLE_ARGS} -c ansible.cfg --diff -i hosts"
