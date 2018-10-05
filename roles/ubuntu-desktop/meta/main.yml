@@ -8,3 +8,4 @@ dependencies:
   - { role: skype }
   - { role: pulseaudio }
   - { role: openvpn }
+  - { role: discord }
