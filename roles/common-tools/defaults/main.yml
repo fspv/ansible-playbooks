@@ -50,3 +50,4 @@ common_tools:
   - mtr
   - whois
   - jq
+  - pciutils
