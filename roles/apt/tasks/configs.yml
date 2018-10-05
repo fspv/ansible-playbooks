@@ -14,6 +14,11 @@
     src: etc/apt/apt.conf.d/00timeout.j2
     dest: /etc/apt/apt.conf.d/00timeout
 
+- name: config no install recommends
+  template:
+    src: etc/apt/apt.conf.d/00noinstallrecommends.j2
+    dest: /etc/apt/apt.conf.d/00noinstallrecommends
+
 - name: config debug
   template:
     src: etc/apt/apt.conf.d/99debug.j2
