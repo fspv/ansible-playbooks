@@ -1,0 +1,15 @@
+- name: repo
+  template:
+    src: etc/apt/sources.list.d/ppa-i2p.list.j2
+    dest: /etc/apt/sources.list.d/ppa-i2p.list
+  notify:
+    - apt-get update
+
+- name: repo key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 474BC46576FAE76E97C1A1A1AB9660B9EB2CC88B
+  notify:
+    - apt-get update
+
+- meta: flush_handlers

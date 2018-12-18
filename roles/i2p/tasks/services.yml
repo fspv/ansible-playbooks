@@ -1,0 +1,4 @@
+- name: service
+  service:
+    name: i2p
+    enabled: no

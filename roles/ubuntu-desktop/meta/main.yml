@@ -10,3 +10,4 @@ dependencies:
   - { role: openvpn }
   - { role: discord }
   - { role: go }
+  - { role: i2p }
