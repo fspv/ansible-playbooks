@@ -83,13 +83,3 @@
     - virtualbox-guest-dkms
     - virtualbox-guest-x11
   when: runningvirtualbox.rc == 0
-
-- name: packages latest LTS kernel
-  apt:
-    name: "{{ item }}"
-    state: latest
-  with_items:
-    - linux-image-generic-lts-xenial
-    - linux-headers-generic-lts-xenial
-    - linux-tools-generic-lts-xenial
-    - linux-generic-lts-xenial
