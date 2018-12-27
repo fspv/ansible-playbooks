@@ -1,0 +1,4 @@
+- name: handler NetworkManager restart
+  service:
+    name: NetworkManager
+    state: restarted

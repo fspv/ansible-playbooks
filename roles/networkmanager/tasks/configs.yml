@@ -1,0 +1,8 @@
+- name: config
+  template:
+    src: etc/NetworkManager/NetworkManager.conf.j2
+    dest: /etc/NetworkManager/NetworkManager.conf
+  notify:
+    - handler NetworkManager restart
+
+- meta: flush_handlers
