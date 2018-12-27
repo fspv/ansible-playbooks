@@ -1,3 +1,10 @@
+- name: repo apt key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: E3CA1A89941C42E6
+  notify:
+    - apt-get update
+
 - name: repo sources
   template:
     src: etc/apt/sources.list.d/i3.list.j2
