@@ -1,0 +1,5 @@
+{% if "search" in resolv["config"] %}search {% for search in resolv["config"]["search"] %}{{ search }} {% endfor %}{% endif %}
+
+{% for nameserver in resolv["config"]["nameserver"] %}
+nameserver {{ nameserver }}
+{% endfor %}

@@ -1,0 +1,15 @@
+- name: config stat resolv.conf
+  stat:
+    path: /etc/resolv.conf
+  register: resolv_conf_stat
+
+- name: config remove resolv.conf if symlink
+  file:
+    path: /etc/resolv.conf
+    state: absent
+  when: resolv_conf_stat.stat.islnk
+
+- name: config resolv.conf
+  template:
+    src: etc/resolv.conf.j2
+    dest: /etc/resolv.conf

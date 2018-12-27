@@ -1,0 +1,8 @@
+- name: config named.options
+  template:
+    src: etc/bind/named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+  notify:
+    - handler bind restart
+
+- meta: flush_handlers

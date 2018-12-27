@@ -1,0 +1,4 @@
+resolv:
+  config:
+    nameserver:
+      - 127.0.0.1

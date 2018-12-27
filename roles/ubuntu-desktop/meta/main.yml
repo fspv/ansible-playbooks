@@ -1,4 +1,6 @@
 dependencies:
+  - { role: bind }
+  - { role: resolv }
   - { role: tlp }
   - { role: chromium-browser }
   - { role: mongodb }
