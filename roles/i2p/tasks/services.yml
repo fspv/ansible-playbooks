@@ -2,3 +2,4 @@
   service:
     name: i2p
     enabled: no
+    state: stopped
