@@ -1,13 +1,17 @@
 # For better support of PPA repos
-- name: package python-software-properties
+- name: package software-properties-common
   apt:
-    name: python-software-properties
+    name: software-properties-common
 
 - name: package python-pycurl
   apt:
     name: python-pycurl
 
 - name: package python-apt
+  apt:
+    name: python-apt
+
+- name: package python3-apt
   apt:
     name: python-apt
 
