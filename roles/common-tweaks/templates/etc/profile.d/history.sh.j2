@@ -22,7 +22,7 @@ function log2syslog {
     COMMAND=$(echo ${LAST_HISTORY_UNFORMATTED})
 
     # Return if there is nothing to log
-    test "x$COMMAND" = "" && return
+    test "x$COMMAND" = "x" && return
 
     # Test if command hasn't been already written to log
     if ! test "x$COMMAND" = "x$LOG2SYSLOG_PREV_COMMAND"
@@ -41,6 +41,8 @@ function log2syslog {
 }
 
 readonly log2syslog
+
+export -f log2syslog
 
 # Trap executes before and after function.
 # So if trap successfully enoked it does all the magick right after
