@@ -15,6 +15,11 @@
     dest: "/etc/apt/preferences.d/{{ item }}.pref"
   with_items: "{{ apt_repos }}"
 
+- name: repo ubuntu ppa pin
+  template:
+    src: "etc/apt/preferences.d/ppa.pref.j2"
+    dest: "/etc/apt/preferences.d/ppa.pref"
+
 ### Repos
 - name: repo ubuntu
   template:

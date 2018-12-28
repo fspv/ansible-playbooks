@@ -1,3 +1,8 @@
+- name: repo ppa-ponysay pins
+  template:
+    src: etc/apt/preferences.d/ppa-ponysay.pref.j2
+    dest: /etc/apt/preferences.d/ppa-ponysay.pref
+
 - name: repo
   template:
     src: etc/apt/sources.list.d/ppa-ponysay.list.j2

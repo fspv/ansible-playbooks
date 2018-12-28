@@ -1,3 +1,8 @@
+- name: repo ppa-i2p pins
+  template:
+    src: etc/apt/preferences.d/ppa-i2p.pref.j2
+    dest: /etc/apt/preferences.d/ppa-i2p.pref
+
 - name: repo
   template:
     src: etc/apt/sources.list.d/ppa-i2p.list.j2
