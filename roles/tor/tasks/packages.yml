@@ -1,0 +1,7 @@
+- name: package tor
+  apt:
+    name: tor
+
+- name: package torbrowser-launcher
+  apt:
+    name: torbrowser-launcher
