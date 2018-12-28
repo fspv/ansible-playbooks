@@ -43,6 +43,7 @@
     - zeitgeist-datahub
     - ubuntu-report
     - popularity-contest
+    - gnome-initial-setup
 
 - name: packages install necessary
   apt:
