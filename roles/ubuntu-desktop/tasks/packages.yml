@@ -44,6 +44,8 @@
     - ubuntu-report
     - popularity-contest
     - gnome-initial-setup
+    - thunderbird
+    - thunderbird-gnome-support
 
 - name: packages install necessary
   apt:
