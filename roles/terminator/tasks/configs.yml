@@ -1,4 +1,4 @@
 - name: config x-terminal update-alternatives
   alternatives:
     name: x-terminal-emulator
-    path: /usr/bin/terminator.wrapper
+    path: /usr/bin/terminator
