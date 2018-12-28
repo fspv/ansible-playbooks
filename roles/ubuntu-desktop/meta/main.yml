@@ -13,3 +13,4 @@ dependencies:
   - { role: discord }
   - { role: go }
   - { role: i2p }
+  - { role: terminator }
