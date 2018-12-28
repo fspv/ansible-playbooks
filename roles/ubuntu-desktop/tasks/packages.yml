@@ -46,6 +46,7 @@
     - gnome-initial-setup
     - thunderbird
     - thunderbird-gnome-support
+    - ubuntu-web-launchers
 
 - name: packages install necessary
   apt:
