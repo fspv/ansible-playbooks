@@ -41,6 +41,8 @@
     - whoopsie
     - zeitgeist-core
     - zeitgeist-datahub
+    - ubuntu-report
+    - popularity-contest
 
 - name: packages install necessary
   apt:
