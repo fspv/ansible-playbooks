@@ -7,8 +7,10 @@
 COMMIT
 *nat
 :NF_PERSIST_POSTROUTING -
--A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -d ::1/128 -j RETURN
+# Do not forward locally generated packets
+-A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
 
+# Do not forward packets to internal networks (for security reasons)
 -A NF_PERSIST_POSTROUTING -o lo -j RETURN
 -A NF_PERSIST_POSTROUTING -o docker+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o lxcbr+ -j RETURN
@@ -53,9 +55,22 @@ COMMIT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i br-+ -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
+:NF_PERSIST_FORWARD -
+# Do not forward packets from interfaces not identified as local
+-A NF_PERSIST_FORWARD -i lo -j ACCEPT
+-A NF_PERSIST_FORWARD -o lo -j ACCEPT
+-A NF_PERSIST_FORWARD -i docker+ -j ACCEPT
+-A NF_PERSIST_FORWARD -o docker+ -j ACCEPT
+-A NF_PERSIST_FORWARD -i lxcbr+ -j ACCEPT
+-A NF_PERSIST_FORWARD -o lxcbr+ -j ACCEPT
+-A NF_PERSIST_FORWARD -i virbr+ -j ACCEPT
+-A NF_PERSIST_FORWARD -o virbr+ -j ACCEPT
+-A NF_PERSIST_FORWARD -i br-+ -j ACCEPT
+-A NF_PERSIST_FORWARD -o br-+ -j ACCEPT
+-A NF_PERSIST_FORWARD -j DROP
 :INPUT ACCEPT -
 -A INPUT -j NF_PERSIST_INPUT
 :FORWARD ACCEPT -
+-A FORWARD -j NF_PERSIST_FORWARD
 :OUTPUT ACCEPT -
 COMMIT
-
