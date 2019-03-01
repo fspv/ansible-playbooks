@@ -1,7 +1,7 @@
 - name: repo apt key
   apt_key:
     keyserver: keyserver.ubuntu.com
-    id: E3CA1A89941C42E6
+    id: 941C42E6
   notify:
     - apt-get update
 
