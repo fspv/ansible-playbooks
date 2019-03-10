@@ -1,7 +1,8 @@
-- name: repo apt key
-  apt_key:
-    keyserver: keyserver.ubuntu.com
-    id: 941C42E6
+# We have to install keyring first and the run apt-get update one more time
+# to install next packages
+- name: package sur5r-keyring
+  apt:
+    deb: http://debian.sur5r.net/i3/pool/main/s/sur5r-keyring/sur5r-keyring_2019.02.01_all.deb
   notify:
     - apt-get update
 
@@ -16,17 +17,6 @@
   template:
     src: etc/apt/preferences.d/i3.pref.j2
     dest: /etc/apt/preferences.d/i3.pref
-  notify:
-    - apt-get update
-
-# We have to install keyring first and the run apt-get update one more time
-# to install next packages
-- name: package sur5r-keyring
-  apt:
-    name: sur5r-keyring
-    allow_unauthenticated: yes
-    state: latest
-    update_cache: yes
   notify:
     - apt-get update
 
