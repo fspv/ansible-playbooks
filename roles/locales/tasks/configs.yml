@@ -2,6 +2,5 @@
   template:
     src: etc/locale.gen
     dest: /etc/locale.gen
-
-- name: config run locale-gen
-  shell: locale-gen
+  notify:
+    - run locale-gen
