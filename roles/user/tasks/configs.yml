@@ -108,3 +108,14 @@
     - "{{ users.values() }}"
     - custom_secrets
     - skip_missing: True
+
+- name: config custom secret from file
+  copy:
+    src: "{{ item.1.src_dir }}/{{ item.1.filename }}"
+    dest: "{{ item.0.home }}/.private/{{ item.1.filename }}"
+    owner: "{{ item.0.user }}"
+    mode: '0600'
+  with_subelements:
+    - "{{ users.values() }}"
+    - custom_secrets_from_file
+    - skip_missing: True
