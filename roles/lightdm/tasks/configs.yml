@@ -1,0 +1,6 @@
+- name: config lightdm key repeat
+  copy:
+    dest: /etc/lightdm/lightdm.conf.d/00-setkbrate.conf
+    content: |
+      [Seat:*]
+      xserver-command=X -ardelay 250 -arinterval 15

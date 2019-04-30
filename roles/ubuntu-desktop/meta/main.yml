@@ -17,3 +17,4 @@ dependencies:
   - { role: tor }
   - { role: obs }
   - { role: keepassxc }
+  - { role: lightdm }
