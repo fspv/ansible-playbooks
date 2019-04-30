@@ -16,3 +16,4 @@ dependencies:
   - { role: terminator }
   - { role: tor }
   - { role: obs }
+  - { role: keepassxc }
