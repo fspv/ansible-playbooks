@@ -1,3 +1,7 @@
-- name: package
+- name: package xfce4
   apt:
     name: xfce4
+
+- name: package xfce4-power-manager
+  apt:
+    name: xfce4-power-manager
