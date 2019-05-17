@@ -11,3 +11,19 @@
 - name: packages screenshot app
   apt:
     name: shutter
+
+- name: package xss-lock
+  apt:
+    name: xss-lock
+
+- name: package xautolock
+  apt:
+    name: xautolock
+
+- name: packages remove screensavers
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - gnome-screensaver
+    - xscreensaver
