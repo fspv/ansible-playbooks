@@ -18,3 +18,4 @@ dependencies:
   - { role: obs }
   - { role: keepassxc }
   - { role: lightdm }
+  - { role: xfce4 }
