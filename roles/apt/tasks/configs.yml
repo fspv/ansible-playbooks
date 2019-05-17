@@ -24,7 +24,27 @@
     src: etc/apt/apt.conf.d/99debug.j2
     dest: /etc/apt/apt.conf.d/99debug
 
+- name: config disable-periodic actions
+  template:
+    src: etc/apt/apt.conf.d/10periodic.j2
+    dest: /etc/apt/apt.conf.d/10periodic
+
 - name: config disable-motd-update-on-login
   file:
     path: /etc/update-motd.d/90-updates-available
+    state: absent
+
+- name: config disable-update-notifier
+  file:
+    path: /etc/apt/apt.conf.d/99update-notifier
+    state: absent
+
+- name: config disable-update-notifier-cron-daily
+  file:
+    path: /etc/cron.daily/update-notifier-common
+    state: absent
+
+- name: config disable-update-notifier-cron-weekly
+  file:
+    path: /etc/cron.weekly/update-notifier-common
     state: absent
