@@ -7,3 +7,7 @@
     - i3lock
     - i3status
     - libanyevent-i3-perl
+
+- name: packages screenshot app
+  apt:
+    name: shutter
