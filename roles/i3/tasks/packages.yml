@@ -27,3 +27,7 @@
   with_items:
     - gnome-screensaver
     - xscreensaver
+
+- name: package volumeicon
+  apt:
+    name: volumeicon
