@@ -28,6 +28,6 @@
     - gnome-screensaver
     - xscreensaver
 
-- name: package volumeicon
+- name: package volumeicon-alsa
   apt:
-    name: volumeicon
+    name: volumeicon-alsa
