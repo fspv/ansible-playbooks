@@ -51,3 +51,4 @@ common_tools:
   - whois
   - jq
   - pciutils
+  - unrar
