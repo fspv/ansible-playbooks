@@ -1,4 +1,4 @@
 dependencies:
-  - { role: apt }
+  - { role: pkgmanager }
   - { role: bind }
   - { role: networkmanager }

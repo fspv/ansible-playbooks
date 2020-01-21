@@ -1,1 +1,2 @@
+- include_vars: "{{ ansible_distribution }}.yml"
 - import_tasks: packages.yml

@@ -2,6 +2,7 @@
   template:
     src: etc/apt/preferences.d/ppa-ponysay.pref.j2
     dest: /etc/apt/preferences.d/ppa-ponysay.pref
+  when: ansible_distribution == "Ubuntu"
 
 - name: repo
   template:
@@ -9,6 +10,7 @@
     dest: /etc/apt/sources.list.d/ppa-ponysay.list
   notify:
     - apt-get update
+  when: ansible_distribution == "Ubuntu"
 
 - name: repo key
   apt_key:
@@ -16,5 +18,7 @@
     id: FED902047AF1397755144CF6B47BBF2062DDDB70
   notify:
     - apt-get update
+  when: ansible_distribution == "Ubuntu"
 
 - meta: flush_handlers
+  when: ansible_distribution == "Ubuntu"

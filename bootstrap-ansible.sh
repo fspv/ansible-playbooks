@@ -2,10 +2,19 @@
 
 set -uex
 
-sudo apt-get update
 
-sudo apt-get -y install python-dev build-essential libssl-dev libffi-dev \
-                       python-pip python-virtualenv git
+if which apt-get 2>&1 >/dev/null
+then
+    sudo apt-get update
+
+    sudo apt-get -y install python-dev build-essential libssl-dev libffi-dev \
+			       python-pip python-virtualenv git
+fi
+
+if which yum 2>&1 >/dev/null
+then
+    sudo yum -y install python-pip python-virtualenv git
+fi
 
 . bootstrap-config.sh
 

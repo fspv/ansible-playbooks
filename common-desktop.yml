@@ -6,4 +6,4 @@
     - manual/common.yml
   roles:
     - common
-    - ubuntu-desktop
+    - desktop

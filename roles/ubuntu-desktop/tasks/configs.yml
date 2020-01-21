@@ -1,11 +1,3 @@
-# Files like /etc/profile.d/vte-2.91.sh are trying to reassign PROMPT_COMMAND
-# Except this this file does basically nothing, so we don't need it
-- name: config remove vte profile.d scripts
-  file:
-    path: "{{ item }}"
-    state: absent
-  with_fileglob: /etc/profile.d/vte*.sh
-
 - name: config disable update notifier
   template:
     dest: /etc/xdg/autostart/update-notifier.desktop

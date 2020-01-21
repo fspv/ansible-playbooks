@@ -1,0 +1,10 @@
+common_tools:
+  - libxml2-utils
+  - pgpgpg
+  - iputils-ping
+  - iputils-arping
+  - lm-sensors
+  - psensor
+  - fancontrol
+  - aptitude
+  - unrar

@@ -1,0 +1,3 @@
+dependencies:
+  - { role: ubuntu-desktop, when: ansible_distribution == "Ubuntu" }
+  - { role: fedora-desktop, when: ansible_distribution == "Fedora" }

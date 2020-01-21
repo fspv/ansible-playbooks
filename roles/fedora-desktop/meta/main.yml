@@ -1,0 +1,21 @@
+dependencies:
+  - { role: bind, when: ansible_distribution == "Ubuntu" }
+  - { role: resolv, when: ansible_distribution == "Ubuntu" }
+  - { role: tlp, when: ansible_distribution == "Ubuntu" }
+  - { role: chromium-browser }
+  - { role: mongodb, when: ansible_distribution == "Ubuntu" }
+  - { role: docker, when: ansible_distribution == "Ubuntu" }
+  - { role: ponysay, when: ansible_distribution == "Ubuntu" }
+  - { role: i3, when: ansible_distribution == "Ubuntu" }
+  - { role: skype, when: ansible_distribution == "Ubuntu" }
+  - { role: pulseaudio, when: ansible_distribution == "Ubuntu" }
+  - { role: openvpn, when: ansible_distribution == "Ubuntu" }
+  - { role: discord, when: ansible_distribution == "Ubuntu" }
+  - { role: go, when: ansible_distribution == "Ubuntu" }
+  - { role: i2p, when: ansible_distribution == "Ubuntu" }
+  - { role: terminator, when: ansible_distribution == "Ubuntu" }
+  - { role: tor, when: ansible_distribution == "Ubuntu" }
+  - { role: obs, when: ansible_distribution == "Ubuntu" }
+  - { role: keepassxc, when: ansible_distribution == "Ubuntu" }
+  - { role: lightdm, when: ansible_distribution == "Ubuntu" }
+  - { role: xfce4, when: ansible_distribution == "Ubuntu" }

@@ -1,8 +1,8 @@
 dependencies:
-  - { role: user }
-  - { role: apt }
+  - { role: user, when: ansible_distribution == "Ubuntu" }
+  - { role: pkgmanager }
   - { role: tzdata }
-  - { role: ntp }
-  - { role: gpg }
-  - { role: iptables }
-  - { role: locales }
+  - { role: ntp, when: ansible_distribution == "Ubuntu" }
+  - { role: gpg, when: ansible_distribution == "Ubuntu" }
+  - { role: iptables, when: ansible_distribution == "Ubuntu" }
+  - { role: locales, when: ansible_distribution == "Ubuntu" }
