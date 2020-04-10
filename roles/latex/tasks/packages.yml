@@ -1,0 +1,4 @@
+---
+- name: package
+  package:
+    name: texlive-full

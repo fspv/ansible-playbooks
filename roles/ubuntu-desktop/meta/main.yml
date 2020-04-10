@@ -19,3 +19,4 @@ dependencies:
   - { role: keepassxc }
   - { role: lightdm }
   - { role: xfce4 }
+  - { role: latex }
