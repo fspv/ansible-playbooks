@@ -43,3 +43,5 @@ common_tools:
   - whois
   - jq
   - pciutils
+  - sysstat
+  - linux-tools-common
