@@ -8,7 +8,7 @@
 - name: repo sources
   template:
     src: etc/apt/sources.list.d/skype.list.j2
-    dest: /etc/apt/sources.list.d/skype.list
+    dest: /etc/apt/sources.list.d/skype-stable.list
   notify:
     - apt-get update
 
