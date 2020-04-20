@@ -69,6 +69,7 @@
     - ruby-libvirt
     - virtualbox
     - dia
+    - vim-gtk
 
 - name: package check if virtualbox
   shell: lspci | grep VirtualBox
