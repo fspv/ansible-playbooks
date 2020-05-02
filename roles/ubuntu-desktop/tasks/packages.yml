@@ -70,6 +70,7 @@
     - virtualbox
     - dia
     - vim-gtk
+    - gimp
 
 - name: package check if virtualbox
   shell: lspci | grep VirtualBox
