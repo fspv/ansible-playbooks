@@ -3,5 +3,5 @@
     name: tor
 
 - name: package torbrowser-launcher
-  apt:
-    name: torbrowser-launcher
+  flatpak:
+    name: https://dl.flathub.org/repo/appstream/com.github.micahflee.torbrowser-launcher.flatpakref
