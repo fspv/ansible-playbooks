@@ -26,6 +26,7 @@ common_tools:
   - dnsutils
   - atop
   - vim
+  - neovim
   - net-tools
   - less
   - sudo
