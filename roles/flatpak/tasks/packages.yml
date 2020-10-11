@@ -1,0 +1,3 @@
+- name: flatpak package
+  apt:
+    name: flatpak
