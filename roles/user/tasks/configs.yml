@@ -2,7 +2,7 @@
   copy:
     src: home/
     dest: "{{ item.home }}"
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 - name: config user-dir
   file:
@@ -10,7 +10,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 - name: config ssh-dir
   file:
@@ -18,7 +18,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 
 - name: config .private dir
@@ -27,7 +27,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 - name: config .config dir
   file:
@@ -35,7 +35,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 - name: config .config/autostart dir
   file:
@@ -43,7 +43,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 - name: config .config/systemd dir
   file:
@@ -51,7 +51,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 - name: config .config/systemd/user dir
   file:
@@ -59,7 +59,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 - name: config .cache mount
   copy:
@@ -77,7 +77,7 @@
       WantedBy=multi-user.target
     dest: "/etc/systemd/system/home-{{ item.user }}-.cache.mount"
     owner: "root"
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
   when: item.user != 'root' and ansible_virtualization_type != 'docker'
 
 - name: config .cache mount enable systemd
@@ -86,7 +86,7 @@
     state: started
     enabled: yes
     daemon_reload: yes
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
   when: item.user != 'root' and ansible_virtualization_type != 'docker'
 
 - name: config .private dir for user
@@ -96,7 +96,7 @@
     mode: '0700'
     state: directory
   when: "'custom_secrets' in item"
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 - name: config custom secret
   template:
@@ -105,7 +105,7 @@
     owner: "{{ item.0.user }}"
     mode: '0600'
   with_subelements:
-    - "{{ users.values() }}"
+    - "{{ users.values() | list }}"
     - custom_secrets
     - skip_missing: True
 
@@ -116,6 +116,6 @@
     owner: "{{ item.0.user }}"
     mode: '0600'
   with_subelements:
-    - "{{ users.values() }}"
+    - "{{ users.values() | list }}"
     - custom_secrets_from_file
     - skip_missing: True

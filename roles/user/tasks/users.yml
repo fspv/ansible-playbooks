@@ -24,7 +24,7 @@
     groups: "{{ groups.results|map(attribute='stdout')|reject('equalto', '')|join(',') }}"
   when: not item.admin
   with_items:
-    - "{{ users.values() }}"
+    - "{{ users.values() | list }}"
 
 - name: admin user
   user:
@@ -37,4 +37,4 @@
     groups: "{{ (groups.results + admin_groups.results)|map(attribute='stdout')|reject('equalto', '')|join(',') }}"
   when: item.admin
   with_items:
-    - "{{ users.values() }}"
+    - "{{ users.values() | list }}"

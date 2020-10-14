@@ -23,7 +23,7 @@
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"
 
 - name: config user mounts
   copy:
@@ -31,4 +31,4 @@
     dest: "{{ item.home }}/.config/docker-user/run-args"
     owner: "{{ item.user }}"
     mode: '0600'
-  with_items: "{{ users.values() }}"
+  with_items: "{{ users.values() | list }}"

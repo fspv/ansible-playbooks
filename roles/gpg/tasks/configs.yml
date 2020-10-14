@@ -5,7 +5,7 @@
     owner: "{{ item[0].user }}"
     mode: '0600'
   with_subelements:
-    - "{{ users.values() }}"
+    - "{{ users.values() | list }}"
     - gpg_keys
   register: gpg_private_key_files
 
@@ -18,5 +18,5 @@
     | grep -P '^gpg: key [0-9A-Z]*: (already in secret keyring|secret key imported)$'
   when: gpg_private_key_files.changed
   with_subelements:
-    - "{{ users.values() }}"
+    - "{{ users.values() | list }}"
     - gpg_keys

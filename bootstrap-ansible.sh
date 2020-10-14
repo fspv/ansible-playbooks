@@ -21,7 +21,7 @@ fi
 rm -rf ${BOOTSTRAP_DIR}
 mkdir -p ${BOOTSTRAP_DIR}
 
-virtualenv ${ANSIBLE_VENV_DIR}
+virtualenv -p python3 ${ANSIBLE_VENV_DIR}
 
 export VIRTUAL_ENV_DISABLE_PROMPT=yes
 
