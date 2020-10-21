@@ -1,2 +1,5 @@
-- include_vars: "{{ ansible_distribution }}.yml"
+- include_vars_merged:
+    files:
+      - "{{ ansible_distribution }}.yml"
+      - "main.yml"
 - import_tasks: packages.yml
