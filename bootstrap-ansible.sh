@@ -40,6 +40,8 @@ else
     exit 1
 fi
 
+ln -sf ${ANSIBLE_REPO_DIR}/plugins ~/.ansible/plugins
+
 if test -d manual/
 then
     cp -R manual/ ${ANSIBLE_REPO_DIR}/manual/
