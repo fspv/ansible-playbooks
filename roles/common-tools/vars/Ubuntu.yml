@@ -8,3 +8,4 @@ common_tools:
   - fancontrol
   - aptitude
   - unrar
+  - fzf
