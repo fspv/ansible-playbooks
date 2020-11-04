@@ -64,9 +64,7 @@
     - virt-manager
     - qemu-kvm
     - qemu
-    - libvirt-bin
     - vagrant
-    - ruby-libvirt
     - virtualbox
     - dia
     - vim-gtk

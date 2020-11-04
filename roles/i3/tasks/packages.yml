@@ -9,8 +9,7 @@
     - libanyevent-i3-perl
 
 - name: packages screenshot app
-  apt:
-    name: shutter
+  command: snap install shutter
 
 - name: package xss-lock
   apt:

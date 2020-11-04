@@ -38,9 +38,8 @@ common_tools:
   - testdisk
   - ebtables
   - nmap
-  - ipython
   - ipython3
-  - mtr
+  - mtr-tiny
   - whois
   - jq
   - pciutils

@@ -1,0 +1,20 @@
+- name: repo ppa-nrbrtx-xorg-hotkeys pins
+  template:
+    src: etc/apt/preferences.d/ppa-nrbrtx-xorg-hotkeys.pref.j2
+    dest: /etc/apt/preferences.d/ppa-nrbrtx-xorg-hotkeys.pref
+
+- name: repo
+  template:
+    src: etc/apt/sources.list.d/ppa-nrbrtx-xorg-hotkeys.list.j2
+    dest: /etc/apt/sources.list.d/ppa-nrbrtx-xorg-hotkeys.list
+  notify:
+    - apt-get update
+
+- name: repo key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: E756285F30DB2B2BB35012E219BFCAF5168D33A9
+  notify:
+    - apt-get update
+
+- meta: flush_handlers
