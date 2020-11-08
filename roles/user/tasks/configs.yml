@@ -2,6 +2,8 @@
   copy:
     src: home/
     dest: "{{ item.home }}"
+    follow: no
+    local_follow: no
   with_items: "{{ users.values() | list }}"
 
 - name: config user-dir
