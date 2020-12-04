@@ -1,0 +1,17 @@
+partial keypad_keys
+xkb_symbols "altgr-vim" {
+  # replace Caps with AltGr
+  # key <CAPS> { [ ISO_Level3_Shift            ] };
+  # Add vim cursor keys to be accessed with AltGr
+  key <AB02> { [ x, X, Delete, Delete        ] };
+  key <AC02> { [ s, S, KP_Enter, KP_Enter    ] };
+  key <AC03> { [ d, D, Next, Next            ] };
+  key <AC04> { [ f, F, BackSpace, BackSpace  ] };
+  key <AC06> { [ h, H , Left, Left           ] };
+  key <AC07> { [ j, J, Down, Down            ] };
+  key <AC08> { [ k, K, Up, Up                ] };
+  key <AC09> { [ l, L, Right, Right          ] };
+  key <AD07> { [ u, U, Prior, Prior          ] };
+  key <AE03> { [ 3, section, Home, Home      ] };
+  key <AE04> { [ 4, dollar, End, End         ] };
+};

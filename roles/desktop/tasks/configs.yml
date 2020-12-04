@@ -1,0 +1,11 @@
+- name: config X11 arrows hjkl keybindings
+  template:
+    src: usr/share/X11/xkb/symbols/altgr_vim
+    dest: /usr/share/X11/xkb/symbols/altgr_vim
+
+- name: config include arrows hjkl keybindings
+  lineinfile:
+    line: '    include "altgr_vim(altgr-vim)"'
+    insertbefore: '^    name\[Group1\]= "English \(US\)"'
+    firstmatch: yes
+    path: /usr/share/X11/xkb/symbols/us
