@@ -8,12 +8,12 @@ default_groups:
 default_admin_groups:
   - sudo
 
-users:
-  user:
-    user: user
-    uid: 1111
-    home: '/home/user'
-    comment: ''
-    admin: false
-    password: ''
-    gpg_keys: []
+# users:
+#   user:
+#     user: user
+#     uid: 1111
+#     home: '/home/user'
+#     comment: ''
+#     admin: false
+#     password: ''
+#     gpg_keys: []
