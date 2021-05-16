@@ -40,7 +40,9 @@ else
     exit 1
 fi
 
-ln -sf ${ANSIBLE_REPO_DIR}/plugins ~/.ansible/plugins
+mkdir -p ~/.ansible
+rm -f ~/.ansible/plugins
+ln -sfnT ${ANSIBLE_REPO_DIR}/plugins ~/.ansible/plugins
 
 if test -d manual/
 then
