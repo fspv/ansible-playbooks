@@ -1,0 +1,2 @@
+- name: package
+  command: snap install bitcoin-core

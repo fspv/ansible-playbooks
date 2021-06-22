@@ -21,3 +21,4 @@ dependencies:
   - { role: lightdm }
   - { role: xfce4 }
   - { role: latex }
+  - { role: bitcoin-core }
