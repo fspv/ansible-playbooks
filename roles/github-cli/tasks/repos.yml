@@ -1,0 +1,22 @@
+- name: key file
+  get_url:
+    url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+    sha256sum: 7bad5e0f4f1ce23dac9303fef5a587656ef10fa1fce84e16122e890f3db3acde
+    dest: /usr/share/keyrings/githubcli-archive-keyring.gpg
+    mode: '0444'
+
+- name: repo sources
+  template:
+    src: etc/apt/sources.list.d/github-cli.list.j2
+    dest: /etc/apt/sources.list.d/github-cli.list
+  notify:
+    - apt-get update
+
+- name: repo pin
+  template:
+    src: etc/apt/preferences.d/github-cli.pref.j2
+    dest: /etc/apt/preferences.d/github-cli.pref
+  notify:
+    - apt-get update
+
+- meta: flush_handlers

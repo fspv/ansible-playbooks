@@ -22,3 +22,4 @@ dependencies:
   - { role: xfce4 }
   - { role: latex }
   - { role: bitcoin-core }
+  - { role: github-cli }

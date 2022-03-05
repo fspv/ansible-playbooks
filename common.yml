@@ -4,5 +4,6 @@
   become: True
   vars_files:
     - manual/common.yml
+    - common_vars.yml
   roles:
     - common
