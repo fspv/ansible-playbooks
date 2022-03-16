@@ -1,0 +1,9 @@
+---
+- hosts: all
+  connection: local
+  become: True
+  vars_files:
+    - manual/common.yml
+    - common_vars.yml
+  roles:
+    - test
