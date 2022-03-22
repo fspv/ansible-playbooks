@@ -162,3 +162,9 @@ load-module module-filter-apply
 ### Make some devices default
 #set-default-sink output
 #set-default-source input
+
+### Enable noise cancellation
+# source: https://askubuntu.com/questions/18958/realtime-noise-removal-with-pulseaudio
+load-module module-echo-cancel source_name=noechosource sink_name=noechosink
+set-default-source noechosource
+set-default-sink noechosink
