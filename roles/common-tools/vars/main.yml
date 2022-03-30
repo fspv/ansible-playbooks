@@ -45,3 +45,4 @@ common_tools:
   - pciutils
   - sysstat
   - linux-tools-common
+  - ripgrep
