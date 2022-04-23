@@ -4,3 +4,8 @@
     content: |
       [Seat:*]
       xserver-command=X -ardelay 250 -arinterval 15
+
+- name: config set default
+  copy:
+    dest: /etc/X11/default-display-manager
+    content: /usr/sbin/lightdm

@@ -69,6 +69,7 @@
     - dia
     - vim-gtk
     - gimp
+    - xubuntu-default-settings
 
 - name: package check if virtualbox
   shell: lspci | grep VirtualBox
