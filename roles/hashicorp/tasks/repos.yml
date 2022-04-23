@@ -1,0 +1,22 @@
+---
+- name: repo key
+  ansible.builtin.apt_key:
+    id: E8A032E094D8EB4EA189D270DA418C88A3219F7B
+    url: https://apt.releases.hashicorp.com/gpg
+    state: present
+
+- name: repo sources
+  template:
+    src: etc/apt/sources.list.d/hashicorp.list.j2
+    dest: /etc/apt/sources.list.d/hashicorp.list
+  notify:
+    - apt-get update
+
+- name: repo pin
+  template:
+    src: etc/apt/preferences.d/hashicorp.pref.j2
+    dest: /etc/apt/preferences.d/hashicorp.pref
+  notify:
+    - apt-get update
+
+- meta: flush_handlers

@@ -64,7 +64,6 @@
     - virt-manager
     - qemu-kvm
     - qemu
-    - vagrant
     - virtualbox
     - dia
     - vim-gtk

@@ -24,3 +24,4 @@ dependencies:
   - { role: bitcoin-core }
   - { role: github-cli }
   - { role: go-ethereum }
+  - { role: vagrant }
