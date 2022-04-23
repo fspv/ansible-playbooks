@@ -8,4 +8,11 @@
 - name: config set default
   copy:
     dest: /etc/X11/default-display-manager
-    content: /usr/sbin/lightdm
+    content: |
+      /usr/sbin/lightdm
+
+- name: config set default service
+  file:
+    src: /lib/systemd/system/lightdm.service
+    dest: /etc/systemd/system/display-manager.service
+    state: link
