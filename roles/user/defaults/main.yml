@@ -13,7 +13,15 @@ default_admin_groups:
 #     user: user
 #     uid: 1111
 #     home: '/home/user'
-#     comment: ''
+#     comment: 'test user'
 #     admin: false
-#     password: ''
+#     password: 'user'
+#     gpg_keys: []
+#   admin:
+#     admin: admin
+#     uid: 2222
+#     home: '/home/admin'
+#     comment: 'test admin'
+#     admin: true
+#     password: 'admin'
 #     gpg_keys: []
