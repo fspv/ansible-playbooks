@@ -1,4 +1,4 @@
 - name: packages
   package:
     name: "{{ item }}"
-  with_items: "{{ common_tools }}"
+  with_items: "{{ ansible_facts['common_tools'] }}"
