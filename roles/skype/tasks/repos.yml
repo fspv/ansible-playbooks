@@ -2,6 +2,7 @@
   apt_key:
     keyserver: keyserver.ubuntu.com
     id: 1F3045A5DF7587C3
+    keyring: /etc/apt/trusted.gpg.d/ppa-obs-studio.gpg
   notify:
     - apt-get update
 

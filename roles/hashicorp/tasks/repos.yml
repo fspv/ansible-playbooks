@@ -1,8 +1,9 @@
 ---
 - name: repo key
-  ansible.builtin.apt_key:
+  apt_key:
     id: E8A032E094D8EB4EA189D270DA418C88A3219F7B
     url: https://apt.releases.hashicorp.com/gpg
+    keyring: /etc/apt/trusted.gpg.d/hashicorp.gpg
     state: present
 
 - name: repo sources

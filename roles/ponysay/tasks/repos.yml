@@ -16,6 +16,7 @@
   apt_key:
     keyserver: keyserver.ubuntu.com
     id: FED902047AF1397755144CF6B47BBF2062DDDB70
+    keyring: /etc/apt/trusted.gpg.d/ppa-ponysay.gpg
   notify:
     - apt-get update
   when: ansible_distribution == "Ubuntu"

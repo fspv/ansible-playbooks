@@ -14,6 +14,7 @@
   apt_key:
     keyserver: keyserver.ubuntu.com
     id: E756285F30DB2B2BB35012E219BFCAF5168D33A9
+    keyring: /etc/apt/trusted.gpg.d/ppa-nrbrtx-xorg-hotkeys.gpg
   notify:
     - apt-get update
 

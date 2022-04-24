@@ -14,6 +14,7 @@
   apt_key:
     keyserver: keyserver.ubuntu.com
     id: 474BC46576FAE76E97C1A1A1AB9660B9EB2CC88B
+    keyring: /etc/apt/trusted.gpg.d/ppa-i2p.gpg
   notify:
     - apt-get update
 

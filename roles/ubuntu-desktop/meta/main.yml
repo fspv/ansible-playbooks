@@ -4,7 +4,6 @@ dependencies:
   - { role: resolv }
   - { role: tlp }
   - { role: chromium-browser }
-  - { role: mongodb }
   - { role: docker }
   - { role: ponysay }
   - { role: i3 }

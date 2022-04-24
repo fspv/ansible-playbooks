@@ -7,7 +7,7 @@ if which apt-get 2>&1 >/dev/null
 then
     sudo apt-get update
 
-    sudo apt-get -y install python-dev build-essential libssl-dev libffi-dev \
+    sudo apt-get -y install build-essential libssl-dev libffi-dev \
 			       python3-pip python3-virtualenv git
 fi
 

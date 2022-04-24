@@ -2,6 +2,7 @@
   apt_key:
     keyserver: keyserver.ubuntu.com
     id: 656408E390CFB1F5
+    keyring: /etc/apt/trusted.gpg.d/mongodb.gpg
   notify:
     - apt-get update
 

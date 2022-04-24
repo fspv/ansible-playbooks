@@ -2,6 +2,7 @@
   apt_key:
     keyserver: keyserver.ubuntu.com
     id: 2A518C819BE37D2C2031944D1C52189C923F6CA9
+    keyring: /etc/apt/trusted.gpg.d/ppa-ethereum.gpg
   notify:
     - apt-get update
 

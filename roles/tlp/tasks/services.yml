@@ -1,8 +1,11 @@
+---
 - name: service ondemand tlp
   service:
     name: ondemand
     enabled: no
     state: stopped
+  # FIXME: missing since Ubuntu jammy
+  ignore_errors: yes
 
 - name: service tlp
   service:
