@@ -1,8 +1,30 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+require "getoptlong"
+
+opts = GetoptLong.new(
+  ["--local", GetoptLong::NO_ARGUMENT],
+  ["--os", GetoptLong::OPTIONAL_ARGUMENT]
+)
+
+local = false
+os = "ubuntu/focal64"
+
+opts.each do |opt, arg|
+  case opt
+    when "--local"
+      local = true
+    when "--os"
+      os = arg
+  end
+end
+
+# Example: vagrant --os=ubuntu/jammy64 --local up
+
+
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/focal64"
+  config.vm.box = os
 
   # Need to run `vagrant provision` explicitly for that to work
   config.trigger.after [:provision] do |trigger|
@@ -24,23 +46,42 @@ Vagrant.configure("2") do |config|
     vb.check_guest_additions = false
   end
 
-  config.vm.provision "shell", env: {}, inline: <<-SHELL
-    set -x
+  if local
+    config.vm.provision "shell", env: {}, inline: <<-SHELL
+      rm -rf ansible-playbooks
+      cp -R /vagrant ansible-playbooks
 
-    export DEBIAN_FRONTEND=noninteractive
+      cd ansible-playbooks
+      rm -rf manual
+      mkdir manual
 
-    apt-get update
+      sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
 
-    apt-get install -y git
+      ./bootstrap.sh common-desktop.yml LOCAL
 
-    rm -rf ansible-playbooks
-    git clone https://github.com/prius/ansible-playbooks.git
+      reboot
+    SHELL
+  else
+    config.vm.provision "shell", env: {}, inline: <<-SHELL
+      set -x
 
-    cd ansible-playbooks
-    mkdir manual
+      export DEBIAN_FRONTEND=noninteractive
 
-    sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
+      apt-get update
 
-    ./bootstrap.sh common-desktop.yml REMOTE
-  SHELL
+      apt-get install -y git
+
+      rm -rf ansible-playbooks
+      git clone https://github.com/prius/ansible-playbooks.git
+
+      cd ansible-playbooks
+      mkdir manual
+
+      sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
+
+      ./bootstrap.sh common-desktop.yml REMOTE
+
+      reboot
+    SHELL
+  end
 end
