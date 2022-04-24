@@ -59,6 +59,15 @@ Vagrant.configure("2") do |config|
 
       ./bootstrap.sh common-desktop.yml LOCAL
 
+      apt-get update
+      apt-get upgrade -y
+
+      apt-get update
+      apt-get dist-upgrade -y
+
+      apt-get update
+      apt-get upgrade -y
+
       reboot
     SHELL
   else
@@ -80,6 +89,15 @@ Vagrant.configure("2") do |config|
       sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
 
       ./bootstrap.sh common-desktop.yml REMOTE
+
+      apt-get update
+      apt-get upgrade -y
+
+      apt-get update
+      apt-get dist-upgrade -y
+
+      apt-get update
+      apt-get upgrade -y
 
       reboot
     SHELL
