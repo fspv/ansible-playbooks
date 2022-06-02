@@ -30,3 +30,7 @@
 - name: package volumeicon-alsa
   apt:
     name: volumeicon-alsa
+
+- name: package xdotool
+  apt:
+    name: xdotool
