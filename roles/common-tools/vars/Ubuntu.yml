@@ -9,3 +9,4 @@ common_tools:
   - aptitude
   - unrar
   - fzf
+  - pgformatter
