@@ -46,3 +46,4 @@ common_tools:
   - sysstat
   - linux-tools-common
   - ripgrep
+  - tmux
