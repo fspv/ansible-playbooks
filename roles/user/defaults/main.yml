@@ -4,6 +4,7 @@ default_groups:
   - dip
   - plugdev
   - lpadmin
+  - video
 
 default_admin_groups:
   - sudo
