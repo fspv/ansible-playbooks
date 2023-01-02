@@ -1,0 +1,44 @@
+---
+- name: package sway
+  package:
+    name: sway
+
+- name: package sway-backgrounds
+  package:
+    name: sway-backgrounds
+
+- name: package swaybg
+  package:
+    name: swaybg
+
+- name: package swayidle
+  package:
+    name: swayidle
+
+- name: package swaylock
+  package:
+    name: swaylock
+
+- name: package light
+  package:
+    name: light
+
+- name: package grim
+  package:
+    name: grim
+
+- name: package slurp
+  package:
+    name: slurp
+
+- name: package waybar
+  package:
+    name: waybar
+
+- name: package wev
+  package:
+    name: wev
+
+- name: package wtype
+  package:
+    name: wtype
