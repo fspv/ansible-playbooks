@@ -47,3 +47,6 @@ common_tools:
   - linux-tools-common
   - ripgrep
   - tmux
+  - blueman
+  - feh
+  - exuberant-ctags
