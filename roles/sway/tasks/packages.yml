@@ -42,3 +42,11 @@
 - name: package wtype
   package:
     name: wtype
+
+- name: package libappindicator1
+  package:
+    name: libappindicator1
+
+- name: package qtwayland5
+  package:
+    name: qtwayland5

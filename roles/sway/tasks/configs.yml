@@ -1,0 +1,28 @@
+- name: config sway debug binary
+  copy:
+    content: |
+      #!/bin/sh
+
+      export QT_QPA_PLATFORM=wayland
+      export ECORE_EVAS_ENGINE=wayland_egl
+      export ELM_ENGINE=wayland_egl
+      export SDL_VIDEODRIVER=wayland
+      export _JAVA_AWT_WM_NONREPARENTING=1
+      export MOZ_ENABLE_WAYLAND=1
+
+      sway --debug --verbose 2>&1 >sway.log
+    dest: /usr/bin/sway-with-debug-log
+    owner: "root"
+    mode: 0777
+
+- name: config sway debug desktop file
+  copy:
+    content: |
+      [Desktop Entry]
+      Name=Sway (with debug log)
+      Comment=An i3-compatible Wayland compositor
+      Exec=sway-with-debug-log
+      Type=Application
+    dest: /usr/share/wayland-sessions/sway-debug.desktop
+    owner: "root"
+    mode: 0666
