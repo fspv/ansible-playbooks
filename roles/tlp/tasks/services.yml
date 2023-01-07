@@ -7,6 +7,12 @@
   # FIXME: missing since Ubuntu jammy
   ignore_errors: yes
 
+- name: service power-profiles-daemon
+  service:
+    name: power-profiles-daemon
+    enabled: no
+    state: stopped
+
 - name: service tlp
   service:
     name: tlp
