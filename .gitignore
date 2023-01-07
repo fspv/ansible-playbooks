@@ -1,2 +1,6 @@
 *.retry
 /manual
+.mypy_cache
+__pycache__
+.pyre
+.vagrant
