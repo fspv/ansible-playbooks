@@ -11,6 +11,10 @@
       export _JAVA_AWT_WM_NONREPARENTING=1
       export MOZ_ENABLE_WAYLAND=1
 
+      export GTK_IM_MODULE=ibus
+      export QT_IM_MODULE=ibus
+      export XMODIFIERS=@im=ibus
+
       sway --debug --verbose 2>&1 >sway.log
     dest: /usr/bin/sway-with-debug-log
     owner: "root"

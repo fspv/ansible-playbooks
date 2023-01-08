@@ -62,3 +62,11 @@
 - name: package wdisplays
   package:
     name: wdisplays
+
+- name: package fcitx
+  package:
+    name: fcitx
+
+- name: package fcitx-table-translit-ua
+  package:
+    name: fcitx-table-translit-ua
