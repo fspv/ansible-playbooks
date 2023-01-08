@@ -23,6 +23,6 @@
       Comment=An i3-compatible Wayland compositor
       Exec=sway-with-debug-log
       Type=Application
-    dest: /usr/share/wayland-sessions/sway-debug.desktop
+    dest: /usr/share/wayland-sessions/sway.desktop
     owner: "root"
     mode: 0666
