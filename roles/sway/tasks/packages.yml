@@ -50,3 +50,15 @@
 - name: package qtwayland5
   package:
     name: qtwayland5
+
+- name: package qt5-style-plugins
+  package:
+    name: qt5-style-plugins
+
+- name: package adwaita-qt
+  package:
+    name: adwaita-qt
+
+- name: package wdisplays
+  package:
+    name: wdisplays
