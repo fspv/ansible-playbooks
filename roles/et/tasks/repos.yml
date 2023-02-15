@@ -1,0 +1,25 @@
+- name: repo ppa-et pins
+  template:
+    src: etc/apt/preferences.d/ppa-et.pref.j2
+    dest: /etc/apt/preferences.d/ppa-et.pref
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo
+  template:
+    src: etc/apt/sources.list.d/ppa-et.list.j2
+    dest: /etc/apt/sources.list.d/ppa-et.list
+  notify:
+    - apt-get update
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: D3614CB0B3C2D154356BD436CB4ADEA5B72A07A1
+    keyring: /etc/apt/trusted.gpg.d/ppa-et.gpg
+  notify:
+    - apt-get update
+  when: ansible_distribution == "Ubuntu"
+
+- meta: flush_handlers
+  when: ansible_distribution == "Ubuntu"

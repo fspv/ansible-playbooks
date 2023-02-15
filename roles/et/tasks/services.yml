@@ -1,0 +1,5 @@
+- name: service
+  systemd:
+    name: et
+    enabled: true
+    state: started

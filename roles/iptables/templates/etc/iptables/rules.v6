@@ -29,6 +29,7 @@ COMMIT
 -A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d ::1/128 -j ACCEPT
 -A NF_PERSIST_INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport 22 -j ACCEPT
+-A NF_PERSIST_INPUT -m tcp -p tcp --dport 2022 -j ACCEPT
 
 # Allow some ICMPv6 types in the INPUT chain
 # Using ICMPv6 type names to be clear.
