@@ -16,7 +16,7 @@ default_admin_groups:
 #     home: '/home/user'
 #     comment: 'test user'
 #     admin: false
-#     password: '$6$hUiR3A81$J.Zt0Sazk8HJkSbcxRKGeAIsqv5ImFgiQl2tEU.XmYaOoUKtNYqITUyA.J5UIHmB0eCkrvx6p0RhM293mBYLx.'
+#     password: '$6$kZMQxna5Z5U.d6nn$edgEFDEtiolHeJGeZFgHSmX49sQ9OcKgkgr7Bc6bMEYM1QSfKNSb9Z3btAtLvgV2u3C8agKHQg5PSW152cBtZ.'
 #     gpg_keys: []
 #   admin:
 #     user: admin
@@ -24,5 +24,5 @@ default_admin_groups:
 #     home: '/home/admin'
 #     comment: 'test admin'
 #     admin: true
-#     password: '$6$D0JC.bteG2$V7UbECG.4Bzo5pf0FToc1yiQp9U3yCv38OMm1gtq/GsXPARbCHHEyO20tQSfeZ3eBcxlUfwlhlFX.oH5ou5.m0'
+#     password: '$6$eaG/WkavAwgQ3d4w$TF5W/k/hwtsSLqeLIyNlxjT8tIxqjo6fOymgmPInE5RkYQmAacUgyTK/qsL.iqF409wS7ClHG3dnwFrl6eTL0/'
 #     gpg_keys: []
