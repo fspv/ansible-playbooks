@@ -1,3 +1,4 @@
 dependencies:
   - { role: pkgmanager }
   - { role: pip, when: ansible_distribution == "Ubuntu" }
+  - { role: yubico }

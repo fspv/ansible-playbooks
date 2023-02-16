@@ -1,0 +1,25 @@
+- name: repo ppa-yubico pins
+  template:
+    src: etc/apt/preferences.d/ppa-yubico.pref.j2
+    dest: /etc/apt/preferences.d/ppa-yubico.pref
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo
+  template:
+    src: etc/apt/sources.list.d/ppa-yubico.list.j2
+    dest: /etc/apt/sources.list.d/ppa-yubico.list
+  notify:
+    - apt-get update
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 3653E21064B19D134466702E43D5C49532CBA1A9
+    keyring: /etc/apt/trusted.gpg.d/ppa-yubico.gpg
+  notify:
+    - apt-get update
+  when: ansible_distribution == "Ubuntu"
+
+- meta: flush_handlers
+  when: ansible_distribution == "Ubuntu"

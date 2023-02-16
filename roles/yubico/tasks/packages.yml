@@ -1,0 +1,7 @@
+- name: packages
+  package:
+    name:
+      - yubikey-manager
+      - yubikey-personalization-gui
+      - libpam-yubico
+      - libpam-u2f
