@@ -1,2 +1,10 @@
+{% if ansible_architecture == "armv7l" %}
+## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu
+## team. Also, please note that software in universe WILL NOT receive any
+## review or updates from the Ubuntu security team.
+deb http://ports.ubuntu.com/ubuntu-ports/ {{ ansible_distribution_release }}-security main restricted universe multiverse
+deb-src http://ports.ubuntu.com/ubuntu-ports/ {{ ansible_distribution_release }}-security main restricted universe multiverse
+{% else %}
 deb http://security.ubuntu.com/ubuntu/ {{ ansible_distribution_release }}-security main restricted universe multiverse
 deb-src http://security.ubuntu.com/ubuntu/ {{ ansible_distribution_release }}-security main restricted universe multiverse
+{% endif %}

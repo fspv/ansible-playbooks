@@ -13,7 +13,6 @@ common_tools:
   - vnstat
   - mlocate
   - bash-completion
-  - syslinux
   - parted
   - gdisk
   - tree
@@ -50,3 +49,6 @@ common_tools:
   - blueman
   - feh
   - exuberant-ctags
+
+common_tools_x86_64:
+  - syslinux

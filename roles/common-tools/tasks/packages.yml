@@ -1,4 +1,7 @@
 - name: packages
   package:
-    name: "{{ item }}"
-  with_items: "{{ ansible_facts['common_tools'] }}"
+    name: "{{ ansible_facts['common_tools'] }}"
+
+- name: "packages {{ ansible_facts['architecture'] }}"
+  package:
+    name: "{{ ansible_facts.get('common_tools_' + ansible_facts['architecture'], []) }}"
