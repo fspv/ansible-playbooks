@@ -5,6 +5,7 @@ default_groups:
   - plugdev
   - lpadmin
   - video
+  - disk
 
 default_admin_groups:
   - sudo
