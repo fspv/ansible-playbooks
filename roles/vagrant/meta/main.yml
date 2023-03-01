@@ -2,3 +2,4 @@
 dependencies:
   - {role: pkgmanager}
   - {role: hashicorp}
+  - {role: virtualbox}

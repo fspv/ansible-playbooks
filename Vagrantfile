@@ -5,10 +5,12 @@ require "getoptlong"
 
 opts = GetoptLong.new(
   ["--local", GetoptLong::NO_ARGUMENT],
+  ["--headless", GetoptLong::NO_ARGUMENT],
   ["--os", GetoptLong::OPTIONAL_ARGUMENT]
 )
 
 local = false
+gui = true
 os = "ubuntu/focal64"
 
 opts.each do |opt, arg|
@@ -17,10 +19,12 @@ opts.each do |opt, arg|
       local = true
     when "--os"
       os = arg
+    when "--headless"
+      gui = false
   end
 end
 
-# Example: vagrant --os=ubuntu/jammy64 --local up
+# Example: vagrant --os=ubuntu/jammy64 --local --headless up
 
 
 Vagrant.configure("2") do |config|
@@ -38,9 +42,11 @@ Vagrant.configure("2") do |config|
     vb.cpus = 8
 
     # Make UI fast
-    vb.gui = true
-    vb.customize ["modifyvm", :id, "--vram", "128"]
-    vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
+    vb.gui = gui
+    if gui
+      vb.customize ["modifyvm", :id, "--vram", "128"]
+      vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
+    end
 
     # Disable annoying warnings
     vb.check_guest_additions = false
