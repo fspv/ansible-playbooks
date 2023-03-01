@@ -1,0 +1,28 @@
+name: vagrant-up
+
+on: [push]
+
+jobs:
+  vagrant-up:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: add repo
+        run: echo "deb [arch=amd64] https://apt.releases.hashicorp.com jammy main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+
+      - name: add key
+        run: wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/hashicorp.gpg
+
+      - name: apt update
+        run: sudo apt-get update
+
+      - name: install packages
+        run: sudo apt install -y virtualbox virtualbox-guest-utils virtualbox-guest-dkms virtualbox-guest-x11 vagrant
+
+      - name: Show Vagrant version
+        run: vagrant --version
+
+      - name: Run vagrant up
+        run: vagrant --os=ubuntu/jammy64 --local --headless up
