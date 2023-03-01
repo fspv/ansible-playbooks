@@ -6,7 +6,8 @@ require "getoptlong"
 opts = GetoptLong.new(
   ["--local", GetoptLong::NO_ARGUMENT],
   ["--headless", GetoptLong::NO_ARGUMENT],
-  ["--os", GetoptLong::OPTIONAL_ARGUMENT]
+  ["--os", GetoptLong::OPTIONAL_ARGUMENT],
+  [ '-f', GetoptLong::OPTIONAL_ARGUMENT ]
 )
 
 local = false

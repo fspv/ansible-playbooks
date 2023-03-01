@@ -25,4 +25,7 @@ jobs:
         run: vagrant --version
 
       - name: Run vagrant
-        run: vagrant --os=ubuntu/jammy64 --local --headless up; vagrant destroy -f
+        run: vagrant --os=ubuntu/jammy64 --local --headless up || true
+
+      - name: Destroy vagrant
+        run: vagrant destroy -f
