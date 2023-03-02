@@ -5,4 +5,11 @@
   notify:
     - handler NetworkManager restart
 
+# Connectivity checks don't work well and flood the router with requests, so my
+# machine gets rate-limited and I can't do a regular login with the browser
+- name: config disable connectivity checks
+  file:
+    path: /etc/NetworkManager/conf.d/20-connectivity-ubuntu.conf
+    state: touch
+
 - meta: flush_handlers
