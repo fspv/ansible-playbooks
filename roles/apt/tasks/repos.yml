@@ -27,16 +27,6 @@
     dest: "/etc/apt/sources.list.d/{{ item }}.list"
   with_items: "{{ apt_repos }}"
 
-- name: repo
-  template:
-    src: etc/apt/sources.list.d/ppa-pv-safronov-backports.list.j2
-    dest: /etc/apt/sources.list.d/ppa-pv-safronov-backports.list
-
-- name: repo ubuntu ppa pin
-  template:
-    src: "etc/apt/preferences.d/ppa-pv-safronov-backports.pref.j2"
-    dest: "/etc/apt/preferences.d/ppa-pv-safronov-backports.pref"
-
 - name: repo key
   apt_key:
     keyserver: keyserver.ubuntu.com

@@ -5,3 +5,4 @@ apt_repos:
   - ubuntu-updates
   - ubuntu-backports
   - ubuntu-partner
+  - ppa-pv-safronov-backports
