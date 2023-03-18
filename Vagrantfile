@@ -6,13 +6,15 @@ require "getoptlong"
 opts = GetoptLong.new(
   ["--local", GetoptLong::NO_ARGUMENT],
   ["--headless", GetoptLong::NO_ARGUMENT],
+  ["--playbook", GetoptLong::OPTIONAL_ARGUMENT],
   ["--os", GetoptLong::OPTIONAL_ARGUMENT],
-  [ '-f', GetoptLong::OPTIONAL_ARGUMENT ]
+  ["-f", GetoptLong::OPTIONAL_ARGUMENT]
 )
 
 local = false
 gui = true
 os = "ubuntu/focal64"
+playbook = "common-desktop.yml"
 
 opts.each do |opt, arg|
   case opt
@@ -22,10 +24,12 @@ opts.each do |opt, arg|
       os = arg
     when "--headless"
       gui = false
+    when "--playbook"
+      playbook = arg
   end
 end
 
-# Example: vagrant --os=ubuntu/jammy64 --local --headless up
+# Example: vagrant --os=ubuntu/jammy64 --playbook=user.yml --local --headless up
 
 
 Vagrant.configure("2") do |config|
@@ -55,6 +59,11 @@ Vagrant.configure("2") do |config|
 
   if local
     config.vm.provision "shell", env: {}, inline: <<-SHELL
+      set -uex
+
+      TMPDIR=$(mktemp -d)
+      cd "${TMPDIR}"
+
       rm -rf ansible-playbooks
       cp -R /vagrant ansible-playbooks
 
@@ -64,7 +73,8 @@ Vagrant.configure("2") do |config|
 
       sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
 
-      ./bootstrap.sh common-desktop.yml LOCAL
+      chown -R vagrant .
+      sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL
 
       apt-get update
       apt-get upgrade -y
@@ -79,7 +89,10 @@ Vagrant.configure("2") do |config|
     SHELL
   else
     config.vm.provision "shell", env: {}, inline: <<-SHELL
-      set -x
+      set -uex
+
+      TMPDIR=$(mktemp -d)
+      cd "${TMPDIR}"
 
       export DEBIAN_FRONTEND=noninteractive
 
@@ -95,7 +108,8 @@ Vagrant.configure("2") do |config|
 
       sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
 
-      ./bootstrap.sh common-desktop.yml REMOTE
+      chown -R vagrant .
+      sudo -u vagrant ./bootstrap.sh #{playbook} REMOTE
 
       apt-get update
       apt-get upgrade -y
