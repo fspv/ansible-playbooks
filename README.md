@@ -9,16 +9,20 @@ git submodule update --init --recursive
 Examples
 ========
 
-Configure desktop environment
+Apply local configuraiton changes
 
 ```
-ansible-playbook -c ansible.cfg --diff -i hosts common-desktop.yml
+./bootstrap.sh common-desktop.yml LOCAL
 ```
 
-Configure pure environment
-
+Apply upstream config
 ```
-ansible-playbook -c ansible.cfg --diff -i hosts common.yml
+./bootstrap.sh common-desktop.yml REMOTE
+```
+
+Dry run
+```
+./check.sh common-desktop.yml LOCAL
 ```
 
 Playbooks
