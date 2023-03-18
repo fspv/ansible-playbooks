@@ -80,7 +80,7 @@
     dest: "/etc/systemd/system/home-{{ item.user }}-.cache.mount"
     owner: "root"
   with_items: "{{ users.values() | list }}"
-  when: item.user != 'root' and ansible_virtualization_type != 'docker'
+  when: item.user != 'root' and ansible_virtualization_type != 'docker' and ansible_user_id == 'root'
 
 - name: config .cache mount enable systemd
   systemd:
@@ -89,7 +89,7 @@
     enabled: yes
     daemon_reload: yes
   with_items: "{{ users.values() | list }}"
-  when: item.user != 'root' and ansible_virtualization_type != 'docker'
+  when: item.user != 'root' and ansible_virtualization_type != 'docker' and ansible_user_id == 'root'
 
 - name: config .private dir for user
   file:

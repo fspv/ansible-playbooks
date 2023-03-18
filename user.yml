@@ -1,0 +1,18 @@
+---
+- hosts: all
+  connection: local
+  become: false
+  vars:
+    users:
+      "{{ ansible_user_id }}":
+        user: "{{ ansible_user_id }}"
+        uid: -1
+        password: ""
+        home: /home/"{{ ansible_user_id }}"
+        admin: false
+        comment: ""
+        gpg_keys: []
+  vars_files:
+    - common_vars.yml
+  roles:
+    - user
