@@ -1,0 +1,11 @@
+---
+dependencies:
+  - {role: lightdm}
+  - {role: xorg}
+  - {role: ponysay}
+  - {role: terminator}
+  - {role: sway}
+  - {role: i3}
+  - {role: et}
+  - {role: xfce4}
+  - {role: pulseaudio}

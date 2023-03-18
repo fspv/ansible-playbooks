@@ -1,28 +1,21 @@
 dependencies:
-  - { role: xorg }
+  - { role: minimal-ubuntu-desktop }
   - { role: bind }
   - { role: resolv }
   - { role: tlp }
   - { role: chromium-browser }
   - { role: docker }
-  - { role: ponysay }
-  - { role: i3 }
   - { role: skype }
-  - { role: pulseaudio }
   - { role: openvpn }
   - { role: discord }
   - { role: go }
   - { role: i2p }
-  - { role: terminator }
   - { role: tor }
   - { role: obs }
   - { role: keepassxc }
-  - { role: lightdm }
-  - { role: xfce4 }
   - { role: latex }
   - { role: bitcoin-core }
   - { role: github-cli }
   - { role: go-ethereum }
   - { role: vagrant }
   - { role: slack }
-  - { role: et }

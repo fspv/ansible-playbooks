@@ -1,70 +1,20 @@
+---
 - name: package ubuntu-desktop
   apt:
     name: ubuntu-desktop
-    install_recommends: no
+    install_recommends: false
 
 - name: packages remove unnecessary
   apt:
     name: "{{ item }}"
     state: absent
   with_items:
-    - account-plugin-facebook
-    - account-plugin-flickr
-    - account-plugin-google
-    - activity-log-manager
-    - app-install-data-partner
-    - aisleriot
     - apport
     - apport-gtk
     - apport-symptoms
     - avahi-autoipd
     - avahi-daemon
     - avahi-utils
-    - baobab
-    - deja-dup
     - dnsmasq
     - gnome-software
     - gnome-software-common
-    - gnome-disk-utility
-    - gnome-mahjongg
-    - rhythmbox
-    - rhythmbox-data
-    - rhythmbox-plugins
-    - rhythmbox-plugin-zeitgeist
-    - totem
-    - totem-common
-    - totem-plugins
-    - transmission-common
-    - transmission-gtk
-    - ubuntu-software
-    - unattended-upgrades
-    - whoopsie
-    - zeitgeist-core
-    - zeitgeist-datahub
-    - ubuntu-report
-    - popularity-contest
-    - gnome-initial-setup
-    - thunderbird
-    - thunderbird-gnome-support
-    - ubuntu-web-launchers
-
-- name: packages install necessary
-  apt:
-    name: "{{ item }}"
-  with_items:
-    - cheese
-    - cowsay
-    - fortune
-    - pavucontrol
-    - qbittorrent
-    - vlc
-    - adb
-    - samba-common-bin
-    - dupload
-    - virt-manager
-    - qemu-kvm
-    - qemu
-    - dia
-    - vim-gtk
-    - gimp
-    - xubuntu-default-settings

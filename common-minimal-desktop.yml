@@ -1,0 +1,10 @@
+---
+- hosts: all
+  connection: local
+  become: true
+  vars_files:
+    - manual/common.yml
+    - common_vars.yml
+  roles:
+    - common
+    - minimal-ubuntu-desktop

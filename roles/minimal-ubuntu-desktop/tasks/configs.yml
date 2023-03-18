@@ -1,0 +1,4 @@
+- name: config disable update notifier
+  template:
+    dest: /etc/xdg/autostart/update-notifier.desktop
+    src: etc/xdg/autostart/update-notifier.desktop.j2
