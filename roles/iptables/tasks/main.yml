@@ -1,9 +1,12 @@
 - include_tasks: packages.yml
   tags:
     - skip_docker
+  when: iptables
 - include_tasks: configs.yml
   tags:
     - skip_docker
+  when: iptables
 - include_tasks: services.yml
   tags:
     - skip_docker
+  when: iptables
