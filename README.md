@@ -33,16 +33,18 @@ Playbooks
 ```bash
 #!/bin/sh
 
-
 mkdir -p ~/.config/Yubico
 pamu2fcfg > ~/.config/Yubico/u2f_keys
+echo >> ~/.config/Yubico/u2f_keys
 
 
 U2F_KEYS=/etc/Yubico/u2f_keys
 
 sudo mkdir -p /etc/Yubico
-test -f ~/.config/Yubico/u2f_keys && sudo mv  ~/.config/Yubico/u2f_keys $U2F_KEYS
+sudo touch "${U2F_KEYS}"
+test -f ~/.config/Yubico/u2f_keys && cat ~/.config/Yubico/u2f_keys | sudo tee -a $U2F_KEYS
 
+rm -rf ~/.config/Yubico
 
 if grep -q pam_u2f.so /etc/pam.d/common-auth;
 then
@@ -51,6 +53,13 @@ else
     echo "auth    required            pam_u2f.so nouserok authfile=${U2F_KEYS} cue" | sudo tee -a /etc/pam.d/common-auth
 fi
 ```
+
+Then merge entries for a single user into one line, for example
+```
+<username>:<KeyHandle1>,<UserKey1>,<CoseType1>,<Options1>:<KeyHandle2>,<UserKey2>,<CoseType2>,<Options2>:<KeyHandle3>,<UserKey3>,<CoseType3>,<Options3>
+```
+
+If the key doesn't work in chromium, try replugging it.
 
 # Setup Yubikey for server
 
