@@ -3,7 +3,7 @@ name: vagrant-up
 on: [push]
 
 jobs:
-  vagrant-up:
+  vagrant-set-up:
     runs-on: self-hosted
 
     steps:
@@ -19,13 +19,46 @@ jobs:
         run: sudo apt-get update
 
       - name: install packages
-        run: sudo apt install -y virtualbox virtualbox-guest-utils virtualbox-guest-dkms virtualbox-guest-x11 vagrant
+        run: sudo apt install -y virtualbox virtualbox-guest-utils virtualbox-guest-dkms virtualbox-guest-x11 vagrant git
+
+      - name: init submodules
+        run: git submodule update --init --recursive
 
       - name: Show Vagrant version
         run: vagrant --version
 
-      - name: Run vagrant
-        run: vagrant --os=ubuntu/jammy64 --local --headless up || true
+  vagrant-user:
+    runs-on: self-hosted
 
-      - name: Destroy vagrant
+    needs: vagrant-set-up
+    steps:
+      - name: Run vagrant user.yml
+        run: vagrant --os=ubuntu/jammy64 --local --playbook=user.yml --headless up
+
+      - name: Destroy vagrant user.yml
         run: vagrant destroy -f
+        if: always()
+
+  vagrant-common-desktop:
+    runs-on: self-hosted
+
+    needs: vagrant-set-up
+    steps:
+      - name: Run vagrant common-desktop.yml
+        run: vagrant --os=ubuntu/jammy64 --local --headless up
+
+      - name: Destroy vagrant common-desktop.yml
+        run: vagrant destroy -f
+        if: always()
+
+  vagrant-common-minimal-desktop:
+    runs-on: self-hosted
+
+    needs: vagrant-set-up
+    steps:
+      - name: Run vagrant common-minimal-desktop.yml
+        run: vagrant --os=ubuntu/jammy64 --local --playbook=common-minimal-desktop.yml --headless up
+
+      - name: Destroy vagrant common-minimal-desktop.yml
+        run: vagrant destroy -f
+        if: always()
