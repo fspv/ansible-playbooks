@@ -31,3 +31,7 @@
 - name: package xdotool
   apt:
     name: xdotool
+
+- name: package flameshot
+  apt:
+    name: flameshot
