@@ -1,3 +1,4 @@
+---
 common_tools:
   - libxml2-utils
   - pgpgpg
@@ -10,3 +11,4 @@ common_tools:
   - unrar
   - fzf
   - pgformatter
+  - fd-find
