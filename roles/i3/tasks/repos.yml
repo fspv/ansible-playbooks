@@ -2,7 +2,7 @@
 # to install next packages
 - name: package sur5r-keyring
   apt:
-    deb: https://debian.sur5r.net/i3/pool/main/s/sur5r-keyring/sur5r-keyring_2022.02.17_all.deb
+    deb: https://debian.sur5r.net/i3/pool/main/s/sur5r-keyring/sur5r-keyring_2023.02.18_all.deb
   notify:
     - apt-get update
 
