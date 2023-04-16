@@ -83,3 +83,21 @@ auth sufficient pam_yubico.so id=1234 debug authfile=/etc/yubikey
 ```
 
 3. `systemctl restart sshd`
+
+# Wayland tips and tricks
+
+To enable screen capture in chromium set the following flags:
+
+chrome://flags/#ozone-platform-hint -> Wayland
+
+chrome://flags/#enable-webrtc-pipewire-capturer -> Enable
+
+And run this
+```
+systemctl --user enable pipewire-media-session
+systemctl --user start pipewire-media-session
+systemctl --user restart xdg-desktop-portal-gnome
+systemctl --user restart xdg-desktop-portal.service
+systemctl --user enable xdg-desktop-portal-wlr.service
+systemctl --user start xdg-desktop-portal-wlr.service
+```
