@@ -1,0 +1,8 @@
+- name: config journalctl
+  copy:
+    dest: /etc/systemd/journald.conf
+    content: |
+      [Journal]
+      # In-memory only, don't really need older logs
+      Storage=volatile
+      SystemMaxUse=10M
