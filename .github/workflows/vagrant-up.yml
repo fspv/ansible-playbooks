@@ -36,7 +36,7 @@ jobs:
         run: vagrant --os=ubuntu/jammy64 --local --playbook=user.yml --headless up
 
       - name: Destroy vagrant user.yml
-        run: vagrant destroy -f
+        run: timeout -k 60 -s 9 vagrant destroy -f || true
         if: always()
 
   vagrant-common-desktop:
@@ -48,7 +48,7 @@ jobs:
         run: vagrant --os=ubuntu/jammy64 --local --headless up
 
       - name: Destroy vagrant common-desktop.yml
-        run: vagrant destroy -f
+        run: timeout -k 60 -s 9 vagrant destroy -f || true
         if: always()
 
   vagrant-common-minimal-desktop:
@@ -60,5 +60,5 @@ jobs:
         run: vagrant --os=ubuntu/jammy64 --local --playbook=common-minimal-desktop.yml --headless up
 
       - name: Destroy vagrant common-minimal-desktop.yml
-        run: vagrant destroy -f
+        run: timeout -k 60 -s 9 vagrant destroy -f || true
         if: always()
