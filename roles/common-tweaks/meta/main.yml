@@ -3,6 +3,7 @@ dependencies:
   - { role: pkgmanager }
   - { role: tzdata }
   - { role: systemd}
+  - { role: tuxedo, when: ansible_system_vendor == "TUXEDO" }
   - { role: ntp, when: ansible_distribution == "Ubuntu" }
   - { role: gpg, when: ansible_distribution == "Ubuntu" }
   - { role: iptables, when: ansible_distribution == "Ubuntu" }

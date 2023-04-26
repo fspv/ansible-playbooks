@@ -1,0 +1,39 @@
+---
+- name: repo key
+  apt_key:
+    id: "54840598"
+    url: https://deb.tuxedocomputers.com/0x54840598.pub.asc
+    keyring: /etc/apt/trusted.gpg.d/tuxedo.gpg
+    state: present
+
+- name: repo pins
+  copy:
+    dest: /etc/apt/preferences.d/tuxedo.pref
+    content: |
+      Package: *
+      Pin: origin mirrors.tuxedocomputers.com
+      Pin-Priority: 1
+
+      Package: *
+      Pin: origin deb.tuxedocomputers.com
+      Pin-Priority: 1
+
+      Package: linux-*
+      Pin: origin mirrors.tuxedocomputers.com
+      Pin-Priority: 995
+
+      Package: tuxedo-*
+      Pin: origin mirrors.tuxedocomputers.com
+      Pin-Priority: 995
+
+- name: repos
+  copy:
+    dest: /etc/apt/sources.list.d/tuxedo.list
+    content: |
+      deb https://mirrors.tuxedocomputers.com/ubuntu/mirror/archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} main restricted universe multiverse
+      deb https://mirrors.tuxedocomputers.com/ubuntu/mirror/security.ubuntu.com/ubuntu {{ ansible_distribution_release }}-security main restricted universe multiverse
+      deb https://mirrors.tuxedocomputers.com/ubuntu/mirror/archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates main restricted universe multiverse
+  notify:
+    - apt-get update
+
+- meta: flush_handlers

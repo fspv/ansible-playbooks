@@ -1,0 +1,16 @@
+---
+- name: package tuxedo-archive-keyring
+  apt:
+    name: tuxedo-archive-keyring
+
+- name: package tuxedo-control-center
+  apt:
+    name: tuxedo-control-center
+
+- name: package tuxedo-keyboard
+  apt:
+    name: tuxedo-keyboard
+
+- name: package tuxedo-touchpad-switch
+  apt:
+    name: tuxedo-touchpad-switch

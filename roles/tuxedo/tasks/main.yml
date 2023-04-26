@@ -1,0 +1,3 @@
+- { import_tasks: repos.yml, when: ansible_system_vendor == "TUXEDO" }
+- { import_tasks: packages.yml, when: ansible_system_vendor == "TUXEDO" }
+- { import_tasks: configs.yml, when: ansible_system_vendor == "TUXEDO" }
