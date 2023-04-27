@@ -28,11 +28,9 @@
 
 - name: repos
   copy:
-    dest: /etc/apt/sources.list.d/tuxedo.list
+    dest: /etc/apt/sources.list.d/tuxedo-computers.list
     content: |
-      deb https://mirrors.tuxedocomputers.com/ubuntu/mirror/archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} main restricted universe multiverse
-      deb https://mirrors.tuxedocomputers.com/ubuntu/mirror/security.ubuntu.com/ubuntu {{ ansible_distribution_release }}-security main restricted universe multiverse
-      deb https://mirrors.tuxedocomputers.com/ubuntu/mirror/archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates main restricted universe multiverse
+      deb https://deb.tuxedocomputers.com/ubuntu {{ ansible_distribution_release }} main
   notify:
     - apt-get update
 
