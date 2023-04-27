@@ -96,8 +96,15 @@ And run this
 ```
 systemctl --user enable pipewire-media-session
 systemctl --user start pipewire-media-session
+systemctl --user enable wireplumber.service
+systemctl --user start wireplumber.service
 systemctl --user restart xdg-desktop-portal-gnome
 systemctl --user restart xdg-desktop-portal.service
 systemctl --user enable xdg-desktop-portal-wlr.service
 systemctl --user start xdg-desktop-portal-wlr.service
+```
+
+If can't connect bluetooth, run
+```
+systemctl --user restart wireplumber.service
 ```
