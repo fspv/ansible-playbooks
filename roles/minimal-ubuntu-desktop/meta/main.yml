@@ -1,6 +1,6 @@
 ---
 dependencies:
-  - {role: lightdm}
+  - {role: gdm}
   - {role: xorg}
   - {role: ponysay}
   - {role: terminator}
