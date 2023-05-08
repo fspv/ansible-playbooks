@@ -15,6 +15,8 @@
       export QT_IM_MODULE=ibus
       export XMODIFIERS=@im=ibus
 
+      export XDG_CURRENT_DESKTOP=sway
+
       sway --debug --verbose 2>&1 >sway.log
     dest: /usr/bin/sway-with-debug-log
     owner: "root"
