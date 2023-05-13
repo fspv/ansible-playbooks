@@ -26,6 +26,22 @@
       Pin: origin mirrors.tuxedocomputers.com
       Pin-Priority: 995
 
+      Package: amd64-microcode
+      Pin: origin mirrors.tuxedocomputers.com
+      Pin-Priority: 995
+
+      Package: linux-*
+      Pin: origin deb.tuxedocomputers.com
+      Pin-Priority: 995
+
+      Package: tuxedo-*
+      Pin: origin deb.tuxedocomputers.com
+      Pin-Priority: 995
+
+      Package: amd64-microcode
+      Pin: origin deb.tuxedocomputers.com
+      Pin-Priority: 995
+
 - name: repos
   copy:
     dest: /etc/apt/sources.list.d/tuxedo-computers.list
