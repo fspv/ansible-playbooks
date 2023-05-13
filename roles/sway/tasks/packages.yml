@@ -70,3 +70,11 @@
 - name: package fcitx-table-translit-ua
   package:
     name: fcitx-table-translit-ua
+
+- name: package policykit-1-gnome
+  package:
+    name: policykit-1-gnome
+
+- name: package polkit-kde-agent-1
+  package:
+    name: polkit-kde-agent-1
