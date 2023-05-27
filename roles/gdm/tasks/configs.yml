@@ -1,5 +1,11 @@
-- name: config set default service
-  file:
-    src: /lib/systemd/system/gdm.service
-    dest: /etc/systemd/system/display-manager.service
-    state: link
+- name: config set user wayland session
+  copy:
+    content: |
+      [Desktop Entry]
+      Name=User-defined Wayland session
+      Comment=Run arbitrary file configured by user
+      Exec=${XDG_DATA_HOME:="${HOME}/.local/share"}/bin/wayland-user
+      Type=Application
+    dest: /usr/share/wayland-sessions/wayland-user.desktop
+    owner: "root"
+    mode: 0666

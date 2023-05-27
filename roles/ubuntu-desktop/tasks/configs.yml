@@ -1,0 +1,5 @@
+- name: config user defined wayland session
+  file:
+    src: /lib/systemd/system/gdm.service
+    dest: /etc/systemd/system/display-manager.service
+    state: link
