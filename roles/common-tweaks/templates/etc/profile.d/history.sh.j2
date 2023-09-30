@@ -11,6 +11,9 @@ declare LOG2SYSLOG_PREV_COMMAND
 declare LOG2SYSLOG_FIRST_RUN="yes"
 
 function log2syslog {
+    # Disable for now until figuring out how to enable it in zsh
+    return
+
     # Append to histfile
     history -a
 
