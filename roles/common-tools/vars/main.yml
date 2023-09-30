@@ -49,6 +49,7 @@ common_tools:
   - blueman
   - feh
   - exuberant-ctags
+  - zsh
 
 common_tools_x86_64:
   - syslinux
