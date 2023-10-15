@@ -19,3 +19,4 @@ dependencies:
   - { role: go-ethereum }
   - { role: vagrant }
   - { role: slack }
+  - { role: nodejs }
