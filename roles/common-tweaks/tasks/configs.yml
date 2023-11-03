@@ -22,3 +22,9 @@
     state: absent
   with_fileglob: /etc/profile.d/vte*.sh
 
+- name: config user sysctl config
+  copy:
+    content: |
+      fs.inotify.max_user_instances=8192
+    dest: /etc/sysctl.d/99-user.conf
+    owner: "root"
