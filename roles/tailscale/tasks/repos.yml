@@ -14,9 +14,10 @@
 
 - name: repo key
   apt_key:
-    keyserver: keyserver.ubuntu.com
-    id: 2596A99EAAB33821893C0A79458CA832957F5868
-    keyring: /etc/apt/trusted.gpg.d/tailscale.gpg
+    id: 458CA832957F5868
+    keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    url: https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg
+    state: present
   notify:
     - apt-get update
   when: ansible_distribution == "Ubuntu"
