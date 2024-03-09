@@ -1,0 +1,25 @@
+- name: repo pins
+  template:
+    src: etc/apt/preferences.d/tailscale.pref.j2
+    dest: /etc/apt/preferences.d/tailscale.pref
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo
+  template:
+    src: etc/apt/sources.list.d/tailscale.list.j2
+    dest: /etc/apt/sources.list.d/tailscale.list
+  notify:
+    - apt-get update
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 2596A99EAAB33821893C0A79458CA832957F5868
+    keyring: /etc/apt/trusted.gpg.d/tailscale.gpg
+  notify:
+    - apt-get update
+  when: ansible_distribution == "Ubuntu"
+
+- meta: flush_handlers
+  when: ansible_distribution == "Ubuntu"
