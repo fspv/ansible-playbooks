@@ -1,10 +1,19 @@
+- name: config user wayland session script
+  copy:
+    content: |
+      #!/bin/sh
+      ${XDG_DATA_HOME:="${HOME}/.local/share"}/bin/wayland-user
+    dest: /usr/local/bin/wayland-user
+    owner: "root"
+    mode: 0777
+
 - name: config set user wayland session
   copy:
     content: |
       [Desktop Entry]
       Name=User-defined Wayland session
       Comment=Run arbitrary file configured by user
-      Exec=${XDG_DATA_HOME:="${HOME}/.local/share"}/bin/wayland-user
+      Exec=/usr/local/bin/wayland-user
       Type=Application
     dest: /usr/share/wayland-sessions/wayland-user.desktop
     owner: "root"
