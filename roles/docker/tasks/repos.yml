@@ -10,4 +10,11 @@
   notify:
     - apt-get update
 
+- name: repo
+  template:
+    src: etc/apt/preferences.d/docker-ce.pref.j2
+    dest: /etc/apt/preferences.d/docker-ce.pref
+  notify:
+    - apt-get update
+
 - meta: flush_handlers

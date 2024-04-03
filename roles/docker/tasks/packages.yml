@@ -3,4 +3,18 @@
     name: "{{ item }}"
   with_items:
     - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin
+
+- name: package remove unused
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - docker.io
     - docker-compose
+    - docker-compose-v2
+    - docker-doc
+    - podman-docker
