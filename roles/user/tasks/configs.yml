@@ -22,6 +22,31 @@
     mode: '0700'
   with_items: "{{ users.values() | list }}"
 
+- name: config local-bin-dir
+  file:
+    path: "{{ item.home }}/.local/bin/"
+    state: directory
+    recurse: true
+    owner: "{{ item.user }}"
+    mode: '0777'
+  with_items: "{{ users.values() | list }}"
+
+- name: config fonts-dir
+  file:
+    path: "{{ item.home }}/.local/share/fonts/fonts/"
+    state: directory
+    recurse: true
+    owner: "{{ item.user }}"
+    mode: '0777'
+  with_items: "{{ users.values() | list }}"
+
+- name: config venv-dir
+  file:
+    path: "{{ item.home }}/venv/"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0777'
+  with_items: "{{ users.values() | list }}"
 
 - name: config .private dir
   file:

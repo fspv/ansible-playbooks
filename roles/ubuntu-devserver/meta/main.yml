@@ -12,3 +12,6 @@ dependencies:
   - { role: nodejs }
   - { role: tailscale }
   - { role: rust }
+  # TODO: do we really need fonts on the devserver?
+  - { role: fonts }
+  - { role: nvim }

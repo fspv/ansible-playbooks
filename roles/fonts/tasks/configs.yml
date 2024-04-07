@@ -1,0 +1,22 @@
+- name: config nerdfonts dir
+  file:
+    path: "{{ item.home }}/.local/share/fonts/fonts/nerdfonts"
+    state: directory
+    owner: "{{ item.user }}"
+    mode: '0777'
+  with_items: "{{ users.values() | list }}"
+
+- name: config nerdfonts
+  unarchive:
+    src: https://github.com/ryanoasis/nerd-fonts/releases/download/v2.3.3/JetBrainsMono.zip
+    dest: "{{ item.home }}/.local/share/fonts/fonts/nerdfonts"
+    owner: "{{ item.user }}"
+    remote_src: yes
+  with_items: "{{ users.values() | list }}"
+
+- name: config update font cache
+  become: true
+  become_user: "{{ item.user }}"
+  shell: >
+    fc-cache -fv
+  with_items: "{{ users.values() | list }}"

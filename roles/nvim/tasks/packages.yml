@@ -1,0 +1,19 @@
+- name: packages
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - neovim
+    - flake8
+    - mypy
+    - pycodestyle
+    - python3-pyflakes
+    - black
+    - isort
+    - clangd
+    - cppcheck
+    - flawfinder
+    - astyle
+    - clang-format
+    - clang-tidy
+    - uncrustify
+    - clangd
