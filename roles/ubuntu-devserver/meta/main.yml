@@ -1,0 +1,14 @@
+dependencies:
+  - { role: bind }
+  - { role: resolv }
+  - { role: docker }
+  - { role: openvpn }
+  - { role: go }
+  - { role: i2p }
+  - { role: tor }
+  - { role: github-cli }
+  - { role: go-ethereum }
+  - { role: vagrant }
+  - { role: nodejs }
+  - { role: tailscale }
+  - { role: rust }

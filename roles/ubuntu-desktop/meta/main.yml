@@ -1,23 +1,12 @@
 dependencies:
+  - { role: ubuntu-devserver }
   - { role: minimal-ubuntu-desktop }
-  - { role: bind }
-  - { role: resolv }
   - { role: tlp }
   - { role: chromium-browser }
-  - { role: docker }
   - { role: skype }
-  - { role: openvpn }
   - { role: discord }
-  - { role: go }
-  - { role: i2p }
-  - { role: tor }
   - { role: obs }
   - { role: keepassxc }
   - { role: latex }
   - { role: bitcoin-core }
-  - { role: github-cli }
-  - { role: go-ethereum }
-  - { role: vagrant }
   - { role: slack }
-  - { role: nodejs }
-  - { role: tailscale }
