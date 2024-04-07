@@ -101,7 +101,7 @@ Vagrant.configure("2") do |config|
       apt-get install -y git
 
       rm -rf ansible-playbooks
-      git clone https://github.com/prius/ansible-playbooks.git
+      git clone https://github.com/fspv/ansible-playbooks.git
 
       cd ansible-playbooks
       mkdir manual
