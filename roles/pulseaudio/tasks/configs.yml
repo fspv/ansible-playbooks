@@ -1,14 +1,9 @@
-# Remove load-module module-bluetooth-discover
-# because it is initializing too early and add it after x11 starts
-# https://askubuntu.com/questions/481951/bluetooth-headset-connects-but-not-showing-in-sound-settings
-- name: config /etc/pulse/default.pa
-  template:
-    dest: "/etc/pulse/default.pa"
-    src: "etc/pulse/default.pa.j2"
-    mode: '0644'
-
-- name: config /usr/bin/start-pulseaudio-x11
-  template:
-    dest: "/usr/bin/start-pulseaudio-x11"
-    src: "usr/bin/start-pulseaudio-x11.j2"
-    mode: '0755'
+- name: config noise cancellation
+  copy:
+    dest: /etc/pulse/default.pa.d/noise-cancellation.pa
+    content: |
+      ### Enable noise cancellation
+      # source: https://askubuntu.com/questions/18958/realtime-noise-removal-with-pulseaudio
+      load-module module-echo-cancel source_name=noechosource sink_name=noechosink
+      set-default-source noechosource
+      set-default-sink noechosink
