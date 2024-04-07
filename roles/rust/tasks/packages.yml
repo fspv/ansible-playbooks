@@ -1,0 +1,5 @@
+- name: package rustup
+  command: snap install rustup --classic
+
+- name: package rust-analyzer
+  command: snap install rust-analyzer --beta
