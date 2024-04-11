@@ -22,7 +22,7 @@
     createhome: yes
     shell: /bin/bash
     groups: "{{ groups.results|map(attribute='stdout')|reject('equalto', '')|join(',') }}"
-  when: not item.skip_create and not item.admin and ansible_user_id == 'root'
+  when: not item.get("skip_create", False) and not item.admin and ansible_user_id == 'root'
   with_items:
     - "{{ users.values() | list }}"
 
@@ -35,6 +35,6 @@
     createhome: yes
     shell: /bin/bash
     groups: "{{ (groups.results + admin_groups.results)|map(attribute='stdout')|reject('equalto', '')|join(',') }}"
-  when: not item.skip_create and item.admin and ansible_user_id == 'root'
+  when: not item.get("skip_create", False) and item.admin and ansible_user_id == 'root'
   with_items:
     - "{{ users.values() | list }}"
