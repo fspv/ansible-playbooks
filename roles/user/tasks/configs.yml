@@ -67,7 +67,7 @@
     path: "{{ item.home }}/.config/"
     state: directory
     owner: "{{ item.user }}"
-    mode: '0700'
+    mode: '0755'
   with_items: "{{ users.values() | list }}"
 
 - name: config .config/autostart dir
@@ -75,7 +75,7 @@
     path: "{{ item.home }}/.config/autostart/"
     state: directory
     owner: "{{ item.user }}"
-    mode: '0700'
+    mode: '0755'
   with_items: "{{ users.values() | list }}"
 
 - name: config .config/systemd dir
@@ -83,7 +83,7 @@
     path: "{{ item.home }}/.config/systemd/"
     state: directory
     owner: "{{ item.user }}"
-    mode: '0700'
+    mode: '0755'
   with_items: "{{ users.values() | list }}"
 
 - name: config .config/systemd/user dir
@@ -91,7 +91,7 @@
     path: "{{ item.home }}/.config/systemd/user/"
     state: directory
     owner: "{{ item.user }}"
-    mode: '0700'
+    mode: '0755'
   with_items: "{{ users.values() | list }}"
 
 - name: config .cache mount
