@@ -4,3 +4,4 @@ dependencies:
   - { role: snapd, when: ansible_distribution == "Ubuntu" }
   - { role: flatpak, when: ansible_distribution == "Ubuntu" }
   - { role: yubico }
+  - { role: nix }

@@ -6,6 +6,8 @@ default_groups:
   - lpadmin
   - video
   - disk
+  - nix-users
+  - dialout
 
 default_admin_groups:
   - sudo
