@@ -8,6 +8,12 @@
     - '/var/lib/apt/lists/'
   tags: build-child
 
+- name: repo remove /etc/apt/sources.list.d/ubuntu.sources
+  file:
+    path: /etc/apt/sources.list.d/ubuntu.sources
+    state: absent
+  tags: build-child
+
 ### Preferences (pins)
 - name: repo ubuntu pins
   template:
@@ -49,7 +55,5 @@
 - name: repo update
   shell:
     cmd: apt-get update
-  args:
-    warn: false
   tags:
     - build-child

@@ -1,0 +1,6 @@
+- name: service
+  service:
+    name: apparmor
+    enabled: yes
+    # restart to pick up a new config
+    state: restarted

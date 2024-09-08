@@ -108,3 +108,11 @@ If can't connect bluetooth, run
 ```
 systemctl --user restart wireplumber.service
 ```
+
+Prepare for the new ubuntu release
+==================================
+
+1. Create ponysay backport https://github.com/fspv/ponysay-deb
+2. Test all vagrant scenarios locally
+3. Test if nix builds
+4. wayland apps can't be tested in vagrant, so test them locally if possible

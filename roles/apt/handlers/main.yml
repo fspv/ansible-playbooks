@@ -1,5 +1,3 @@
 - name: apt-get update
   shell:
     cmd: apt-get update
-  args:
-    warn: false

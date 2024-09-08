@@ -3,15 +3,15 @@ dependencies:
   - { role: resolv }
   - { role: docker }
   - { role: openvpn }
-  - { role: go }
-  - { role: i2p }
-  - { role: tor }
-  - { role: github-cli }
-  - { role: go-ethereum }
+  # - { role: go }
+  # - { role: i2p }
+  # - { role: tor }
+  # - { role: github-cli }
+  # - { role: go-ethereum }
   - { role: vagrant }
-  - { role: nodejs }
+  # - { role: nodejs }
   - { role: tailscale }
-  - { role: rust }
+  # - { role: rust }
   # TODO: do we really need fonts on the devserver?
   - { role: fonts }
   - { role: nvim }

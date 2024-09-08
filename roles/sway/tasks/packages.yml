@@ -46,6 +46,11 @@
 - name: package libappindicator1
   package:
     name: libappindicator1
+  # removed since ubuntu noble
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_facts['distribution_version'] == "22.04"
 
 - name: package qtwayland5
   package:

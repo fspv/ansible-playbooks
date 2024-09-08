@@ -3,21 +3,9 @@
   apt:
     name: software-properties-common
 
-- name: package python-pycurl
-  apt:
-    name: python-pycurl
-  # FIXME: missing since Ubuntu jammy
-  ignore_errors: yes
-
 - name: package python3-pycurl
   apt:
     name: python3-pycurl
-
-- name: package python-apt
-  apt:
-    name: python-apt
-  # FIXME: missing since Ubuntu jammy
-  ignore_errors: yes
 
 - name: package python3-apt
   apt:

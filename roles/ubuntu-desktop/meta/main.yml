@@ -2,11 +2,11 @@ dependencies:
   - { role: ubuntu-devserver }
   - { role: minimal-ubuntu-desktop }
   - { role: tlp }
-  - { role: chromium-browser }
-  - { role: skype }
-  - { role: discord }
-  - { role: obs }
-  - { role: keepassxc }
-  - { role: latex }
-  - { role: bitcoin-core }
-  - { role: slack }
+  # - { role: chromium-browser }
+  # - { role: skype }
+  # - { role: discord }
+  # - { role: obs }
+  # - { role: keepassxc }
+  # - { role: latex }
+  # - { role: bitcoin-core }
+  # - { role: slack }

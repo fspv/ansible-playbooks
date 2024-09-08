@@ -29,7 +29,9 @@ opts.each do |opt, arg|
   end
 end
 
-# Example: vagrant --os=ubuntu/jammy64 --playbook=user.yml --local --headless up
+# Example:
+# * vagrant --os=ubuntu/jammy64 --playbook=user.yml --local --headless up
+# * vagrant --os=bento/ubuntu-24.04 --playbook=common-desktop.yml --local up
 
 
 Vagrant.configure("2") do |config|
@@ -74,7 +76,17 @@ Vagrant.configure("2") do |config|
       sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
 
       chown -R vagrant .
-      sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL
+
+      for i in {1..3}; do
+        set +e
+        sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && break
+        set -e
+      done
+
+      if $? -ne 0; then
+        echo "Failed to provision"
+        exit 1
+      fi
 
       apt-get update
       apt-get upgrade -y
@@ -84,6 +96,8 @@ Vagrant.configure("2") do |config|
 
       apt-get update
       apt-get upgrade -y
+
+      cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh
 
       reboot
     SHELL
@@ -109,7 +123,16 @@ Vagrant.configure("2") do |config|
       sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
 
       chown -R vagrant .
-      sudo -u vagrant ./bootstrap.sh #{playbook} REMOTE
+      for i in {1..3}; do
+        set +e
+        sudo -u vagrant ./bootstrap.sh #{playbook} REMOTE && break
+        set -e
+      done
+
+      if $? -ne 0; then
+        echo "Failed to provision"
+        exit 1
+      fi
 
       apt-get update
       apt-get upgrade -y
@@ -119,6 +142,8 @@ Vagrant.configure("2") do |config|
 
       apt-get update
       apt-get upgrade -y
+
+      cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh
 
       reboot
     SHELL

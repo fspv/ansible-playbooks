@@ -55,8 +55,6 @@
     - dupload
     - virt-manager
     - qemu-kvm
-    - qemu
     - dia
-    - vim-gtk
     - gimp
     - xubuntu-default-settings
