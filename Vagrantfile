@@ -83,7 +83,7 @@ Vagrant.configure("2") do |config|
         set -e
       done
 
-      if $? -ne 0; then
+      if [[ $? -ne 0 ]]; then
         echo "Failed to provision"
         exit 1
       fi
@@ -123,7 +123,7 @@ Vagrant.configure("2") do |config|
       sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
 
       chown -R vagrant .
-      for i in {1..3}; do
+      if [[ $? -ne 0 ]]; then
         set +e
         sudo -u vagrant ./bootstrap.sh #{playbook} REMOTE && break
         set -e
