@@ -86,15 +86,3 @@ jobs:
       - name: Destroy vagrant common-desktop.yml
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
         if: always()
-
-  vagrant-common-minimal-desktop-2404:
-    runs-on: self-hosted
-
-    needs: vagrant-set-up
-    steps:
-      - name: Run vagrant common-minimal-desktop.yml
-        run: vagrant --os=bento/ubuntu-24.04 --local --playbook=common-minimal-desktop.yml --headless up
-
-      - name: Destroy vagrant common-minimal-desktop.yml
-        run: timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()

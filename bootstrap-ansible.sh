@@ -22,7 +22,9 @@ fi
 rm -rf ${BOOTSTRAP_DIR}
 mkdir -p ${BOOTSTRAP_DIR}
 
-virtualenv -p python3 ${ANSIBLE_VENV_DIR}
+unset _PYTHON_SYSCONFIGDATA_NAME
+
+DEB_PYTHON_INSTALL_LAYOUT='deb' virtualenv -p python3 ${ANSIBLE_VENV_DIR}
 
 export VIRTUAL_ENV_DISABLE_PROMPT=yes
 

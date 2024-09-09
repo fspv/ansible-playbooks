@@ -77,16 +77,16 @@ Vagrant.configure("2") do |config|
 
       chown -R vagrant .
 
+      set +e
       for i in {1..3}; do
-        set +e
         sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && break
-        set -e
       done
 
       if [[ $? -ne 0 ]]; then
         echo "Failed to provision"
         exit 1
       fi
+      set -e
 
       apt-get update
       apt-get upgrade -y
@@ -123,16 +123,17 @@ Vagrant.configure("2") do |config|
       sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
 
       chown -R vagrant .
+
+      set +e
       if [[ $? -ne 0 ]]; then
-        set +e
         sudo -u vagrant ./bootstrap.sh #{playbook} REMOTE && break
-        set -e
       done
 
       if $? -ne 0; then
         echo "Failed to provision"
         exit 1
       fi
+      set -e
 
       apt-get update
       apt-get upgrade -y
