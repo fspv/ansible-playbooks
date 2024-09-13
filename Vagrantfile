@@ -79,7 +79,10 @@ Vagrant.configure("2") do |config|
 
       set +e
       for i in {1..3}; do
-        sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && break
+        # Run twice to make sure users are added to correct groups
+        sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
+          sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
+          break
       done
 
       if [[ $? -ne 0 ]]; then
@@ -97,7 +100,7 @@ Vagrant.configure("2") do |config|
       apt-get update
       apt-get upgrade -y
 
-      cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh
+      id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
 
       reboot
     SHELL
@@ -126,7 +129,10 @@ Vagrant.configure("2") do |config|
 
       set +e
       if [[ $? -ne 0 ]]; then
-        sudo -u vagrant ./bootstrap.sh #{playbook} REMOTE && break
+        # Run twice to make sure users are added to correct groups
+        sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
+          sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
+          break
       done
 
       if $? -ne 0; then
@@ -144,7 +150,7 @@ Vagrant.configure("2") do |config|
       apt-get update
       apt-get upgrade -y
 
-      cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh
+      id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
 
       reboot
     SHELL
