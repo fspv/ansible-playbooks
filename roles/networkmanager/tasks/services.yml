@@ -1,0 +1,8 @@
+# When both systemd-networkd and NetworkManager are enabled, the system waits for both to start, while systemd-networkd will never start, so we disable it
+# https://askubuntu.com/questions/1217252/boot-process-hangs-at-systemd-networkd-wait-online/1501504#1501504
+- name: service systemd-networkd.service
+  systemd:
+    name: systemd-networkd.service
+    state: stopped
+    enabled: false
+    daemon_reload: yes
