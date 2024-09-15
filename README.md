@@ -116,3 +116,31 @@ Prepare for the new ubuntu release
 2. Test all vagrant scenarios locally
 3. Test if nix builds
 4. wayland apps can't be tested in vagrant, so test them locally if possible
+
+Update grub from a Live CD
+==========================
+A valid strategy to avoid formatting the entire disk is to install ubuntu on a flash drive and just copy files into the old root partition.
+
+After that you can do something like this to make it bootable again:
+
+```sh
+sudo cryptsetup luksOpen /dev/nvme0n1p3 test
+sudo mount /dev/disk/by-id/dm-name-vgubuntu-root /mnt
+sudo mount /dev/disk/by-id/dm-name-vgubuntu-home /mnt/home
+sudo mount /dev/nvme0n1p2 /mnt/boot
+sudo mount /dev/nvme0n1p1 /mnt/boot/efi
+sudo mount --bind /dev /mnt/dev
+sudo mount --bind /sys /mnt/sys
+sudo mount --bind /proc /mnt/proc
+sudo chroot /mnt
+```
+
+Then you can copy old /etc/fsab and /etc/crypttab to the new system. When you format partition, its uuid changes, so you need to update /etc/crypttab and /etc/fstab.
+
+Finally, you can update grub with
+```sh
+sudo grub-install /dev/nvme0n1
+sudo update-grub
+```
+
+If everything is done correctly, the system should boot again.
