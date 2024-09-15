@@ -39,6 +39,7 @@
     - thunderbird
     - thunderbird-gnome-support
     - ubuntu-web-launchers
+    - kerneloops
 
 - name: packages install necessary
   apt:

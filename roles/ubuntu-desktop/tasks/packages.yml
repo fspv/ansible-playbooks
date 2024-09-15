@@ -18,3 +18,4 @@
     - dnsmasq
     - gnome-software
     - gnome-software-common
+    - kerneloops
