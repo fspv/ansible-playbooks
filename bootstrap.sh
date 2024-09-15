@@ -32,4 +32,5 @@ set +u
 . ${ANSIBLE_VENV_DIR}/bin/activate
 set -u
 
+ansible localhost -m ansible.builtin.setup
 ansible-playbook ${ANSIBLE_ARGS}
