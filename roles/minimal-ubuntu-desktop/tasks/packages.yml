@@ -39,7 +39,8 @@
     - thunderbird
     - thunderbird-gnome-support
     - ubuntu-web-launchers
-    - kerneloops
+    - adb
+    - qbittorrent
 
 - name: packages install necessary
   apt:
@@ -49,9 +50,7 @@
     - cowsay
     - fortune
     - pavucontrol
-    - qbittorrent
     - vlc
-    - adb
     - samba-common-bin
     - dupload
     - virt-manager
