@@ -32,6 +32,9 @@ end
 # Example:
 # * vagrant --os=ubuntu/jammy64 --playbook=user.yml --local --headless up
 # * vagrant --os=bento/ubuntu-24.04 --playbook=common-desktop.yml --local up
+#
+# Known problems:
+# * Sometimes disk fails to set up (systemd waits on disk uuid), `vagrant destroy` and try again in this case
 
 
 Vagrant.configure("2") do |config|
@@ -100,6 +103,9 @@ Vagrant.configure("2") do |config|
       apt-get update
       apt-get upgrade -y
 
+      sudo apt-get autoremove -y
+      sudo apt purge -y '~c'
+
       id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
 
       reboot
@@ -149,6 +155,9 @@ Vagrant.configure("2") do |config|
 
       apt-get update
       apt-get upgrade -y
+
+      sudo apt-get autoremove -y
+      sudo apt purge -y '~c'
 
       id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
 
