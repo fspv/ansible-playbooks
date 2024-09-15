@@ -14,3 +14,11 @@
 - name: package tuxedo-touchpad-switch
   apt:
     name: tuxedo-touchpad-switch
+
+- name: package tuxedo-drivers
+  apt:
+    name: tuxedo-drivers
+
+- name: package linux-tuxedo
+  apt:
+    name: linux-tuxedo
