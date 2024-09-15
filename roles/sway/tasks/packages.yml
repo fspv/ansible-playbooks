@@ -83,3 +83,7 @@
 - name: package polkit-kde-agent-1
   package:
     name: polkit-kde-agent-1
+
+- name: package xdg-desktop-portal-wlr
+  package:
+    name: xdg-desktop-portal-wlr
