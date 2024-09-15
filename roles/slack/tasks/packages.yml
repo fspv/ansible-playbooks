@@ -1,2 +1,0 @@
-- name: slack package
-  command: snap install slack

@@ -1,6 +1,0 @@
----
-# FIXME: Deprecated. Doesn't work since Ubuntu Jammy
-# No intent to fix it, since I don't use it anymore
-# Left it here just for historic reference
-- include_tasks: repos.yml
-- include_tasks: packages.yml

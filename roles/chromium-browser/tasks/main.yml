@@ -1,3 +1,0 @@
-- include_vars: "{{ ansible_distribution }}.yml"
-- include_tasks: packages.yml
-- include_tasks: configs.yml

@@ -1,3 +1,0 @@
-- name: go package
-  apt:
-    name: golang-go

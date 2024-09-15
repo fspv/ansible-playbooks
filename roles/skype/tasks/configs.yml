@@ -1,7 +1,0 @@
-- name: config disable autostart
-  template:
-    dest: "{{ item.home }}/.config/autostart/skypeforlinux.desktop"
-    src: "home/user/.config/autostart/skypeforlinux.desktop.j2"
-    owner: "{{ item.user }}"
-    mode: '0400'
-  with_items: "{{ users.values() | list }}"

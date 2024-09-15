@@ -1,2 +1,0 @@
-- name: package rustup
-  command: snap install rustup --classic

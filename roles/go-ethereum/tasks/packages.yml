@@ -1,7 +1,0 @@
-- name: package ethereum
-  apt:
-    name: ethereum
-
-- name: package solc
-  apt:
-    name: solc

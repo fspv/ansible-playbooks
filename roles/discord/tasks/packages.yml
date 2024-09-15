@@ -1,2 +1,0 @@
-- name: discord package
-  command: snap install discord
