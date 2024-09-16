@@ -63,11 +63,15 @@ If the key doesn't work in chromium, try replugging it.
 
 # Setup Yubikey for server
 
+https://developers.yubico.com/yubico-pam/
+
 0. Preserve a stable root ssh session to prevent locking you out
 
 1. Validate OTP https://demo.yubico.com/otp/verify
 
-2. /etc/ssh/sshd_config
+2. Get api key https://upgrade.yubico.com/getapikey/
+
+3. /etc/ssh/sshd_config
 
 ```
 PermitRootLogin yes
@@ -81,6 +85,8 @@ AuthenticationMethods publickey,keyboard-interactive:pam
 ```
 auth sufficient pam_yubico.so id=1234 debug authfile=/etc/yubikey
 ```
+
+`/etc/yubikey` is the same as `/etc/Yubico/u2f_keys` above
 
 3. `systemctl restart sshd`
 
