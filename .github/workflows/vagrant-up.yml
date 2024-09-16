@@ -19,7 +19,7 @@ jobs:
         run: sudo apt-get update
 
       - name: install packages
-        run: sudo apt install -y virtualbox virtualbox-guest-utils virtualbox-guest-dkms virtualbox-guest-x11 vagrant git
+        run: sudo apt install -y virtualbox virtualbox-guest-utils virtualbox-guest-x11 vagrant git
 
       - name: init submodules
         run: git submodule update --init --recursive
