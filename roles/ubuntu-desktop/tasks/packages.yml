@@ -4,6 +4,11 @@
     name: ubuntu-desktop
     install_recommends: false
 
+# Non-free codecs, etc
+- name: package ubuntu-restricted-extras
+  apt:
+    name: ubuntu-restricted-extras
+
 - name: packages remove unnecessary
   apt:
     name: "{{ item }}"
