@@ -39,6 +39,10 @@ jobs:
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
         if: always()
 
+      - name: Destroy all virtualbox machines
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        if: always()
+
   vagrant-common-desktop:
     runs-on: self-hosted
 
@@ -49,6 +53,10 @@ jobs:
 
       - name: Destroy vagrant common-desktop.yml
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
+      - name: Destroy all virtualbox machines
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
         if: always()
 
   vagrant-common-minimal-desktop:
@@ -63,6 +71,10 @@ jobs:
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
         if: always()
 
+      - name: Destroy all virtualbox machines
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        if: always()
+
   vagrant-user-2404:
     runs-on: self-hosted
 
@@ -75,6 +87,10 @@ jobs:
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
         if: always()
 
+      - name: Destroy all virtualbox machines
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        if: always()
+
   vagrant-common-desktop-2404:
     runs-on: self-hosted
 
@@ -85,4 +101,8 @@ jobs:
 
       - name: Destroy vagrant common-desktop.yml
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
+      - name: Destroy all virtualbox machines
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
         if: always()
