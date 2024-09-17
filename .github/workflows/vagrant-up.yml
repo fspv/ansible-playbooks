@@ -25,7 +25,7 @@ jobs:
         run: git submodule update --init --recursive
 
       - name: Show Vagrant version
-        run: vagrant --version
+        run: VAGRANT_LOG=debug vagrant --version
 
   vagrant-user:
     runs-on: self-hosted
@@ -33,7 +33,7 @@ jobs:
     needs: vagrant-set-up
     steps:
       - name: Run vagrant user.yml
-        run: vagrant --os=ubuntu/jammy64 --local --playbook=user.yml --headless up
+        run: VAGRANT_LOG=debug vagrant --os=ubuntu/jammy64 --local --playbook=user.yml --headless up
 
       - name: Destroy vagrant user.yml
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -45,7 +45,7 @@ jobs:
     needs: vagrant-set-up
     steps:
       - name: Run vagrant common-desktop.yml
-        run: vagrant --os=ubuntu/jammy64 --local --headless up
+        run: VAGRANT_LOG=debug vagrant --os=ubuntu/jammy64 --local --headless up
 
       - name: Destroy vagrant common-desktop.yml
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -57,7 +57,7 @@ jobs:
     needs: vagrant-set-up
     steps:
       - name: Run vagrant common-minimal-desktop.yml
-        run: vagrant --os=ubuntu/jammy64 --local --playbook=common-minimal-desktop.yml --headless up
+        run: VAGRANT_LOG=debug vagrant --os=ubuntu/jammy64 --local --playbook=common-minimal-desktop.yml --headless up
 
       - name: Destroy vagrant common-minimal-desktop.yml
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -69,7 +69,7 @@ jobs:
     needs: vagrant-set-up
     steps:
       - name: Run vagrant user.yml
-        run: vagrant --os=bento/ubuntu-24.04 --local --playbook=user.yml --headless up
+        run: VAGRANT_LOG=debug vagrant --os=bento/ubuntu-24.04 --local --playbook=user.yml --headless up
 
       - name: Destroy vagrant user.yml
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -81,7 +81,7 @@ jobs:
     needs: vagrant-set-up
     steps:
       - name: Run vagrant common-desktop.yml
-        run: vagrant --os=bento/ubuntu-24.04 --local --headless up
+        run: VAGRANT_LOG=debug vagrant --os=bento/ubuntu-24.04 --local --headless up
 
       - name: Destroy vagrant common-desktop.yml
         run: timeout -k 60 -s 9 60 vagrant destroy -f || true
