@@ -1,5 +1,4 @@
 ---
 dependencies:
   - {role: pkgmanager}
-  - {role: pip}
   - {role: user}
