@@ -9,6 +9,14 @@
   apt:
     name: ubuntu-restricted-extras
 
+- name: packages install necessary
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - blueman
+    - feh
+
 - name: packages remove unnecessary
   apt:
     name: "{{ item }}"

@@ -1,6 +1,5 @@
 ---
 common_tools:
-  - libxml2-utils
   - pgpgpg
   - iputils-ping
   - iputils-arping
@@ -8,7 +7,3 @@ common_tools:
   - psensor
   - fancontrol
   - aptitude
-  - unrar
-  - fzf
-  - pgformatter
-  - fd-find

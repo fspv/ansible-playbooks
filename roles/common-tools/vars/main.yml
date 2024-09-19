@@ -39,16 +39,10 @@ common_tools:
   - ipython3
   - mtr-tiny
   - whois
-  - jq
   - pciutils
   - sysstat
   - linux-tools-common
-  - ripgrep
   - tmux
-  - blueman
-  - feh
-  - exuberant-ctags
-  - zsh
 
 common_tools_x86_64:
   - syslinux
