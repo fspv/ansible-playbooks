@@ -9,7 +9,7 @@ then
 
     sudo apt-get -y install build-essential libssl-dev libffi-dev \
 			       python3-pip python3-virtualenv git \
-			       python3-dev cargo pkg-config acl
+			       python3-dev pkg-config acl
 fi
 
 if which yum 2>&1 >/dev/null
