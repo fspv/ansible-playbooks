@@ -1,60 +1,61 @@
-# HIST* variables not really working for regular users
-# but will be useful for root
-# Ignore duplicates in .bash_history
-export HISTCONTROL=ignoredups 2>/dev/null
-# The  maximum  number of lines contained in the history file.
-export HISTFILESIZE=99999 2>/dev/null
-# Controls output of `history` command end enables time logging in .bash_history
-export HISTTIMEFORMAT="%a, %d %b %Y %T %z " 2>/dev/null
+if [[ -n "$BASH_VERSION" ]]; then
+    # HIST* variables not really working for regular users
+    # but will be useful for root
+    # Ignore duplicates in .bash_history
+    export HISTCONTROL=ignoredups 2>/dev/null
+    # The  maximum  number of lines contained in the history file.
+    export HISTFILESIZE=99999 2>/dev/null
+    # Controls output of `history` command end enables time logging in .bash_history
+    export HISTTIMEFORMAT="%a, %d %b %Y %T %z " 2>/dev/null
 
-declare LOG2SYSLOG_PREV_COMMAND
-declare LOG2SYSLOG_FIRST_RUN="yes"
+    declare LOG2SYSLOG_PREV_COMMAND
+    declare LOG2SYSLOG_FIRST_RUN="yes"
 
-function log2syslog {
-    # Disable for now until figuring out how to enable it in zsh
-    return
+    function log2syslog {
+        # Append to histfile
+        history -a
 
-    # Append to histfile
-    history -a
+        # Get last command
+        declare COMMAND
+        LAST_HISTORY_UNFORMATTED=$(HISTTIMEFORMAT="" history 1 | awk '{ $1=""; print }')
+        # Remove whitespace from the beginning
+        # shellcheck disable=SC2116
+        # shellcheck disable=SC2086
+        COMMAND="$(echo ${LAST_HISTORY_UNFORMATTED})"
 
-    # Get last command
-    declare COMMAND
-    LAST_HISTORY_UNFORMATTED=$(
-        HISTTIMEFORMAT="" history 1 | awk '{ $1=""; print }')
-    # Remove whitespace from the beginning
-    COMMAND=$(echo ${LAST_HISTORY_UNFORMATTED})
+        # Return if there is nothing to log
+        test "$COMMAND" = "" && return
 
-    # Return if there is nothing to log
-    test "x$COMMAND" = "x" && return
-
-    # Test if command hasn't been already written to log
-    if ! test "x$COMMAND" = "x$LOG2SYSLOG_PREV_COMMAND"
-    then
-        if test "x$LOG2SYSLOG_FIRST_RUN" = "xyes"
+        # Test if command hasn't been already written to log
+        if ! test "$COMMAND" = "$LOG2SYSLOG_PREV_COMMAND"
         then
-            LOG2SYSLOG_FIRST_RUN="no"
-            readonly LOG2SYSLOG_FIRST_RUN
-        else
-            logger -p local1.notice -t bashhistory -i -- \
-                "${USER}[$$]:$(pwd):$SSH_CONNECTION:${COMMAND}"
+            if test "$LOG2SYSLOG_FIRST_RUN" = "yes"
+            then
+                LOG2SYSLOG_FIRST_RUN="no"
+                readonly LOG2SYSLOG_FIRST_RUN
+            else
+                logger -p local1.notice -t bashhistory -i -- \
+                    "${USER}[$$]:$(pwd):$SSH_CONNECTION:${COMMAND}"
+            fi
         fi
-    fi
 
-    LOG2SYSLOG_PREV_COMMAND=$COMMAND
-}
+        LOG2SYSLOG_PREV_COMMAND=$COMMAND
+    }
 
-readonly log2syslog
+    # shellcheck disable=SC2034
+    readonly log2syslog
 
-export -f log2syslog
+    export -f log2syslog
 
-# Trap executes before and after function.
-# So if trap successfully enoked it does all the magick right after
-# command has been started.
-trap log2syslog DEBUG
+    # Trap executes before and after function.
+    # So if trap successfully enoked it does all the magick right after
+    # command has been started.
+    trap log2syslog DEBUG
 
-# Trap has one security issue: it can be redefined
+    # Trap has one security issue: it can be redefined
 
-# So here we are using readonly PROMPT_COMMAND to write something to log
-# even if some bad guy removed trap
-export PROMPT_COMMAND='log2syslog' 2>/dev/null
-readonly PROMPT_COMMAND
+    # So here we are using readonly PROMPT_COMMAND to write something to log
+    # even if some bad guy removed trap
+    export PROMPT_COMMAND='log2syslog' 2>/dev/null
+    readonly PROMPT_COMMAND
+fi
