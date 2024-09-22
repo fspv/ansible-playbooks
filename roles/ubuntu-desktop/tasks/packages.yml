@@ -12,7 +12,6 @@
 - name: packages install necessary
   apt:
     name: "{{ item }}"
-    state: absent
   with_items:
     - blueman
     - feh
