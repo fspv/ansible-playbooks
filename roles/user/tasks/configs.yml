@@ -1,17 +1,3 @@
-- name: config rc files
-  synchronize:
-    src: home/
-    dest: "{{ item.home }}"
-    rsync_opts:
-      - "--exclude=.git"
-      - "--exclude=.gitmodules"
-      - "--exclude=.gitconfig"
-      - "--exclude=.gitignore"
-      - "--chown={{ item.user }}:{{ item.user }}"
-      - "--update" # skip files that are newer on the receiver
-      - "--times" # preserve modification times
-  with_items: "{{ users.values() | list }}"
-
 - name: config user-dir
   file:
     path: "{{ item.home }}"
