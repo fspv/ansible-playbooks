@@ -6,6 +6,4 @@ dependencies:
   - { role: vagrant }
   - { role: tailscale }
   - { role: et }
-  # TODO: do we really need fonts on the devserver?
-  - { role: fonts }
   - { role: nvim }
