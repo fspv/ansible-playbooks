@@ -1,6 +1,0 @@
-- name: config
-  template:
-    src: etc/default/tlp
-    dest: /etc/default/tlp
-  notify:
-    - service tlp restart
