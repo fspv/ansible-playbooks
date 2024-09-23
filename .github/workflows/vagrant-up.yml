@@ -1,6 +1,9 @@
 name: vagrant-up
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
 
 jobs:
   vagrant-set-up:

@@ -3,6 +3,7 @@ Clone
 
 ```
 git clone https://github.com/prius/ansible-playbooks.git
+cd ansible-playbooks
 git submodule update --init --recursive
 ```
 
@@ -74,7 +75,6 @@ https://developers.yubico.com/yubico-pam/
 3. /etc/ssh/sshd_config
 
 ```
-PermitRootLogin yes
 KbdInteractiveAuthentication yes
 UsePAM yes
 AuthenticationMethods publickey,keyboard-interactive:pam
@@ -94,26 +94,8 @@ auth sufficient pam_yubico.so id=1234 debug authfile=/etc/yubikey
 
 To enable screen capture in chromium set the following flags:
 
+chrome://flags/#enable-webrtc-pipewire-camera -> Enabled
 chrome://flags/#ozone-platform-hint -> Wayland
-
-chrome://flags/#enable-webrtc-pipewire-capturer -> Enable
-
-And run this
-```
-systemctl --user enable pipewire-media-session
-systemctl --user start pipewire-media-session
-systemctl --user enable wireplumber.service
-systemctl --user start wireplumber.service
-systemctl --user restart xdg-desktop-portal-gnome
-systemctl --user restart xdg-desktop-portal.service
-systemctl --user enable xdg-desktop-portal-wlr.service
-systemctl --user start xdg-desktop-portal-wlr.service
-```
-
-If can't connect bluetooth, run
-```
-systemctl --user restart wireplumber.service
-```
 
 Prepare for the new ubuntu release
 ==================================
@@ -141,12 +123,25 @@ sudo mount --bind /proc /mnt/proc
 sudo chroot /mnt
 ```
 
-Then you can copy old /etc/fsab and /etc/crypttab to the new system. When you format partition, its uuid changes, so you need to update /etc/crypttab and /etc/fstab.
+Then you can copy old `/etc/fstab` and `/etc/crypttab` to the new system. When you format partition, its uuid changes, so you need to update `/etc/crypttab` and `/etc/fstab`.
 
 Finally, you can update grub with
 ```sh
-sudo grub-install /dev/nvme0n1
-sudo update-grub
+update-initramfs -k all -u
+update-grub
+grub-install /dev/nvme0n1
 ```
 
 If everything is done correctly, the system should boot again.
+
+Debug initramfs
+===============
+
+https://wiki.debian.org/InitramfsDebug
+
+1. Try add `break` to the kernel command line
+2. Inspect initrd image contents with `lsinitramfs /boot/initrd.img`
+3. You can unpack initramfs image with `unmkinitramfs /boot/initrd.img /tmp/initrd`
+4. Try to explore differences between working and non-working initramfs images with `diffoscope --exclude-directory-metadata=yes /tmp/initrd1 /tmp/initrd2` (can be installed with `nix-shell -p diffoscope`)
+
+Recent initramfs bugs can be found here https://bugs.launchpad.net/ubuntu/+source/initramfs-tools/+bugs?orderby=-id&start=0
