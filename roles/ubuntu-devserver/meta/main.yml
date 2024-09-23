@@ -3,7 +3,6 @@ dependencies:
   - { role: resolv }
   - { role: docker }
   - { role: openvpn }
-  - { role: vagrant }
   - { role: tailscale }
   - { role: et }
   - { role: nvim }
