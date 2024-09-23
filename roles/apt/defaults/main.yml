@@ -1,6 +1,6 @@
 apt_repos:
   - ubuntu
-  - ubuntu-proposed
+  # - ubuntu-proposed  # unstable
   - ubuntu-security
   - ubuntu-updates
   - ubuntu-backports
