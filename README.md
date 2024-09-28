@@ -31,6 +31,9 @@ Playbooks
 
 # Setup Yubikey
 
+UI: `nix-shell -p yubikey-manager-qt --run ykman-gui`
+UI2: `nix-shell -p yubikey-personalization-gui --run yubikey-personalization-gui`
+
 ```bash
 #!/bin/sh
 
@@ -62,31 +65,17 @@ Then merge entries for a single user into one line, for example
 
 If the key doesn't work in chromium, try replugging it.
 
-# Setup Yubikey for server
+# Setup server auth by pubkey and password
 
-https://developers.yubico.com/yubico-pam/
-
-0. Preserve a stable root ssh session to prevent locking you out
-
-1. Validate OTP https://demo.yubico.com/otp/verify
-
-2. Get api key https://upgrade.yubico.com/getapikey/
-
-3. /etc/ssh/sshd_config
+https://developers.yubico.com/SSH/Securing_SSH_with_FIDO2.html
 
 ```
-KbdInteractiveAuthentication yes
-UsePAM yes
-AuthenticationMethods publickey,keyboard-interactive:pam
+PermitRootLogin no
+PermitEmptyPasswords no
+PasswordAuthentication yes
+PubkeyAuthentication yes
+AuthenticationMethods publickey,password
 ```
-
-2. /etc/pam.d/sshd
-
-```
-auth sufficient pam_yubico.so id=1234 debug authfile=/etc/yubikey
-```
-
-`/etc/yubikey` is the same as `/etc/Yubico/u2f_keys` above
 
 3. `systemctl restart sshd`
 
