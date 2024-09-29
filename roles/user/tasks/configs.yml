@@ -11,6 +11,7 @@
     path: "{{ item.home }}/.ssh/"
     state: directory
     owner: "{{ item.user }}"
+    group: "{{ item.user }}"
     mode: '0700'
   with_items: "{{ users.values() | list }}"
 
@@ -37,12 +38,13 @@
     path: "{{ item.home }}/venv/"
     state: directory
     owner: "{{ item.user }}"
+    group: "{{ item.user }}"
     mode: '0777'
   with_items: "{{ users.values() | list }}"
 
 - name: config .private dir
   file:
-    path: "{{ item.home }}/.private/"
+    path: "{{ item.home }}/.local/private/"
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
@@ -108,9 +110,27 @@
   with_items: "{{ users.values() | list }}"
   when: item.user != 'root' and ansible_virtualization_type != 'docker' and ansible_user_id == 'root'
 
+- name: config .cache dir permissions
+  file:
+    name: "{{ item.home }}/.cache"
+    owner: "{{ item.user }}"
+    group: "{{ item.user }}"
+    mode: '0700'
+    state: directory
+  with_items: "{{ users.values() | list }}"
+
+- name: config .local dir permissions
+  file:
+    name: "{{ item.home }}/.local"
+    owner: "{{ item.user }}"
+    group: "{{ item.user }}"
+    mode: '0700'
+    state: directory
+  with_items: "{{ users.values() | list }}"
+
 - name: config .private dir for user
   file:
-    name: "{{ item.home }}/.private"
+    name: "{{ item.home }}/.local/private"
     owner: "{{ item.user }}"
     mode: '0700'
     state: directory
@@ -120,7 +140,7 @@
 - name: config custom secret
   template:
     src: custom_secret.j2
-    dest: "{{ item.0.home }}/.private/{{ item.1.filename }}"
+    dest: "{{ item.0.home }}/.local/private/{{ item.1.filename }}"
     owner: "{{ item.0.user }}"
     mode: '0600'
   with_subelements:
@@ -131,7 +151,7 @@
 - name: config custom secret from file
   copy:
     src: "{{ item.1.src_dir }}/{{ item.1.filename }}"
-    dest: "{{ item.0.home }}/.private/{{ item.1.filename }}"
+    dest: "{{ item.0.home }}/.local/private/{{ item.1.filename }}"
     owner: "{{ item.0.user }}"
     mode: '0600'
   with_subelements:
