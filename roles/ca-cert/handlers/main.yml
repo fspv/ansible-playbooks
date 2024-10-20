@@ -1,0 +1,3 @@
+- name: handler update-ca-certificates
+  shell:
+    cmd: update-ca-certificates

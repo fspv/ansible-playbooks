@@ -1,0 +1,12 @@
+- name: config custom ca certificates
+  copy:
+    content: "{{ item.value }}"
+    dest: "/usr/local/share/ca-certificates/{{ item.key }}.pem"
+    owner: root
+    group: root
+    mode: '0644'
+  with_dict: "{{ ca_cert }}"
+  notify:
+    - handler update-ca-certificates
+
+- meta: flush_handlers

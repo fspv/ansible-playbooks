@@ -1,6 +1,4 @@
 dependencies:
-  - { role: bind }
-  - { role: resolv }
   - { role: docker }
   - { role: openvpn }
   - { role: tailscale }

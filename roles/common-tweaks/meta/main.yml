@@ -2,6 +2,7 @@ dependencies:
   - { role: user, when: ansible_distribution == "Ubuntu" }
   - { role: pkgmanager }
   - { role: tzdata }
+  - { role: ca-cert }
   - { role: systemd }
   - { role: apparmor }
   - { role: tuxedo, when: ansible_system_vendor == "TUXEDO" }
