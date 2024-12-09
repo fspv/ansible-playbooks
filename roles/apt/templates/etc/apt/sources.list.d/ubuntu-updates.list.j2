@@ -1,4 +1,4 @@
-{% if ansible_architecture == "armv7l" %}
+{% if ansible_architecture == "armv7l" or ansible_architecture == "aarch64" %}
 ## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu
 ## team. Also, please note that software in universe WILL NOT receive any
 ## review or updates from the Ubuntu security team.

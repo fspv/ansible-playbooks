@@ -1,6 +1,5 @@
 dependencies:
   - { role: docker }
-  - { role: openvpn }
   - { role: tailscale }
   - { role: et }
   - { role: nvim }
