@@ -66,6 +66,9 @@ Vagrant.configure("2") do |config|
     config.vm.provision "shell", env: {}, inline: <<-SHELL
       set -uex
 
+      rm -f /etc/resolv.conf
+      echo "nameserver 8.8.8.8" > /etc/resolv.conf
+
       TMPDIR=$(mktemp -d)
       cd "${TMPDIR}"
 
@@ -113,6 +116,9 @@ Vagrant.configure("2") do |config|
   else
     config.vm.provision "shell", env: {}, inline: <<-SHELL
       set -uex
+
+      rm -f /etc/resolv.conf
+      echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
       TMPDIR=$(mktemp -d)
       cd "${TMPDIR}"
