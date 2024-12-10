@@ -3,3 +3,10 @@
     name: netfilter-persistent
     enabled: true
     state: started
+
+# Restart tailscale
+- name: Restart tailscale
+  systemd:
+    name: tailscaled
+    state: restarted
+    enabled: true
