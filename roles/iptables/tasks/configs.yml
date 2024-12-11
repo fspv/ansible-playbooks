@@ -1,3 +1,18 @@
+- name: config netfilter-persistent
+  copy:
+    content: |
+      FLUSH_ON_STOP=0
+      IPTABLES_SKIP_SAVE=yes
+      IP6TABLES_SKIP_SAVE=yes
+      IPSET_SKIP_SAVE=yes
+      IPTABLES_RESTORE_NOFLUSH=yes
+      IP6TABLES_RESTORE_NOFLUSH=yes
+      IPTABLES_TEST_RULESET=yes
+      IP6TABLES_TEST_RULESET=yes
+    dest: /etc/default/netfilter-persistent
+  notify:
+    - netfilter-persistent restart
+
 - name: config rules.v4
   template:
     src: etc/iptables/rules.v4

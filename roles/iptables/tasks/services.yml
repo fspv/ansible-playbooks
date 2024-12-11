@@ -3,14 +3,3 @@
     name: netfilter-persistent
     enabled: true
     state: started
-
-# Wait 10 seconds for the iptables rules to be loaded
-- name: service wait 10 seconds
-  pause:
-    seconds: 10
-
-- name: service tailscale restart
-  systemd:
-    name: tailscaled
-    state: restarted
-    enabled: true
