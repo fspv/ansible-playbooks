@@ -1,5 +1,6 @@
 {
   "iptables": false,
   "ipv6": true,
-  "fixed-cidr-v6": "1488::/112"
+  "fixed-cidr-v6": "5051::/112",
+  "metrics-addr" : "0.0.0.0:9323"
 }
