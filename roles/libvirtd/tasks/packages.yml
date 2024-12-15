@@ -1,0 +1,11 @@
+- name: package qemu-system
+  apt:
+    name: qemu-system
+
+- name: package libvirt-daemon
+  apt:
+    name: libvirt-daemon
+
+- name: package libvirt-daemon-system
+  apt:
+    name: libvirt-daemon-system
