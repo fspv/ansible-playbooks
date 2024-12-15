@@ -1,0 +1,9 @@
+# Fix error similar to this: https://old.reddit.com/r/virtualization/comments/mjm1ow/virtmanager_error_when_creating_vm_unable_to/
+# TODO: figure out how to fix it correctly
+- name: config disable apparmor for libvirt
+  lineinfile:
+    path: /etc/libvirt/qemu.conf
+    regexp: '.*security_driver.*'
+    line: 'security_driver = "none"'
+  notify:
+    - libvirtd restart

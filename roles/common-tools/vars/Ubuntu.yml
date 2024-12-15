@@ -1,9 +1,2 @@
 ---
-common_tools:
-  - pgpgpg
-  - iputils-ping
-  - iputils-arping
-  - lm-sensors
-  - psensor
-  - fancontrol
-  - aptitude
+common_tools: []

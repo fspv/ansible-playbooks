@@ -1,2 +1,3 @@
 - import_tasks: packages.yml
+- import_tasks: configs.yml
 - import_tasks: services.yml
