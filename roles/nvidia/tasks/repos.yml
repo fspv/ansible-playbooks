@@ -1,0 +1,26 @@
+- name: repo pins
+  template:
+    src: etc/apt/preferences.d/nvidia.pref.j2
+    dest: /etc/apt/preferences.d/nvidia.pref
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo
+  template:
+    src: etc/apt/sources.list.d/nvidia.list.j2
+    dest: /etc/apt/sources.list.d/nvidia.list
+  notify:
+    - apt-get update
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo key
+  apt_key:
+    id: DDCAE044F796ECB0
+    keyring: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+    url: https://nvidia.github.io/libnvidia-container/gpgkey
+    state: present
+  notify:
+    - apt-get update
+  when: ansible_distribution == "Ubuntu"
+
+- meta: flush_handlers
+  when: ansible_distribution == "Ubuntu"
