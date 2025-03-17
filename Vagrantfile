@@ -110,6 +110,8 @@ Vagrant.configure("2") do |config|
     config.vm.provision "shell", env: {}, inline: <<-SHELL
       set -uex
 
+      export DEBIAN_FRONTEND=noninteractive
+
       systemctl disable systemd-networkd.service
 
       rm -f /etc/resolv.conf
@@ -144,16 +146,16 @@ Vagrant.configure("2") do |config|
       set -e
 
       apt-get update
-      apt-get upgrade -y
+      apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
       apt-get update
-      apt-get dist-upgrade -y
+      apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
       apt-get update
       apt-get upgrade -y
 
-      sudo apt-get autoremove -y
-      sudo apt purge -y '~c'
+      apt-get autoremove -y
+      apt purge -y '~c'
 
       id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
 
@@ -162,6 +164,8 @@ Vagrant.configure("2") do |config|
   else
     config.vm.provision "shell", env: {}, inline: <<-SHELL
       set -uex
+
+      export DEBIAN_FRONTEND=noninteractive
 
       systemctl disable systemd-networkd.service
 
@@ -202,16 +206,16 @@ Vagrant.configure("2") do |config|
       set -e
 
       apt-get update
-      apt-get upgrade -y
+      apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
       apt-get update
-      apt-get dist-upgrade -y
+      apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
       apt-get update
       apt-get upgrade -y
 
-      sudo apt-get autoremove -y
-      sudo apt purge -y '~c'
+      apt-get autoremove -y
+      apt purge -y '~c'
 
       id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
 
