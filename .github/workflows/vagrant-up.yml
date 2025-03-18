@@ -43,7 +43,7 @@ jobs:
         if: always()
 
       - name: Run vagrant user.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=ubuntu/jammy64 --local --playbook=user.yml --headless up
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=ubuntu/jammy64 --local --playbook=user.yml --headless up
 
       - name: Destroy vagrant user.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -63,7 +63,7 @@ jobs:
         if: always()
 
       - name: Run vagrant common-desktop.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=ubuntu/jammy64 --local --headless up
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=ubuntu/jammy64 --local --headless up
 
       - name: Destroy vagrant common-desktop.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -83,7 +83,7 @@ jobs:
         if: always()
 
       - name: Run vagrant common-minimal-desktop.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=ubuntu/jammy64 --local --playbook=common-minimal-desktop.yml --headless up
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=ubuntu/jammy64 --local --playbook=common-minimal-desktop.yml --headless up
 
       - name: Destroy vagrant common-minimal-desktop.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -103,7 +103,7 @@ jobs:
         if: always()
 
       - name: Run vagrant user.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=bento/ubuntu-24.04 --local --playbook=user.yml --headless up
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=bento/ubuntu-24.04 --local --playbook=user.yml --headless up
 
       - name: Destroy vagrant user.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -123,7 +123,7 @@ jobs:
         if: always()
 
       - name: Run vagrant common-desktop.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=bento/ubuntu-24.04 --local --headless up
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=bento/ubuntu-24.04 --local --headless up
 
       - name: Destroy vagrant common-desktop.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -143,7 +143,7 @@ jobs:
         if: always()
 
       - name: Run vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=bento/ubuntu-24.04 --local --playbook=common-devserver.yml --headless up
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=bento/ubuntu-24.04 --local --playbook=common-devserver.yml --headless up
 
       - name: Destroy vagrant common-devserver.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
@@ -163,7 +163,7 @@ jobs:
         if: always()
 
       - name: Run vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_LOG=debug vagrant --os=cloud-image/ubuntu-24.04 --local --playbook=common-devserver.yml --headless up
+        run: VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=cloud-image/ubuntu-24.04 --local --playbook=common-devserver.yml --headless up
 
       - name: Destroy vagrant common-devserver.yml
         run: VAGRANT_DEFAULT_PROVIDER=libvirt timeout -k 60 -s 9 60 vagrant destroy -f || true

@@ -13,7 +13,8 @@ opts = GetoptLong.new(
   # Pass arguments to actual vagrant, but they're not used here
   ["--provider", GetoptLong::OPTIONAL_ARGUMENT],
   ["--help", GetoptLong::OPTIONAL_ARGUMENT],
-  ["--debug", GetoptLong::OPTIONAL_ARGUMENT]
+  ["--debug", GetoptLong::OPTIONAL_ARGUMENT],
+  ["--destroy-on-error", GetoptLong::OPTIONAL_ARGUMENT]
 )
 
 local = false
@@ -47,179 +48,181 @@ end
 
 
 Vagrant.configure("2") do |config|
-  if architecture == "arm64"
-    config.vagrant.plugins = "vagrant-libvirt"
-    config.vm.box_architecture = architecture
-  end
-  config.vm.synced_folder ".", "/vagrant"
+  config.vm.define "ansible-playbooks_#{Time.now.to_i}" do |node|
+    if architecture == "arm64"
+      node.vagrant.plugins = "vagrant-libvirt"
+      node.vm.box_architecture = architecture
+    end
+    node.vm.synced_folder ".", "/vagrant"
 
-  # https://developer.hashicorp.com/vagrant/docs/vagrantfile/machine_settings
-  config.vm.box = os
-  config.vm.boot_timeout = 600
+    # https://developer.hashicorp.com/vagrant/docs/vagrantfile/machine_settings
+    node.vm.box = os
+    node.vm.boot_timeout = 600
 
-  # Need to run `vagrant provision` explicitly for that to work
-  config.trigger.after [:provision] do |trigger|
-    trigger.name = "Reboot after provisioning"
-    trigger.run = { :inline => "vagrant reload" }
-  end
-
-  # https://vagrant-libvirt.github.io/vagrant-libvirt/configuration.html
-  # Currently libvirt is only used for arm64. However, to destroy arm machines
-  # even if the architecture  argument is not passed, we need to set all the
-  # libvirt options anyway, in particular to make this fix work
-  # https://github.com/vagrant-libvirt/vagrant-libvirt/pull/1329/files
-  config.vm.provider "libvirt" do |libvirt|
-    # Give more resources, OOMs by default
-    libvirt.memory = 8000
-    # Max 8 cores allowed for arm cpu
-    libvirt.cpus = [`nproc`.to_i, 8].min
-    libvirt.machine_type = "virt"
-    # https://libvirt.org/formatdomain.html
-    # In this mode, the cpu element describes the CPU that should be presented
-    # to the guest. This is the default when no mode attribute is specified.
-    # This mode makes it so that a persistent guest will see the same hardware
-    # no matter what host the guest is booted on.
-    libvirt.cpu_mode = "custom"
-    libvirt.cpu_model = "cortex-a57"
-    libvirt.driver = "qemu"
-    libvirt.machine_arch = "aarch64"
-    # Enable UEFI, refuses to work otherwise
-    libvirt.nvram = true
-    libvirt.loader = "/usr/share/AAVMF/AAVMF_CODE.no-secboot.fd"
-    # Errors otherwise
-    libvirt.inputs = []
-  end
-
-  config.vm.provider "virtualbox" do |vb|
-    # Give more resources, OOMs by default
-    vb.memory = 8000
-    vb.cpus = `nproc`.to_i
-
-    # Make UI fast
-    vb.gui = gui
-    if gui
-      vb.customize ["modifyvm", :id, "--vram", "128"]
-      vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
+    # Need to run `vagrant provision` explicitly for that to work
+    node.trigger.after [:provision] do |trigger|
+      trigger.name = "Reboot after provisioning"
+      trigger.run = { :inline => "vagrant reload" }
     end
 
-    # Disable annoying warnings
-    vb.check_guest_additions = false
-  end
+    # https://vagrant-libvirt.github.io/vagrant-libvirt/configuration.html
+    # Currently libvirt is only used for arm64. However, to destroy arm machines
+    # even if the architecture  argument is not passed, we need to set all the
+    # libvirt options anyway, in particular to make this fix work
+    # https://github.com/vagrant-libvirt/vagrant-libvirt/pull/1329/files
+    node.vm.provider "libvirt" do |libvirt|
+      # Give more resources, OOMs by default
+      libvirt.memory = 8000
+      # Max 8 cores allowed for arm cpu
+      libvirt.cpus = [`nproc`.to_i, 8].min
+      libvirt.machine_type = "virt"
+      # https://libvirt.org/formatdomain.html
+      # In this mode, the cpu element describes the CPU that should be presented
+      # to the guest. This is the default when no mode attribute is specified.
+      # This mode makes it so that a persistent guest will see the same hardware
+      # no matter what host the guest is booted on.
+      libvirt.cpu_mode = "custom"
+      libvirt.cpu_model = "cortex-a57"
+      libvirt.driver = "qemu"
+      libvirt.machine_arch = "aarch64"
+      # Enable UEFI, refuses to work otherwise
+      libvirt.nvram = true
+      libvirt.loader = "/usr/share/AAVMF/AAVMF_CODE.no-secboot.fd"
+      # Errors otherwise
+      libvirt.inputs = []
+    end
 
-  if local
-    config.vm.provision "shell", env: {}, inline: <<-SHELL
-      set -uex
+    node.vm.provider "virtualbox" do |vb|
+      # Give more resources, OOMs by default
+      vb.memory = 8000
+      vb.cpus = `nproc`.to_i
 
-      export DEBIAN_FRONTEND=noninteractive
+      # Make UI fast
+      vb.gui = gui
+      if gui
+        vb.customize ["modifyvm", :id, "--vram", "128"]
+        vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
+      end
 
-      systemctl disable systemd-networkd.service
+      # Disable annoying warnings
+      vb.check_guest_additions = false
+    end
 
-      rm -f /etc/resolv.conf
-      echo "nameserver 8.8.8.8" > /etc/resolv.conf
+    if local
+      node.vm.provision "shell", env: {}, inline: <<-SHELL
+        set -uex
 
-      TMPDIR=$(mktemp -d)
-      cd "${TMPDIR}"
+        export DEBIAN_FRONTEND=noninteractive
 
-      rm -rf ansible-playbooks
-      cp -R /vagrant ansible-playbooks
+        systemctl disable systemd-networkd.service
 
-      cd ansible-playbooks
-      rm -rf manual
-      mkdir manual
+        rm -f /etc/resolv.conf
+        echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
-      sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
+        TMPDIR=$(mktemp -d)
+        cd "${TMPDIR}"
 
-      chown -R vagrant .
+        rm -rf ansible-playbooks
+        cp -R /vagrant ansible-playbooks
 
-      set +e
-      for i in {1..3}; do
-        # Run twice to make sure users are added to correct groups
-        sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
+        cd ansible-playbooks
+        rm -rf manual
+        mkdir manual
+
+        sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
+
+        chown -R vagrant .
+
+        set +e
+        for i in {1..3}; do
+          # Run twice to make sure users are added to correct groups
           sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
-          break
-      done
+            sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
+            break
+        done
 
-      if [[ $? -ne 0 ]]; then
-        echo "Failed to provision"
-        exit 1
-      fi
-      set -e
+        if [[ $? -ne 0 ]]; then
+          echo "Failed to provision"
+          exit 1
+        fi
+        set -e
 
-      apt-get update
-      apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+        apt-get update
+        apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
-      apt-get update
-      apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+        apt-get update
+        apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
-      apt-get update
-      apt-get upgrade -y
+        apt-get update
+        apt-get upgrade -y
 
-      apt-get autoremove -y
-      apt purge -y '~c'
+        apt-get autoremove -y
+        apt purge -y '~c'
 
-      id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
+        id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
 
-      reboot
-    SHELL
-  else
-    config.vm.provision "shell", env: {}, inline: <<-SHELL
-      set -uex
+        reboot
+      SHELL
+    else
+      node.vm.provision "shell", env: {}, inline: <<-SHELL
+        set -uex
 
-      export DEBIAN_FRONTEND=noninteractive
+        export DEBIAN_FRONTEND=noninteractive
 
-      systemctl disable systemd-networkd.service
+        systemctl disable systemd-networkd.service
 
-      rm -f /etc/resolv.conf
-      echo "nameserver 8.8.8.8" > /etc/resolv.conf
+        rm -f /etc/resolv.conf
+        echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
-      TMPDIR=$(mktemp -d)
-      cd "${TMPDIR}"
+        TMPDIR=$(mktemp -d)
+        cd "${TMPDIR}"
 
-      export DEBIAN_FRONTEND=noninteractive
+        export DEBIAN_FRONTEND=noninteractive
 
-      apt-get update
+        apt-get update
 
-      apt-get install -y git
+        apt-get install -y git
 
-      rm -rf ansible-playbooks
-      git clone https://github.com/fspv/ansible-playbooks.git
+        rm -rf ansible-playbooks
+        git clone https://github.com/fspv/ansible-playbooks.git
 
-      cd ansible-playbooks
-      mkdir manual
+        cd ansible-playbooks
+        mkdir manual
 
-      sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
+        sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
 
-      chown -R vagrant .
+        chown -R vagrant .
 
-      set +e
-      if [[ $? -ne 0 ]]; then
-        # Run twice to make sure users are added to correct groups
-        sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
+        set +e
+        if [[ $? -ne 0 ]]; then
+          # Run twice to make sure users are added to correct groups
           sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
-          break
-      done
+            sudo -u vagrant ./bootstrap.sh #{playbook} LOCAL && \
+            break
+        done
 
-      if $? -ne 0; then
-        echo "Failed to provision"
-        exit 1
-      fi
-      set -e
+        if $? -ne 0; then
+          echo "Failed to provision"
+          exit 1
+        fi
+        set -e
 
-      apt-get update
-      apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+        apt-get update
+        apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
-      apt-get update
-      apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+        apt-get update
+        apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
-      apt-get update
-      apt-get upgrade -y
+        apt-get update
+        apt-get upgrade -y
 
-      apt-get autoremove -y
-      apt purge -y '~c'
+        apt-get autoremove -y
+        apt purge -y '~c'
 
-      id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
+        id -u user && cd /tmp/ && sudo -u user /home/user/.bin/init-user-env.sh || true
 
-      reboot
-    SHELL
+        reboot
+      SHELL
+    end
   end
 end
