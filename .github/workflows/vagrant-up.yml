@@ -38,6 +38,10 @@ jobs:
 
     needs: vagrant-set-up
     steps:
+      - name: Destroy vagrant user.yml
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
       - name: Run vagrant user.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=ubuntu/jammy64 --local --playbook=user.yml --headless up
 
@@ -54,6 +58,10 @@ jobs:
 
     needs: vagrant-set-up
     steps:
+      - name: Destroy vagrant common-desktop.yml
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
       - name: Run vagrant common-desktop.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=ubuntu/jammy64 --local --headless up
 
@@ -70,6 +78,10 @@ jobs:
 
     needs: vagrant-set-up
     steps:
+      - name: Destroy vagrant common-minimal-desktop.yml
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
       - name: Run vagrant common-minimal-desktop.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=ubuntu/jammy64 --local --playbook=common-minimal-desktop.yml --headless up
 
@@ -86,6 +98,10 @@ jobs:
 
     needs: vagrant-set-up
     steps:
+      - name: Destroy vagrant user.yml
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
       - name: Run vagrant user.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=bento/ubuntu-24.04 --local --playbook=user.yml --headless up
 
@@ -102,6 +118,10 @@ jobs:
 
     needs: vagrant-set-up
     steps:
+      - name: Destroy vagrant common-desktop.yml
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
       - name: Run vagrant common-desktop.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=bento/ubuntu-24.04 --local --headless up
 
@@ -118,6 +138,10 @@ jobs:
 
     needs: vagrant-set-up
     steps:
+      - name: Destroy vagrant common-devserver.yml
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
       - name: Run vagrant common-devserver.yml
         run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug vagrant --os=bento/ubuntu-24.04 --local --playbook=common-devserver.yml --headless up
 
@@ -134,9 +158,17 @@ jobs:
 
     needs: vagrant-set-up
     steps:
+      - name: Destroy vagrant common-devserver.yml
+        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
       - name: Run vagrant common-devserver.yml
         run: VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_LOG=debug vagrant --os=cloud-image/ubuntu-24.04 --local --playbook=common-devserver.yml --headless up
 
       - name: Destroy vagrant common-devserver.yml
         run: VAGRANT_DEFAULT_PROVIDER=libvirt timeout -k 60 -s 9 60 vagrant destroy -f || true
+        if: always()
+
+      - name: Destroy all virtualbox machines
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
         if: always()
