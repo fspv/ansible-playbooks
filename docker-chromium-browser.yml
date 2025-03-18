@@ -1,6 +1,0 @@
----
-- hosts: all
-  connection: local
-  become: True
-  roles:
-    - chromium-browser

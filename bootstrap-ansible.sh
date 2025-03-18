@@ -37,7 +37,7 @@ then
     cp -r . ${ANSIBLE_REPO_DIR}
 elif [ "x$1" = "xREMOTE" ]
 then
-    git clone --recurse-submodules https://github.com/prius/ansible-playbooks.git ${ANSIBLE_REPO_DIR}
+    git clone --recurse-submodules https://github.com/fspv/ansible-playbooks.git ${ANSIBLE_REPO_DIR}
 else
     echo "ERROR: You should specify either REMOTE or LOCAL as an arg to bootstrap-ansible.sh"
     exit 1

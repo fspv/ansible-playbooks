@@ -2,7 +2,7 @@ Clone
 =====
 
 ```
-git clone https://github.com/prius/ansible-playbooks.git
+git clone https://github.com/fspv/ansible-playbooks.git
 cd ansible-playbooks
 git submodule update --init --recursive
 ```
