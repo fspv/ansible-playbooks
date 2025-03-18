@@ -50,7 +50,7 @@ jobs:
         if: always()
 
       - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/retry.sh VBoxManage unregistervm {} --delete
         if: always()
 
   vagrant-common-desktop:
@@ -70,7 +70,7 @@ jobs:
         if: always()
 
       - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/retry.sh VBoxManage unregistervm {} --delete
         if: always()
 
   vagrant-common-minimal-desktop:
@@ -90,7 +90,7 @@ jobs:
         if: always()
 
       - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/retry.sh VBoxManage unregistervm {} --delete
         if: always()
 
   vagrant-user-2404:
@@ -110,7 +110,7 @@ jobs:
         if: always()
 
       - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/retry.sh VBoxManage unregistervm {} --delete
         if: always()
 
   vagrant-common-desktop-2404:
@@ -130,7 +130,7 @@ jobs:
         if: always()
 
       - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/retry.sh VBoxManage unregistervm {} --delete
         if: always()
 
   vagrant-common-devserver-2404:
@@ -150,7 +150,7 @@ jobs:
         if: always()
 
       - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/retry.sh VBoxManage unregistervm {} --delete
         if: always()
 
   vagrant-common-devserver-2404-arm64:
@@ -170,5 +170,5 @@ jobs:
         if: always()
 
       - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} VBoxManage unregistervm {} --delete
+        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/retry.sh VBoxManage unregistervm {} --delete
         if: always()

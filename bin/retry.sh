@@ -13,7 +13,7 @@ fi
 # Store the original command with all its arguments
 CMD="$@"
 MAX_ATTEMPTS=3
-RETRY_DELAY=30
+RETRY_DELAY=120
 
 echo "Running command: $CMD"
 
