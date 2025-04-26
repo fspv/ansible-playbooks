@@ -28,8 +28,21 @@ COMMIT
 :NF_PERSIST_INPUT [0:0]
 -A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d 127.0.0.0/24 -j ACCEPT
 -A NF_PERSIST_INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-{% for port in iptables_open_ports %}
+{% for port in iptables_open_ports.get("remote", {}).get("tcp", []) %}
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% for port in iptables_open_ports.get("local", {}).get("tcp", []) %}
+-A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/8 --dport {{ port }} -j ACCEPT
+-A NF_PERSIST_INPUT -m tcp -p tcp -s 172.16.0.0/12 --dport {{ port }} -j ACCEPT
+-A NF_PERSIST_INPUT -m tcp -p tcp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% for port in iptables_open_ports.get("remote", {}).get("udp", []) %}
+-A NF_PERSIST_INPUT -m udp -p udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% for port in iptables_open_ports.get("local", {}).get("udp", []) %}
+-A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/8 --dport {{ port }} -j ACCEPT
+-A NF_PERSIST_INPUT -m udp -p udp -s 172.16.0.0/12 --dport {{ port }} -j ACCEPT
+-A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
 {% endfor %}
 -A NF_PERSIST_INPUT -p icmp --icmp-type 8 -j ACCEPT
 -A NF_PERSIST_INPUT -i lo -j ACCEPT
