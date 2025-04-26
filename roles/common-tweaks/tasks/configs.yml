@@ -28,3 +28,11 @@
       fs.inotify.max_user_instances=8192
     dest: /etc/sysctl.d/99-user.conf
     owner: "root"
+
+- name: install available drivers
+  shell:
+    cmd: DEBIAN_FRONTEND=noninteractive ubuntu-drivers install
+
+- name: install available gpu drivers
+  shell:
+    cmd: DEBIAN_FRONTEND=noninteractive ubuntu-drivers install --gpgpu

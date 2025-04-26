@@ -10,3 +10,4 @@ dependencies:
   - { role: gpg, when: ansible_distribution == "Ubuntu" }
   - { role: iptables, when: ansible_distribution == "Ubuntu" }
   - { role: locales, when: ansible_distribution == "Ubuntu" }
+  - { role: nvidia, when: nvidia }
