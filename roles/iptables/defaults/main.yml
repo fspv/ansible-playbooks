@@ -1,5 +1,7 @@
 iptables: true
 
 iptables_open_ports:
-  - 22
-  - 2022
+  remote:
+    tcp:
+      - 22
+      - 2022
