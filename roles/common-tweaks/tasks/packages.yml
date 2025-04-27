@@ -1,11 +1,3 @@
 - name: package ubuntu-drivers-common
   apt:
     name: ubuntu-drivers-common
-
-- name: shell install available drivers
-  shell:
-    cmd: ubuntu-drivers install
-
-- name: shell install available gpu drivers
-  shell:
-    cmd: ubuntu-drivers install --gpgpu
