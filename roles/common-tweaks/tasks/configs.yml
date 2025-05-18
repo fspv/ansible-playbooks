@@ -33,6 +33,9 @@
   shell:
     cmd: DEBIAN_FRONTEND=noninteractive ubuntu-drivers install
 
-- name: install available gpu drivers
-  shell:
-    cmd: DEBIAN_FRONTEND=noninteractive ubuntu-drivers install --gpgpu
+# This is needed for nvidia drivers to be correctly compiled and modules to be
+# generated
+- name: install kernel headers for current kernel
+  ansible.builtin.apt:
+    name: linux-headers-{{ ansible_kernel }}
+    state: present

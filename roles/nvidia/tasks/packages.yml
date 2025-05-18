@@ -4,13 +4,3 @@
   notify:
     - nvidia-ctk runtime configure
     - docker restart
-
-# TODO: figure out how to find the latest driver
-# TODO: this modifies /etc/docker/daemon.json.
-#       We need to make it more idempotent
-- name: package nvidia-driver-570-server
-  package:
-    name: nvidia-driver-570-server
-  notify:
-    - nvidia-ctk runtime configure
-    - docker restart
