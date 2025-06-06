@@ -169,6 +169,6 @@ jobs:
         run: VAGRANT_DEFAULT_PROVIDER=libvirt timeout -k 60 -s 9 60 vagrant destroy -f || true
         if: always()
 
-      - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/kill-virtualbox-vm.sh {}
+      - name: Destroy all libvirt machines
+        run: virsh list --all | awk -F' ' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} virsh destroy {}
         if: always()
