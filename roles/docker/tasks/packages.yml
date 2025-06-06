@@ -7,6 +7,7 @@
     - containerd.io
     - docker-buildx-plugin
     - docker-compose-plugin
+    - podman
 
 - name: package remove unused
   apt:
@@ -17,4 +18,3 @@
     - docker-compose
     - docker-compose-v2
     - docker-doc
-    - podman-docker

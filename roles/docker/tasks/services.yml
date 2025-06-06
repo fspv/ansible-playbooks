@@ -3,3 +3,15 @@
     name: docker
     enabled: true
     state: started
+
+- name: service enable linger for user
+  command: "loginctl enable-linger {{ item.user }}"
+  loop: "{{ users.values() }}"
+
+- name: service start podman.socket for user
+  become: yes
+  become_user: "{{ item.user }}"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ lookup('ansible.builtin.pipe', 'id -u ' ~ item.user) }}"
+  command: "systemctl --user enable --now podman.socket"
+  loop: "{{ users.values() }}"

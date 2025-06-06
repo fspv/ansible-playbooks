@@ -1,5 +1,7 @@
 common_tools:
   - linux-tools-common
+  # required for podman
+  - uidmap
 
 common_tools_x86_64:
   - syslinux
