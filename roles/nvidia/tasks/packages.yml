@@ -3,4 +3,6 @@
     name: nvidia-container-toolkit
   notify:
     - nvidia-ctk runtime configure
+    - nvidia-ctk cdi generate
+    - nvidia-ctk user runtime configure
     - docker restart
