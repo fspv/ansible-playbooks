@@ -5,3 +5,6 @@ common_tools:
 
 common_tools_x86_64:
   - syslinux
+  # required for building go sqlite3 library
+  - libsqlite3-dev
+  - sqlite3
