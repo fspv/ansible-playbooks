@@ -26,6 +26,7 @@
   copy:
     content: |
       fs.inotify.max_user_instances=8192
+      net.ipv4.ping_group_range=1000 10000
     dest: /etc/sysctl.d/99-user.conf
     owner: "root"
 
