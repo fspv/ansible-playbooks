@@ -2,6 +2,18 @@
   apt:
     name: qemu-system
 
+- name: package qemu-system-arm
+  apt:
+    name: qemu-system-arm
+
+- name: package qemu-efi-aarch64
+  apt:
+    name: qemu-efi-aarch64
+
+- name: package qemu-utils
+  apt:
+    name: qemu-utils
+
 - name: package libvirt-daemon
   apt:
     name: libvirt-daemon
