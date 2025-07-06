@@ -86,7 +86,7 @@ Vagrant.configure("2") do |config|
       libvirt.driver = "qemu"
       libvirt.machine_arch = "aarch64"
       # Enable UEFI, refuses to work otherwise
-      libvirt.nvram = true
+      libvirt.nvram = "/usr/share/AAVMF/AAVMF_VARS.ms.fd"
       libvirt.loader = "/usr/share/AAVMF/AAVMF_CODE.no-secboot.fd"
       # Errors otherwise
       libvirt.inputs = []
