@@ -53,7 +53,7 @@ Vagrant.configure("2") do |config|
       node.vagrant.plugins = "vagrant-libvirt"
       node.vm.box_architecture = architecture
     end
-    node.vm.synced_folder ".", "/vagrant"
+    node.vm.synced_folder ".", "/vagrant", type: "rsync"
 
     # https://developer.hashicorp.com/vagrant/docs/vagrantfile/machine_settings
     node.vm.box = os
@@ -71,6 +71,7 @@ Vagrant.configure("2") do |config|
     # libvirt options anyway, in particular to make this fix work
     # https://github.com/vagrant-libvirt/vagrant-libvirt/pull/1329/files
     node.vm.provider "libvirt" do |libvirt|
+
       # Give more resources, OOMs by default
       libvirt.memory = 8000
       # Max 8 cores allowed for arm cpu
@@ -118,6 +119,9 @@ Vagrant.configure("2") do |config|
 
         rm -f /etc/resolv.conf
         echo "nameserver 8.8.8.8" > /etc/resolv.conf
+        echo "127.0.0.1 $(cat /etc/hostname)" >> /etc/hosts
+
+        apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" sudo
 
         TMPDIR=$(mktemp -d)
         cd "${TMPDIR}"
@@ -173,6 +177,9 @@ Vagrant.configure("2") do |config|
 
         rm -f /etc/resolv.conf
         echo "nameserver 8.8.8.8" > /etc/resolv.conf
+        echo "127.0.0.1 $(cat /etc/hostname)" >> /etc/hosts
+
+        apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" sudo
 
         TMPDIR=$(mktemp -d)
         cd "${TMPDIR}"
