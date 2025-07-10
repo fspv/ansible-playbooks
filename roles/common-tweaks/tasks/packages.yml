@@ -1,3 +1,10 @@
 - name: package ubuntu-drivers-common
   apt:
     name: ubuntu-drivers-common
+
+- name: packages remove unnecessary
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - command-not-found
