@@ -1,4 +1,4 @@
-- name: package
+- name: package docker
   apt:
     name: "{{ item }}"
   with_items:
@@ -7,9 +7,15 @@
     - containerd.io
     - docker-buildx-plugin
     - docker-compose-plugin
+
+- name: package podman
+  apt:
+    name: "{{ item }}"
+  with_items:
     - podman
     - podman-compose
     - crun
+  when: ansible_distribution != 'Ubuntu' or ansible_distribution_version != '22.04'
 
 - name: package remove unused
   apt:
