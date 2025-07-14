@@ -1,0 +1,4 @@
+# APC UPS devices
+SUBSYSTEM=="usb", ATTRS{idVendor}=="051d", GROUP="dialout", MODE="0664"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="051d", GROUP="dialout", MODE="0664"
+KERNEL=="hiddev*", ATTRS{idVendor}=="051d", GROUP="dialout", MODE="0664"
