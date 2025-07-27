@@ -4,6 +4,20 @@
     enabled: true
     state: started
 
+- name: service docker cleanup timer
+  systemd:
+    name: docker-cleanup.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: service podman cleanup timer
+  systemd:
+    name: podman-cleanup.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
 - name: service enable linger for user
   command: "loginctl enable-linger {{ item.user }}"
   loop: "{{ users.values() }}"

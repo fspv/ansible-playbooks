@@ -32,3 +32,23 @@
     owner: "{{ item.user }}"
     mode: '0600'
   with_items: "{{ users.values() | list }}"
+
+- name: config docker cleanup service
+  template:
+    src: etc/systemd/system/docker-cleanup.service
+    dest: /etc/systemd/system/docker-cleanup.service
+
+- name: config docker cleanup timer
+  template:
+    src: etc/systemd/system/docker-cleanup.timer
+    dest: /etc/systemd/system/docker-cleanup.timer
+
+- name: config podman cleanup service
+  template:
+    src: etc/systemd/system/podman-cleanup.service
+    dest: /etc/systemd/system/podman-cleanup.service
+
+- name: config podman cleanup timer
+  template:
+    src: etc/systemd/system/podman-cleanup.timer
+    dest: /etc/systemd/system/podman-cleanup.timer

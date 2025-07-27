@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Podman System Cleanup Timer
+Requires=podman-cleanup.service
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target

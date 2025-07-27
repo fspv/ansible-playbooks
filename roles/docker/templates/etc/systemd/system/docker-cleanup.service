@@ -1,0 +1,7 @@
+[Unit]
+Description=Docker System Cleanup
+ConditionACPower=true
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker system prune -a --volumes -f

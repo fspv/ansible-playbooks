@@ -1,0 +1,7 @@
+[Unit]
+Description=Podman System Cleanup
+ConditionACPower=true
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/podman system prune -a --volumes -f
