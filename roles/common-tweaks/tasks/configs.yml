@@ -40,3 +40,4 @@
   ansible.builtin.apt:
     name: linux-headers-{{ ansible_kernel }}
     state: present
+  when: ansible_kernel is not search("microsoft-standard-WSL")

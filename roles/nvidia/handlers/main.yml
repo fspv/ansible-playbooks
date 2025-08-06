@@ -1,6 +1,7 @@
 - name: nvidia-ctk runtime configure
   shell:
     cmd: nvidia-ctk runtime configure --runtime=docker
+  register: nvidia_ctk_runtime_configure_result
 
 - name: nvidia-ctk cdi generate
   shell:
@@ -12,4 +13,4 @@
   shell:
     cmd: nvidia-ctk runtime configure --runtime=docker --config={{ item.home }}/.config/docker/daemon.json
   with_items: "{{ users.values() | list }}"
-  when: nvidia_ctk_runtime_configure_changed
+  when: nvidia_ctk_runtime_configure_result is changed
