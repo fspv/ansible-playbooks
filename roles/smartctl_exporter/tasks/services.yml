@@ -5,6 +5,7 @@
     src: smartctl_exporter.service.j2
     dest: /etc/systemd/system/smartctl_exporter.service
   notify: restart smartctl_exporter
+  when: ansible_architecture == "x86_64"
 
 - name: service smartctl_exporter
   become: true
@@ -13,3 +14,9 @@
     enabled: true
     state: started
     daemon_reload: true
+  when: ansible_architecture == "x86_64"
+
+- name: warn about unsupported architecture
+  debug:
+    msg: "smartctl_exporter is not available for {{ ansible_architecture }} architecture"
+  when: ansible_architecture != "x86_64"
