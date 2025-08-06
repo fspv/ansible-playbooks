@@ -1,0 +1,6 @@
+---
+- name: restart node_exporter
+  become: true
+  systemd:
+    name: node_exporter
+    state: restarted

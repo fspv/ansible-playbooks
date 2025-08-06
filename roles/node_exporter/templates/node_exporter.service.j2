@@ -1,0 +1,21 @@
+[Unit]
+Description=Node Exporter
+After=network.target
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/podman rm -f node_exporter
+ExecStart=/usr/bin/podman run --rm \
+    --name node_exporter \
+    --network host \
+    --pid host \
+    --volume /:/host:ro,rslave \
+    --volume /run/udev:/run/udev:ro \
+    quay.io/prometheus/node-exporter:latest \
+    --path.rootfs=/host
+ExecStop=/usr/bin/podman stop node_exporter
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

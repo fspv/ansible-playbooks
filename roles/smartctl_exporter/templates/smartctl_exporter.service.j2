@@ -1,0 +1,19 @@
+[Unit]
+Description=Smartctl Exporter
+After=network.target
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/podman rm -f smartctl_exporter
+ExecStart=/usr/bin/podman run --rm \
+    --name smartctl_exporter \
+    --privileged \
+    --user root \
+    --publish 9633:9633 \
+    quay.io/prometheuscommunity/smartctl-exporter
+ExecStop=/usr/bin/podman stop smartctl_exporter
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

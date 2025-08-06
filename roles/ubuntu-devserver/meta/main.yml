@@ -3,3 +3,5 @@ dependencies:
   - { role: libvirtd }
   - { role: et }
   - { role: nvim }
+  - { role: node_exporter }
+  - { role: smartctl_exporter }
