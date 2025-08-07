@@ -1,5 +1,5 @@
 BOOTSTRAP_DIR="${HOME}/.local/share/bootstrap"
 ANSIBLE_VENV_DIR="${BOOTSTRAP_DIR}/ansible-venv"
 ANSIBLE_REPO_DIR="${BOOTSTRAP_DIR}/ansible-repo"
-ANSIBLE_VERSION="9.9.0"
+ANSIBLE_VERSION="11.8.0"
 export PYTHONPATH=""
