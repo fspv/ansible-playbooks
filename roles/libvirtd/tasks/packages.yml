@@ -21,3 +21,7 @@
 - name: package libvirt-daemon-system
   apt:
     name: libvirt-daemon-system
+
+- name: package uvtool
+  apt:
+    name: uvtool
