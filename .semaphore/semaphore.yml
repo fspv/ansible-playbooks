@@ -43,11 +43,10 @@ blocks:
             - sudo uvt-kvm wait uvt-user-2404
             
             # Get VM IP and store it
-            - export VM_IP=$(sudo uvt-kvm ip uvt-user-2404)
-            - echo "VM IP: $VM_IP"
+            - "export VM_IP=$(sudo uvt-kvm ip uvt-user-2404) && echo \"VM IP: $VM_IP\""
             
             # Sync files to VM
-            - sudo rsync -avz --delete -e "ssh $SSH_OPTS" ./ ubuntu@${VM_IP}:/home/ubuntu/ansible-playbooks/
+            - "sudo rsync -avz --delete -e \"ssh $SSH_OPTS\" ./ ubuntu@$(sudo uvt-kvm ip uvt-user-2404):/home/ubuntu/ansible-playbooks/"
             
             # Clean and prepare manual directory
             - sudo uvt-kvm ssh uvt-user-2404 -- "cd ansible-playbooks && rm -rf manual"
@@ -71,6 +70,3 @@ blocks:
           commands:
             # Always destroy VM regardless of job success/failure
             - sudo uvt-kvm destroy uvt-user-2404 || true
-
-# Optional: Add promotions for manual triggers or conditional deployments
-promotions: []
