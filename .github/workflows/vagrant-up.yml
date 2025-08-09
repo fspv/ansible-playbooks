@@ -7,7 +7,7 @@ on:
 
 jobs:
   vagrant-set-up:
-    runs-on: macos-latest-large
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v2
