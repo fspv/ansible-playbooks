@@ -8,7 +8,7 @@ dependencies:
   - { role: tuxedo, when: ansible_system_vendor == "TUXEDO" }
   - { role: ntp, when: ansible_distribution == "Ubuntu" }
   - { role: gpg, when: ansible_distribution == "Ubuntu" }
-  - { role: iptables, when: ansible_distribution == "Ubuntu" }
+  - { role: iptables, when: ansible_distribution == "Ubuntu" and ansible_virtualization_type != 'docker' }
   - { role: locales, when: ansible_distribution == "Ubuntu" }
   - { role: nvidia, when: nvidia }
-  - { role: apc-ups }
+  - { role: apc-ups, when: ansible_virtualization_type != 'docker' }

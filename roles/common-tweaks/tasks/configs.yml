@@ -33,6 +33,7 @@
 - name: install available drivers
   shell:
     cmd: DEBIAN_FRONTEND=noninteractive ubuntu-drivers install
+  when: ansible_virtualization_type != 'docker'
 
 # This is needed for nvidia drivers to be correctly compiled and modules to be
 # generated

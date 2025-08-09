@@ -1,2 +1,3 @@
 dependencies:
   - { role: pkgmanager }
+  - { role: udev }

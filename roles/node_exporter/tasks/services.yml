@@ -13,3 +13,4 @@
     enabled: true
     state: started
     daemon_reload: true
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"

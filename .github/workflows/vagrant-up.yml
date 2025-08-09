@@ -7,108 +7,14 @@ on:
 
 jobs:
   vagrant-set-up:
-    runs-on: self-hosted
+    runs-on: macos-latest-large
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: add repo
-        run: echo "deb [arch=amd64] https://apt.releases.hashicorp.com jammy main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-
-      - name: add key
-        run: wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/hashicorp.gpg
-
-      - name: apt update
-        run: sudo apt-get update
-
-      - name: install packages
-        run: sudo apt install -y virtualbox virtualbox-guest-utils virtualbox-guest-x11 vagrant git qemu-system libvirt-dev
-
-      - name: init submodules
-        run: git submodule update --init --recursive
-
-      - name: Show Vagrant version
-        run: VAGRANT_LOG=debug vagrant --version
-
-      - name: Install libvirt plugin
-        run: VAGRANT_LOG=debug vagrant plugin install vagrant-libvirt
-
-  vagrant-user-2404:
-    runs-on: self-hosted
-
-    needs: vagrant-set-up
-    steps:
-      - name: Destroy vagrant user.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
-
-      - name: Run vagrant user.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=bento/ubuntu-24.04 --local --playbook=user.yml --headless up
-
-      - name: Destroy vagrant user.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
-
-      - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/kill-virtualbox-vm.sh {}
-        if: always()
-
-  vagrant-common-desktop-2404:
-    runs-on: self-hosted
-
-    needs: vagrant-set-up
-    steps:
-      - name: Destroy vagrant common-desktop.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
-
-      - name: Run vagrant common-desktop.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=bento/ubuntu-24.04 --local --headless up
-
-      - name: Destroy vagrant common-desktop.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
-
-      - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/kill-virtualbox-vm.sh {}
-        if: always()
-
-  vagrant-common-devserver-2404:
-    runs-on: self-hosted
-
-    needs: vagrant-set-up
-    steps:
-      - name: Destroy vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
-
-      - name: Run vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=bento/ubuntu-24.04 --local --playbook=common-devserver.yml --headless up
-
-      - name: Destroy vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
-
-      - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/kill-virtualbox-vm.sh {}
-        if: always()
-
-  vagrant-common-devserver-2404-arm64:
-    runs-on: self-hosted
-
-    needs: vagrant-set-up
-    steps:
-      - name: Destroy vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
-
-      - name: Run vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=cloud-image/ubuntu-24.04 --local --playbook=common-devserver.yml --headless --architecture=arm64 up
-
-      - name: Destroy vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=libvirt timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
-
-      - name: Destroy all libvirt machines
-        run: virsh list --all | awk -F' ' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} virsh destroy {}
-        if: always()
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          # Optional: limit access to specific SSH keys
+          limit-access-to-actor: true
+          # Optional: limit access to specific users
+          limit-access-to-users: fspv

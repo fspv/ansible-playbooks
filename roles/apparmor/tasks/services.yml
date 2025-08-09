@@ -1,6 +1,7 @@
 - name: service
   service:
     name: apparmor
-    enabled: yes
+    enabled: true
     # restart to pick up a new config
     state: restarted
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"

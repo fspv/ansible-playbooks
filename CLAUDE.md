@@ -4,7 +4,12 @@
 
 When creating new roles, follow this structure:
 
-1. **No meta/main.yml files** - Don't create galaxy_info or meta files for roles
+1. Don't create galaxy_info or meta files for roles. Use `meta/main.yml` only to specify dependencies between roles, for example:
+    ```
+    dependencies:
+      - { role: pkgmanager }
+      - { role: user }
+    ```
 
 2. **Task organization** - Structure tasks as follows:
    - `tasks/main.yml` should ONLY contain includes:
@@ -27,6 +32,8 @@ When creating new roles, follow this structure:
    │   ├── packages.yml
    │   ├── configs.yml
    │   └── services.yml
+   ├── meta/
+   │   └── main.yml
    ├── handlers/
    │   └── main.yml
    └── templates/
@@ -40,3 +47,4 @@ When creating new roles, follow this structure:
 - Use correct yaml. For example, instead of `become: yes` use `become: true`
 - When naming tasks use very short description with the task type prefix. For example when you want to create `/etc/nginx/nginx.conf` name the task `config nginx`
 - ansible.builtin.include has been removed. Use include_tasks or import_tasks instead.
+- Use "apt" to install packages. Don't use "package", because these recipies will only be used on Ubuntu

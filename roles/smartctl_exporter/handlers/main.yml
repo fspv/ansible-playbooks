@@ -4,3 +4,4 @@
   systemd:
     name: smartctl_exporter
     state: restarted
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
