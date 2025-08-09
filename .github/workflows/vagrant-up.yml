@@ -33,64 +33,208 @@ jobs:
       - name: Install libvirt plugin
         run: VAGRANT_LOG=debug vagrant plugin install vagrant-libvirt
 
-  vagrant-user-2404:
+  uvt-user-2404:
     runs-on: self-hosted
+    env:
+      SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-    needs: vagrant-set-up
     steps:
-      - name: Destroy vagrant user.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+      - uses: actions/checkout@v2
+
+      - name: init submodules
+        run: git submodule update --init --recursive
+
+      - name: Destroy existing VM if exists
+        run: sudo uvt-kvm destroy uvt-user-2404 || true
         if: always()
 
-      - name: Run vagrant user.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=bento/ubuntu-24.04 --local --playbook=user.yml --headless up
+      - name: Install uvtool
+        run: sudo apt install -y uvtool
 
-      - name: Destroy vagrant user.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+      - name: Sync Ubuntu Noble image
+        run: sudo uvt-simplestreams-libvirt -v sync release=noble arch=amd64
+
+      - name: Create SSH key if not exists
+        run: sudo test -f /root/.ssh/id_rsa || sudo ssh-keygen -t rsa -b 2048 -f /root/.ssh/id_rsa -N ""
+
+      - name: Create VM
+        run: sudo uvt-kvm create uvt-user-2404 release=noble
+
+      - name: Wait for VM
+        run: sudo uvt-kvm wait uvt-user-2404
+
+      - name: Get VM IP
+        id: get_ip
+        run: echo "IP=$(sudo uvt-kvm ip uvt-user-2404)" >> $GITHUB_OUTPUT
+
+      - name: Sync files to VM
+        run: sudo rsync -avz --delete -e "ssh $SSH_OPTS" ./ ubuntu@${{ steps.get_ip.outputs.IP }}:/home/ubuntu/ansible-playbooks/
+
+      - name: Clean manual directory
+        run: sudo uvt-kvm ssh uvt-user-2404 -- "cd ansible-playbooks && rm -rf manual"
+
+      - name: Create manual directory
+        run: sudo uvt-kvm ssh uvt-user-2404 -- "cd ansible-playbooks && mkdir manual"
+
+      - name: Generate common.yml
+        run: sudo uvt-kvm ssh uvt-user-2404 -- "cd ansible-playbooks && sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml"
+
+      - name: Run bootstrap script
+        run: sudo uvt-kvm ssh uvt-user-2404 -- "cd ansible-playbooks && ./bootstrap.sh user.yml LOCAL"
+
+      - name: Update package lists
+        run: sudo uvt-kvm ssh uvt-user-2404 -- "sudo apt-get update"
+
+      - name: Upgrade packages
+        run: sudo uvt-kvm ssh uvt-user-2404 -- "sudo apt-get -y upgrade"
+
+      - name: Distribution upgrade
+        run: sudo uvt-kvm ssh uvt-user-2404 -- "sudo apt-get -y dist-upgrade"
+
+      - name: Final upgrade
+        run: sudo uvt-kvm ssh uvt-user-2404 -- "sudo apt-get -y upgrade"
+
+      - name: Autoremove packages
+        run: sudo uvt-kvm ssh uvt-user-2404 -- "sudo apt-get -y autoremove"
+
+      - name: Destroy VM
+        run: sudo uvt-kvm destroy uvt-user-2404
         if: always()
 
-      - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/kill-virtualbox-vm.sh {}
-        if: always()
-
-  vagrant-common-desktop-2404:
+  uvt-common-desktop-2404:
     runs-on: self-hosted
+    env:
+      SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-    needs: vagrant-set-up
     steps:
-      - name: Destroy vagrant common-desktop.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+      - uses: actions/checkout@v2
+
+      - name: init submodules
+        run: git submodule update --init --recursive
+
+      - name: Destroy existing VM if exists
+        run: sudo uvt-kvm destroy uvt-common-desktop-2404 || true
         if: always()
 
-      - name: Run vagrant common-desktop.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=bento/ubuntu-24.04 --local --headless up
+      - name: Install uvtool
+        run: sudo apt install -y uvtool
 
-      - name: Destroy vagrant common-desktop.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+      - name: Sync Ubuntu Noble image
+        run: sudo uvt-simplestreams-libvirt -v sync release=noble arch=amd64
+
+      - name: Create SSH key if not exists
+        run: sudo test -f /root/.ssh/id_rsa || sudo ssh-keygen -t rsa -b 2048 -f /root/.ssh/id_rsa -N ""
+
+      - name: Create VM
+        run: sudo uvt-kvm create uvt-common-desktop-2404 release=noble
+
+      - name: Wait for VM
+        run: sudo uvt-kvm wait uvt-common-desktop-2404
+
+      - name: Get VM IP
+        id: get_ip
+        run: echo "IP=$(sudo uvt-kvm ip uvt-common-desktop-2404)" >> $GITHUB_OUTPUT
+
+      - name: Sync files to VM
+        run: sudo rsync -avz --delete -e "ssh $SSH_OPTS" ./ ubuntu@${{ steps.get_ip.outputs.IP }}:/home/ubuntu/ansible-playbooks/
+
+      - name: Clean manual directory
+        run: sudo uvt-kvm ssh uvt-common-desktop-2404 -- "cd ansible-playbooks && rm -rf manual"
+
+      - name: Create manual directory
+        run: sudo uvt-kvm ssh uvt-common-desktop-2404 -- "cd ansible-playbooks && mkdir manual"
+
+      - name: Generate common.yml
+        run: sudo uvt-kvm ssh uvt-common-desktop-2404 -- "cd ansible-playbooks && sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml"
+
+      - name: Run bootstrap script
+        run: sudo uvt-kvm ssh uvt-common-desktop-2404 -- "cd ansible-playbooks && ./bootstrap.sh common-desktop.yml LOCAL"
+
+      - name: Update package lists
+        run: sudo uvt-kvm ssh uvt-common-desktop-2404 -- "sudo apt-get update"
+
+      - name: Upgrade packages
+        run: sudo uvt-kvm ssh uvt-common-desktop-2404 -- "sudo apt-get -y upgrade"
+
+      - name: Distribution upgrade
+        run: sudo uvt-kvm ssh uvt-common-desktop-2404 -- "sudo apt-get -y dist-upgrade"
+
+      - name: Final upgrade
+        run: sudo uvt-kvm ssh uvt-common-desktop-2404 -- "sudo apt-get -y upgrade"
+
+      - name: Autoremove packages
+        run: sudo uvt-kvm ssh uvt-common-desktop-2404 -- "sudo apt-get -y autoremove"
+
+      - name: Destroy VM
+        run: sudo uvt-kvm destroy uvt-common-desktop-2404
         if: always()
 
-      - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/kill-virtualbox-vm.sh {}
-        if: always()
-
-  vagrant-common-devserver-2404:
+  uvt-common-devserver-2404:
     runs-on: self-hosted
+    env:
+      SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-    needs: vagrant-set-up
     steps:
-      - name: Destroy vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
+      - uses: actions/checkout@v2
+
+      - name: init submodules
+        run: git submodule update --init --recursive
+
+      - name: Destroy existing VM if exists
+        run: sudo uvt-kvm destroy uvt-common-devserver-2404 || true
         if: always()
 
-      - name: Run vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=bento/ubuntu-24.04 --local --playbook=common-devserver.yml --headless up
+      - name: Install uvtool
+        run: sudo apt install -y uvtool
 
-      - name: Destroy vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
+      - name: Sync Ubuntu Noble image
+        run: sudo uvt-simplestreams-libvirt -v sync release=noble arch=amd64
 
-      - name: Destroy all virtualbox machines
-        run: VBoxManage list vms | awk -F'"' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} ./bin/kill-virtualbox-vm.sh {}
+      - name: Create SSH key if not exists
+        run: sudo test -f /root/.ssh/id_rsa || sudo ssh-keygen -t rsa -b 2048 -f /root/.ssh/id_rsa -N ""
+
+      - name: Create VM
+        run: sudo uvt-kvm create uvt-common-devserver-2404 release=noble
+
+      - name: Wait for VM
+        run: sudo uvt-kvm wait uvt-common-devserver-2404
+
+      - name: Get VM IP
+        id: get_ip
+        run: echo "IP=$(sudo uvt-kvm ip uvt-common-devserver-2404)" >> $GITHUB_OUTPUT
+
+      - name: Sync files to VM
+        run: sudo rsync -avz --delete -e "ssh $SSH_OPTS" ./ ubuntu@${{ steps.get_ip.outputs.IP }}:/home/ubuntu/ansible-playbooks/
+
+      - name: Clean manual directory
+        run: sudo uvt-kvm ssh uvt-common-devserver-2404 -- "cd ansible-playbooks && rm -rf manual"
+
+      - name: Create manual directory
+        run: sudo uvt-kvm ssh uvt-common-devserver-2404 -- "cd ansible-playbooks && mkdir manual"
+
+      - name: Generate common.yml
+        run: sudo uvt-kvm ssh uvt-common-devserver-2404 -- "cd ansible-playbooks && sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml"
+
+      - name: Run bootstrap script
+        run: sudo uvt-kvm ssh uvt-common-devserver-2404 -- "cd ansible-playbooks && ./bootstrap.sh common-devserver.yml LOCAL"
+
+      - name: Update package lists
+        run: sudo uvt-kvm ssh uvt-common-devserver-2404 -- "sudo apt-get update"
+
+      - name: Upgrade packages
+        run: sudo uvt-kvm ssh uvt-common-devserver-2404 -- "sudo apt-get -y upgrade"
+
+      - name: Distribution upgrade
+        run: sudo uvt-kvm ssh uvt-common-devserver-2404 -- "sudo apt-get -y dist-upgrade"
+
+      - name: Final upgrade
+        run: sudo uvt-kvm ssh uvt-common-devserver-2404 -- "sudo apt-get -y upgrade"
+
+      - name: Autoremove packages
+        run: sudo uvt-kvm ssh uvt-common-devserver-2404 -- "sudo apt-get -y autoremove"
+
+      - name: Destroy VM
+        run: sudo uvt-kvm destroy uvt-common-devserver-2404
         if: always()
 
   vagrant-common-devserver-2404-arm64:
@@ -98,14 +242,10 @@ jobs:
 
     needs: vagrant-set-up
     steps:
-      - name: Destroy vagrant common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=virtualbox timeout -k 60 -s 9 60 vagrant destroy -f || true
-        if: always()
-
-      - name: Run vagrant common-devserver.yml
+      - name: Run libvirt common-devserver.yml
         run: VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=cloud-image/ubuntu-24.04 --local --playbook=common-devserver.yml --headless --architecture=arm64 up
 
-      - name: Destroy vagrant common-devserver.yml
+      - name: Destroy libvirt common-devserver.yml
         run: VAGRANT_DEFAULT_PROVIDER=libvirt timeout -k 60 -s 9 60 vagrant destroy -f || true
         if: always()
 
