@@ -13,8 +13,3 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
-        with:
-          # Optional: limit access to specific SSH keys
-          limit-access-to-actor: true
-          # Optional: limit access to specific users
-          limit-access-to-users: fspv
