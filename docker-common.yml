@@ -1,0 +1,31 @@
+default_groups:
+  - audio
+  - cdrom
+  - dip
+  - plugdev
+  - lpadmin
+  - video
+  - disk
+  - nix-users
+  - dialout
+
+default_admin_groups:
+  - sudo
+
+users:
+  user:
+    user: user
+    uid: 1111
+    home: '/home/user'
+    comment: 'test user'
+    admin: false
+    password: '$6$kZMQxna5Z5U.d6nn$edgEFDEtiolHeJGeZFgHSmX49sQ9OcKgkgr7Bc6bMEYM1QSfKNSb9Z3btAtLvgV2u3C8agKHQg5PSW152cBtZ.'
+    gpg_keys: []
+  admin:
+    user: admin
+    uid: 2222
+    home: '/home/admin'
+    comment: 'test admin'
+    admin: true
+    password: '$6$eaG/WkavAwgQ3d4w$TF5W/k/hwtsSLqeLIyNlxjT8tIxqjo6fOymgmPInE5RkYQmAacUgyTK/qsL.iqF409wS7ClHG3dnwFrl6eTL0/'
+    gpg_keys: []

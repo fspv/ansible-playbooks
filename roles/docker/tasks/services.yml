@@ -3,6 +3,7 @@
     name: docker
     enabled: true
     state: started
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
 
 - name: service docker cleanup timer
   systemd:
@@ -10,6 +11,7 @@
     enabled: true
     state: started
     daemon_reload: true
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
 
 - name: service podman cleanup timer
   systemd:
@@ -17,10 +19,12 @@
     enabled: true
     state: started
     daemon_reload: true
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
 
 - name: service enable linger for user
   command: "loginctl enable-linger {{ item.user }}"
   loop: "{{ users.values() }}"
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
 
 - name: service start podman.socket for user
   become: true
@@ -30,3 +34,4 @@
   command: "systemctl --user enable --now podman.socket"
   loop: "{{ users.values() }}"
   when: ansible_distribution != 'Ubuntu' or ansible_distribution_version != '22.04'
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"

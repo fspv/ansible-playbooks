@@ -3,3 +3,4 @@
     name: netfilter-persistent
     state: restarted
     daemon_reload: yes
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"

@@ -1,0 +1,7 @@
+---
+- name: packages udev
+  become: true
+  apt:
+    name:
+      - udev
+    state: present

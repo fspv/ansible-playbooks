@@ -1,0 +1,10 @@
+---
+- name: reload udev
+  become: true
+  command: udevadm control --reload-rules
+  when: ansible_virtualization_type != 'docker'
+
+- name: trigger udev
+  become: true
+  command: udevadm trigger
+  when: ansible_virtualization_type != 'docker'

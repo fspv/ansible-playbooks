@@ -2,3 +2,4 @@
   service:
     name: bind9
     state: restarted
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
