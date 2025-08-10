@@ -250,5 +250,5 @@ jobs:
         if: always()
 
       - name: Destroy all libvirt machines
-        run: virsh list --all | awk -F' ' '/.*ansible-playbooks.*/ {print $2}' | xargs -I {} virsh destroy {}
+        run: virsh list --all | awk '/.*ansible-playbooks.*shut off/ {print $2}' | xargs -I {} virsh undefine --nvram --remove-all-storage {}
         if: always()
