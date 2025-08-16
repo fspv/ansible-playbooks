@@ -1,0 +1,12 @@
+[Unit]
+Description=Configure NVIDIA Container Toolkit for CRI-O
+ConditionPathExists=/usr/bin/nvidia-ctk
+Before=crio.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/nvidia-ctk runtime configure --runtime=crio
+
+[Install]
+WantedBy=multi-user.target

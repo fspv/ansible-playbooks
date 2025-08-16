@@ -1,0 +1,12 @@
+[Unit]
+Description=Configure NVIDIA Container Toolkit for containerd
+ConditionPathExists=/usr/bin/nvidia-ctk
+Before=containerd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/nvidia-ctk runtime configure --runtime=containerd
+
+[Install]
+WantedBy=multi-user.target

@@ -21,9 +21,49 @@
     daemon_reload: true
   ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
 
+- name: service nvidia cdi generate
+  systemd:
+    name: nvidia-cdi-generate.service
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: nvidia | default(false)
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
+
+- name: service nvidia-ctk containerd config
+  systemd:
+    name: nvidia-ctk-containerd-config.service
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: nvidia | default(false)
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
+
+- name: service nvidia-ctk crio config
+  systemd:
+    name: nvidia-ctk-crio-config.service
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: nvidia | default(false)
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
+
 - name: service enable linger for user
   command: "loginctl enable-linger {{ item.user }}"
   loop: "{{ users.values() }}"
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
+
+- name: service enable nvidia-ctk docker config for user
+  become: true
+  become_user: "{{ item.user }}"
+  systemd:
+    name: nvidia-ctk-docker-config.service
+    enabled: true
+    state: started
+    scope: user
+    daemon_reload: true
+  loop: "{{ users.values() }}"
+  when: nvidia | default(false)
   ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
 
 - name: service start podman.socket for user

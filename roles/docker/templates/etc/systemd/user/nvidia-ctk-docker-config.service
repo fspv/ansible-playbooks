@@ -1,0 +1,12 @@
+[Unit]
+Description=Configure NVIDIA Container Toolkit for Docker
+ConditionPathExists=/usr/bin/nvidia-ctk
+Before=podman.socket
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/nvidia-ctk runtime configure --runtime=docker --config=%h/.config/docker/daemon.json
+
+[Install]
+WantedBy=default.target

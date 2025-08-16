@@ -24,7 +24,13 @@ When creating new roles, follow this structure:
    - `tasks/services.yml` - for service management tasks
    - Do not create empty files, if there is nothing to add there
 
-3. **Example structure for a role:**
+3. **Static and dynamic files placement** - If files needs to be created on the disk during
+   ansible run, always place this file to the templates director and add a .j2
+   extension. This is needed in case in the future we will need to make this
+   file dynamic, in which case we can just use jinja templating for the
+   existing file.
+
+4. **Example structure for a role:**
    ```
    roles/rolename/
    ├── tasks/
