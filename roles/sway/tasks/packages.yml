@@ -68,13 +68,13 @@
   package:
     name: wdisplays
 
-- name: package fcitx
+- name: package fcitx5
   package:
-    name: fcitx
+    name: fcitx5
 
-- name: package fcitx-table-translit-ua
+- name: package fcitx5-table-translit-ua
   package:
-    name: fcitx-table-translit-ua
+    name: fcitx5-table-translit-ua
 
 - name: package policykit-1-gnome
   package:

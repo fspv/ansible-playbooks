@@ -35,3 +35,11 @@
 - name: package flameshot
   apt:
     name: flameshot
+
+- name: package fcitx5
+  package:
+    name: fcitx5
+
+- name: package fcitx5-table-translit-ua
+  package:
+    name: fcitx5-table-translit-ua
