@@ -1,0 +1,8 @@
+- name: config unattended-upgrades blacklist nvidia packages
+  template:
+    src: etc/apt/apt.conf.d/51unattended-upgrades-nvidia-blacklist.j2
+    dest: /etc/apt/apt.conf.d/51unattended-upgrades-nvidia-blacklist
+    owner: root
+    group: root
+    mode: '0644'
+  become: true

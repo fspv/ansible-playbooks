@@ -1,0 +1,11 @@
+// Blacklist NVIDIA packages from automatic upgrades
+// This prevents unattended-upgrades from automatically updating NVIDIA drivers
+// which could cause compatibility issues with CUDA applications
+
+Unattended-Upgrade::Package-Blacklist {
+    "nvidia-driver";
+    "nvidia-dkms";
+    "nvidia-kernel";
+    "libnvidia";
+    "nvidia-*";
+};
