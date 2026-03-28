@@ -1,85 +1,9 @@
-- name: config user-dir
-  file:
-    path: "{{ item.home }}"
-    state: directory
-    owner: "{{ item.user }}"
-    mode: '0700'
-  with_items: "{{ users.values() | list }}"
-
-- name: config ssh-dir
-  file:
-    path: "{{ item.home }}/.ssh/"
-    state: directory
-    owner: "{{ item.user }}"
-    group: "{{ item.user }}"
-    mode: '0700'
-  with_items: "{{ users.values() | list }}"
-
-- name: config local-bin-dir
-  file:
-    path: "{{ item.home }}/.local/bin/"
-    state: directory
-    recurse: true
-    owner: "{{ item.user }}"
-    mode: '0777'
-  with_items: "{{ users.values() | list }}"
-
-- name: config fonts-dir
-  file:
-    path: "{{ item.home }}/.local/share/fonts/fonts/"
-    state: directory
-    recurse: true
-    owner: "{{ item.user }}"
-    mode: '0777'
-  with_items: "{{ users.values() | list }}"
-
-- name: config venv-dir
-  file:
-    path: "{{ item.home }}/venv/"
-    state: directory
-    owner: "{{ item.user }}"
-    group: "{{ item.user }}"
-    mode: '0777'
-  with_items: "{{ users.values() | list }}"
-
 - name: config .private dir
   file:
     path: "{{ item.home }}/.local/private/"
     state: directory
     owner: "{{ item.user }}"
     mode: '0700'
-  with_items: "{{ users.values() | list }}"
-
-- name: config .config dir
-  file:
-    path: "{{ item.home }}/.config/"
-    state: directory
-    owner: "{{ item.user }}"
-    mode: '0775'
-  with_items: "{{ users.values() | list }}"
-
-- name: config .config/autostart dir
-  file:
-    path: "{{ item.home }}/.config/autostart/"
-    state: directory
-    owner: "{{ item.user }}"
-    mode: '0775'
-  with_items: "{{ users.values() | list }}"
-
-- name: config .config/systemd dir
-  file:
-    path: "{{ item.home }}/.config/systemd/"
-    state: directory
-    owner: "{{ item.user }}"
-    mode: '0775'
-  with_items: "{{ users.values() | list }}"
-
-- name: config .config/systemd/user dir
-  file:
-    path: "{{ item.home }}/.config/systemd/user/"
-    state: directory
-    owner: "{{ item.user }}"
-    mode: '0775'
   with_items: "{{ users.values() | list }}"
 
 - name: config .cache mount
@@ -109,24 +33,6 @@
     daemon_reload: true
   with_items: "{{ users.values() | list }}"
   when: item.user != 'root' and ansible_virtualization_type != 'docker' and ansible_user_id == 'root'
-
-- name: config .cache dir permissions
-  file:
-    name: "{{ item.home }}/.cache"
-    owner: "{{ item.user }}"
-    group: "{{ item.user }}"
-    mode: '0700'
-    state: directory
-  with_items: "{{ users.values() | list }}"
-
-- name: config .local dir permissions
-  file:
-    name: "{{ item.home }}/.local"
-    owner: "{{ item.user }}"
-    group: "{{ item.user }}"
-    mode: '0700'
-    state: directory
-  with_items: "{{ users.values() | list }}"
 
 - name: config .private dir for user
   file:

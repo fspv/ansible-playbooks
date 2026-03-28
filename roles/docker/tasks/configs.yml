@@ -17,14 +17,6 @@
   notify:
     - docker restart
 
-- name: config user dir
-  file:
-    path: "{{ item.home }}/.config/docker-user/"
-    state: directory
-    owner: "{{ item.user }}"
-    mode: '0700'
-  with_items: "{{ users.values() | list }}"
-
 - name: config user mounts
   copy:
     content: "{{ docker_config_run_args }}"
@@ -71,12 +63,3 @@
     dest: /etc/systemd/system/nvidia-ctk-crio-config.service
   when: nvidia | default(false)
 
-- name: config nvidia-ctk docker user service
-  become: true
-  become_user: "{{ item.user }}"
-  template:
-    src: etc/systemd/user/nvidia-ctk-docker-config.service
-    dest: "/home/{{ item.user }}/.config/systemd/user/nvidia-ctk-docker-config.service"
-    mode: '0644'
-  loop: "{{ users.values() }}"
-  when: nvidia | default(false)

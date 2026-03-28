@@ -1,5 +1,1 @@
-- name: service enable linger for user
-  command: "loginctl enable-linger {{ item.user }}"
-  loop: "{{ users.values() }}"
-  when: ansible_user_id == 'root'
-  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
+# Migrated to .bashrc repo (init-user-env.sh)
