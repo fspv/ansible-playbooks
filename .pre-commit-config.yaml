@@ -1,6 +1,9 @@
 ---
 repos:
-  - repo: https://github.com/adrienverge/yamllint
-    rev: v1.38.0
+  - repo: local
     hooks:
       - id: yamllint
+        name: yamllint
+        entry: yamllint -s
+        language: system
+        types: [yaml]
