@@ -48,11 +48,6 @@
   when: nvidia | default(false)
   ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
 
-- name: service enable linger for user
-  command: "loginctl enable-linger {{ item.user }}"
-  loop: "{{ users.values() }}"
-  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
-
 - name: service enable nvidia-ctk docker config for user
   become: true
   become_user: "{{ item.user }}"
