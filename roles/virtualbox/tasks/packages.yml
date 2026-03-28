@@ -9,7 +9,7 @@
 - name: package check if virtualbox
   shell: lspci | grep VirtualBox
   register: runningvirtualbox
-  ignore_errors: True
+  ignore_errors: true
 
 - name: package virtualbox-guest-additions
   apt:

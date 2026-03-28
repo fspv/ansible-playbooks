@@ -10,4 +10,4 @@
     uid: 1955
     group: drouz
     shell: /usr/sbin/nologin
-    createhome: no
+    createhome: false

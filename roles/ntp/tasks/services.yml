@@ -1,7 +1,7 @@
 - name: service
   service:
     name: ntp
-    enabled: yes
+    enabled: true
     state: started
   # only needed before ubuntu noble, replaced by time-daemon after
   when:

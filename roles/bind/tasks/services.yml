@@ -1,5 +1,5 @@
 - name: service
   service:
     name: bind9
-    enabled: yes
+    enabled: true
     state: started

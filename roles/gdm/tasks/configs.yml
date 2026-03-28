@@ -5,7 +5,7 @@
       ${XDG_DATA_HOME:="${HOME}/.local/share"}/bin/wayland-user
     dest: /usr/local/bin/wayland-user
     owner: "root"
-    mode: 0777
+    mode: "0777"
 
 - name: config set user wayland session
   copy:
@@ -17,4 +17,4 @@
       Type=Application
     dest: /usr/share/wayland-sessions/wayland-user.desktop
     owner: "root"
-    mode: 0666
+    mode: "0666"

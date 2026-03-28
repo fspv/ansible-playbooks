@@ -13,7 +13,7 @@
 
     dest: /etc/apparmor.d/bwrap
     owner: "root"
-    mode: 0666
+    mode: "0666"
   # doesn't work on ubuntu 22.04 because abi/4.0 is not supported
   when:
     - ansible_facts['os_family'] == "Debian"

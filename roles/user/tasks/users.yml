@@ -1,13 +1,13 @@
 - name: user check group exists
   shell: "getent group {{ item }} | grep -o {{ item }}"
   register: groups
-  ignore_errors: True
+  ignore_errors: true
   with_items: "{{ default_groups }}"
 
 - name: user check admin group exists
   shell: "getent group {{ item }} | grep -o {{ item }}"
   register: admin_groups
-  ignore_errors: True
+  ignore_errors: true
   with_items: "{{ default_admin_groups }}"
 
 - debug:
@@ -19,7 +19,7 @@
     comment: "{{ item.comment }}"
     uid: "{{ item.uid }}"
     password: "{{ item.password }}"
-    createhome: yes
+    createhome: true
     shell: /bin/bash
     groups: "{{ groups.results|map(attribute='stdout')|reject('equalto', '')|join(',') }}"
   when: not item.get("skip_create", False) and not item.admin and ansible_user_id == 'root'
@@ -32,7 +32,7 @@
     comment: "{{ item.comment }}"
     uid: "{{ item.uid }}"
     password: "{{ item.password }}"
-    createhome: yes
+    createhome: true
     shell: /bin/bash
     groups: "{{ (groups.results + admin_groups.results)|map(attribute='stdout')|reject('equalto', '')|join(',') }}"
   when: not item.get("skip_create", False) and item.admin and ansible_user_id == 'root'

@@ -105,8 +105,8 @@
   systemd:
     name: "home-{{ item.user }}-.cache.mount"
     state: started
-    enabled: yes
-    daemon_reload: yes
+    enabled: true
+    daemon_reload: true
   with_items: "{{ users.values() | list }}"
   when: item.user != 'root' and ansible_virtualization_type != 'docker' and ansible_user_id == 'root'
 
@@ -146,7 +146,7 @@
   with_subelements:
     - "{{ users.values() | list }}"
     - custom_secrets
-    - skip_missing: True
+    - skip_missing: true
 
 - name: config custom secret from file
   copy:
@@ -157,4 +157,4 @@
   with_subelements:
     - "{{ users.values() | list }}"
     - custom_secrets_from_file
-    - skip_missing: True
+    - skip_missing: true
