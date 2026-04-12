@@ -4,3 +4,10 @@
     state: restarted
     daemon_reload: true
   ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
+
+- name: qemu-binfmt restart
+  systemd:
+    name: qemu-binfmt.service
+    state: restarted
+    daemon_reload: true
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
