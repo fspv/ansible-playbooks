@@ -1,4 +1,4 @@
 - name: service
   service:
     name: gdm
-    enabled: yes
+    enabled: true

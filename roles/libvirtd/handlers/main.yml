@@ -2,5 +2,5 @@
   systemd:
     name: libvirtd
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
   ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"

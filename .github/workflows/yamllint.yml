@@ -1,0 +1,22 @@
+---
+name: yamllint
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install yamllint
+        run: pip install yamllint
+
+      - name: run yamllint
+        run: yamllint -s .

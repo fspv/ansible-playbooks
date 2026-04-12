@@ -7,5 +7,5 @@
   lineinfile:
     line: '    include "altgr_vim(altgr-vim)"'
     insertbefore: '^    name\[Group1\]= "English \(US\)"'
-    firstmatch: yes
+    firstmatch: true
     path: /usr/share/X11/xkb/symbols/us

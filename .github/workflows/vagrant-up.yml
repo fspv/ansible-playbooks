@@ -243,7 +243,12 @@ jobs:
     needs: vagrant-set-up
     steps:
       - name: Run libvirt common-devserver.yml
-        run: VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_LOG=debug ./bin/retry.sh vagrant --destroy-on-error --os=cloud-image/ubuntu-24.04 --local --playbook=common-devserver.yml --headless --architecture=arm64 up
+        run: >-
+          VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_LOG=debug
+          ./bin/retry.sh vagrant --destroy-on-error
+          --os=cloud-image/ubuntu-24.04 --local
+          --playbook=common-devserver.yml --headless
+          --architecture=arm64 up
 
       - name: Destroy libvirt common-devserver.yml
         run: VAGRANT_DEFAULT_PROVIDER=libvirt timeout -k 60 -s 9 60 vagrant destroy -f || true

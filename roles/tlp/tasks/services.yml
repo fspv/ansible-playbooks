@@ -2,7 +2,7 @@
 - name: service power-profiles-daemon
   service:
     name: power-profiles-daemon
-    enabled: no
+    enabled: false
     state: stopped
   # only needed before ubuntu noble, replaced by time-daemon after
   when:
@@ -13,5 +13,5 @@
 - name: service tlp
   service:
     name: tlp
-    enabled: yes
+    enabled: true
     state: started

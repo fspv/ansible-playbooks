@@ -5,4 +5,4 @@
     name: systemd-networkd.service
     state: stopped
     enabled: false
-    daemon_reload: yes
+    daemon_reload: true

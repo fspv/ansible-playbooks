@@ -22,7 +22,7 @@
       sway --debug --verbose 2>&1 >sway.log
     dest: /usr/bin/sway-with-debug-log
     owner: "root"
-    mode: 0777
+    mode: "0777"
 
 - name: config sway debug desktop file
   copy:
@@ -34,4 +34,4 @@
       Type=Application
     dest: /usr/share/wayland-sessions/sway.desktop
     owner: "root"
-    mode: 0666
+    mode: "0666"
