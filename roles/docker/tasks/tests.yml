@@ -1,0 +1,12 @@
+- name: test arm64 container
+  command: docker run --rm --platform linux/arm64 alpine uname -m
+  register: qemu_binfmt_test
+  changed_when: false
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
+
+- name: test arm64 container result
+  assert:
+    that:
+      - qemu_binfmt_test.stdout == "aarch64"
+    fail_msg: "Expected 'aarch64' but got '{{ qemu_binfmt_test.stdout }}'"
+  when: ansible_virtualization_type != 'docker'
