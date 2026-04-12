@@ -47,4 +47,3 @@
     daemon_reload: true
   when: nvidia | default(false)
   ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
-

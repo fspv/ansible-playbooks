@@ -62,4 +62,3 @@
     src: etc/systemd/system/nvidia-ctk-crio-config.service
     dest: /etc/systemd/system/nvidia-ctk-crio-config.service
   when: nvidia | default(false)
-
