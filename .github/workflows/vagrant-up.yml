@@ -55,6 +55,9 @@ jobs:
         run: sudo uvt-kvm destroy uvt-user-2404 || true
         if: always()
 
+      - name: apt update
+        run: sudo apt-get update
+
       - name: Install uvtool
         run: sudo apt install -y uvtool
 
@@ -123,6 +126,9 @@ jobs:
         run: sudo uvt-kvm destroy uvt-common-desktop-2404 || true
         if: always()
 
+      - name: apt update
+        run: sudo apt-get update
+
       - name: Install uvtool
         run: sudo apt install -y uvtool
 
@@ -190,6 +196,9 @@ jobs:
       - name: Destroy existing VM if exists
         run: sudo uvt-kvm destroy uvt-common-devserver-2404 || true
         if: always()
+
+      - name: apt update
+        run: sudo apt-get update
 
       - name: Install uvtool
         run: sudo apt install -y uvtool
