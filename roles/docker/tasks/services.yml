@@ -47,26 +47,3 @@
     daemon_reload: true
   when: nvidia | default(false)
   ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
-
-- name: service enable nvidia-ctk docker config for user
-  become: true
-  become_user: "{{ item.user }}"
-  systemd:
-    name: nvidia-ctk-docker-config.service
-    enabled: true
-    state: started
-    scope: user
-    daemon_reload: true
-  loop: "{{ users.values() }}"
-  when: nvidia | default(false)
-  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
-
-- name: service start podman.socket for user
-  become: true
-  become_user: "{{ item.user }}"
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ lookup('ansible.builtin.pipe', 'id -u ' ~ item.user) }}"
-  command: "systemctl --user enable --now podman.socket"
-  loop: "{{ users.values() }}"
-  when: ansible_distribution != 'Ubuntu' or ansible_distribution_version != '22.04'
-  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"

@@ -70,13 +70,3 @@
     src: etc/systemd/system/nvidia-ctk-crio-config.service
     dest: /etc/systemd/system/nvidia-ctk-crio-config.service
   when: nvidia | default(false)
-
-- name: config nvidia-ctk docker user service
-  become: true
-  become_user: "{{ item.user }}"
-  template:
-    src: etc/systemd/user/nvidia-ctk-docker-config.service
-    dest: "/home/{{ item.user }}/.config/systemd/user/nvidia-ctk-docker-config.service"
-    mode: '0644'
-  loop: "{{ users.values() }}"
-  when: nvidia | default(false)
