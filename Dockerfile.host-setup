@@ -1,0 +1,49 @@
+# Build + lint + unit-test the host-setup framework, then run it once in a
+# fresh ubuntu container as a smoke test of the apt bundle's batched install.
+#
+# Build:   podman build -f Dockerfile.host-setup -t host-setup:dev .
+# Smoke:   podman run --rm host-setup:dev
+
+FROM ubuntu:24.04 AS builder
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        build-essential \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH \
+    RUST_VERSION=1.94.0
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+        | sh -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal \
+            --component rustfmt clippy
+
+WORKDIR /src
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+COPY tests ./tests
+COPY e2e-tests ./e2e-tests
+
+RUN cargo fmt --check
+RUN cargo clippy -p host-setup --all-targets --locked -- -D warnings
+RUN cargo test -p host-setup --locked
+RUN cargo build -p host-setup --release --locked
+
+FROM ubuntu:24.04 AS runtime
+
+# We deliberately leave /var/lib/apt/lists/ populated so `host-setup --bundle
+# apt` can run apt-get install against fresh metadata at container start.
+# A real installer would have its own apt-update Command resource.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates
+
+COPY --from=builder /src/target/release/host-setup /usr/local/bin/host-setup
+
+ENV RUST_LOG=info,host_setup=debug
+CMD ["host-setup", "--bundle", "apt"]

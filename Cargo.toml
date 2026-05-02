@@ -1,0 +1,55 @@
+[package]
+name = "host-setup"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "host-setup"
+path = "src/main.rs"
+
+[workspace]
+members = [".", "e2e-tests"]
+
+[dependencies]
+async-trait = "0.1"
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = [
+    "macros",
+    "rt-multi-thread",
+    "process",
+    "fs",
+    "io-util",
+    "sync",
+] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["test-util"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+rust_2018_idioms = { level = "deny", priority = -1 }
+unused_must_use = "deny"
+warnings = "deny"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+cargo = { level = "deny", priority = -1 }
+unwrap_used = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+expect_used = "deny"
+panic = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+multiple_crate_versions = "allow"

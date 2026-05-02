@@ -80,9 +80,17 @@ The lint config in `Cargo.toml` already denies `clippy::all`, `pedantic`,
 1. **Public API is a contract.** `pub` items get doc comments with `# Errors`
    and `# Panics` sections where applicable. Anything not in the public API
    stays private — keep the surface small.
-2. **Errors are typed.** Use a single crate-level `Error` enum with named
-   fields. Implement `Display` and `std::error::Error::source()`. Never
-   stringify an error you could carry structurally.
+2. **Errors are typed enough for their consumer.** If callers will
+   pattern-match on failure modes, use a typed enum with named fields,
+   hand-written `Display`, and `std::error::Error::source()`. If the only
+   consumer is "show the message to a user and exit," and the type would
+   churn with every backend you add, use an opaque struct carrying a
+   backend tag, a human message, and an optional `source` chain — typed
+   enums *inside* a backend (for the backend's own retry / fallback
+   decisions) are fine and don't need to escape the trait boundary. Either
+   shape: never stringify a cause you could carry as a `source`. Don't
+   return `Box<dyn Error>` directly as a primary return type — use the
+   opaque struct, which preserves the source chain in a typed wrapper.
 3. **No `unwrap` in library code.** `expect`, `panic`, `print_*` are allowed
    in `#[test]` only (already configured). In tests, panic with the formatted
    error (`unwrap_or_else(|e| panic!("{e}"))`) so failures are useful.
@@ -96,10 +104,20 @@ The lint config in `Cargo.toml` already denies `clippy::all`, `pedantic`,
    thinking about it, and don't add a dep just to save three lines.
 6. **Borrow, don't clone.** Take `&str`/`&Path`/`&[T]` in arguments. Convert
    to owned types only at the boundary that needs to store them.
-7. **Newtype where it pays.** A `Duration` is fine; a bare `u64` for "seconds"
-   is not. Don't invent newtypes for types that already carry their meaning.
-8. **`const` over `let` for fixed values.** Image refs, timeouts, and
-   thresholds belong at module top as `const`, not buried in call sites.
+7. **Newtype where it pays.** A `Duration` for time, `fs::Permissions` for
+   unix file modes, `PathBuf` for paths — std types that already carry their
+   meaning. A bare `u64` for "seconds" or `u32` for "0o644" is not. Don't
+   invent newtypes for types std already provides; do reach for std types
+   instead of integers when an integer-shaped value has a domain meaning.
+8. **`const` for shared tunable values; inline literals at the point of use
+   for everything else.** Timeouts, retry counts, polling intervals, and
+   thresholds that the team genuinely tunes belong at module top as `const`
+   with a descriptive name. File contents, paths, image refs, and short
+   string lists used at one site go inline at the struct literal or call
+   site that consumes them — extracting these into named `const`s forces the
+   reader to scroll for what is literal data and adds an indirection per
+   read. Multi-line raw strings (`r#"..."#`) keep multi-line bodies readable
+   inline.
 
 ## Style rules
 
@@ -140,6 +158,12 @@ The lint config in `Cargo.toml` already denies `clippy::all`, `pedantic`,
    bindings is clearer.
 10. **Match exhaustively, no `_ =>` catch-alls** on internal enums — let the
     compiler tell you when a variant is added.
+11. **No `pub use` re-exports in `lib.rs`.** Submodules expose their public
+    types directly with `pub mod foo;` + `pub` items inside; consumers
+    import via the full module path (`host_setup::env::Env`, not
+    `host_setup::Env`). The import line *is* the answer to "where does this
+    come from" — flattening hides the module structure the rest of the
+    codebase already encodes.
 
 ## Testing rules
 
@@ -179,6 +203,10 @@ The lint config in `Cargo.toml` already denies `clippy::all`, `pedantic`,
   why it exists.
 - `#[cfg(unix)]` / `#[cfg(not(unix))]` shims for code that will only ever
   run on Linux.
+- `pub use` re-exports in `lib.rs` to flatten the API surface — keep paths
+  honest at the import site.
+- Named constants for one-off file bodies, paths, or short string lists —
+  inline at the call site (raw strings for multi-line content).
 
 ## When in doubt
 

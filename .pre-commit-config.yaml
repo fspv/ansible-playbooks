@@ -11,17 +11,17 @@ repos:
         types: [yaml]
 
       - id: cargo-fmt
-        name: cargo fmt --check (tests/)
-        entry: cargo fmt --manifest-path tests/Cargo.toml --all -- --check
+        name: cargo fmt --check
+        entry: cargo fmt --manifest-path Cargo.toml --all -- --check
         language: system
-        files: ^tests/.*\.rs$
+        files: ^.*\.rs$
         pass_filenames: false
 
       - id: cargo-clippy
-        name: cargo clippy (tests/)
-        entry: cargo clippy --manifest-path tests/Cargo.toml --all-targets --locked -- -D warnings
+        name: cargo clippy
+        entry: cargo clippy --manifest-path Cargo.toml --all-targets --locked -- -D warnings
         language: system
-        files: ^tests/(.*\.rs|Cargo\.(toml|lock))$
+        files: ^(.*\.rs|Cargo\.(toml|lock))$
         pass_filenames: false
 
       - id: act-rust-workflow
@@ -35,5 +35,5 @@ repos:
           '
         language: system
         stages: [pre-push]
-        files: ^(tests/|\.github/workflows/rust\.yml$)
+        files: ^(.*\.rs|Cargo\.(toml|lock)|\.github/workflows/rust\.yml$)
         pass_filenames: false
