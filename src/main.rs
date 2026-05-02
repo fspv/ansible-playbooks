@@ -33,9 +33,10 @@ struct Args {
     dry_run: bool,
 }
 
-#[derive(Debug, Clone, Copy, ValueEnum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 enum BundleName {
     Apt,
+    CommonTools,
     Users,
 }
 
@@ -69,10 +70,20 @@ async fn main() -> ExitCode {
     };
 
     let mut plan = Plan::new();
-    for bundle in &bundles_to_run {
-        match bundle {
-            BundleName::Apt => bundles::apt::apply(&mut plan, &env),
-            BundleName::Users => bundles::users::apply(&mut plan, &env, &cfg.users),
+    {
+        let mut ctx = bundles::Context::new(&mut plan, &env, &cfg);
+        for bundle in &bundles_to_run {
+            match bundle {
+                BundleName::Apt => {
+                    ctx.apt();
+                }
+                BundleName::CommonTools => {
+                    ctx.common_tools();
+                }
+                BundleName::Users => {
+                    ctx.users();
+                }
+            }
         }
     }
 

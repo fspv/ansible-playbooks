@@ -18,7 +18,7 @@ pub struct Config {
     pub users: BTreeMap<String, UserSpec>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct UserSpec {
     #[serde(default)]
     pub uid: Option<u32>,
