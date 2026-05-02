@@ -13,6 +13,10 @@ on:
     paths-ignore:
       - '**.md'
 
+concurrency:
+  group: ansible-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   smoke:
     strategy:
