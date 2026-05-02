@@ -1,0 +1,53 @@
+---
+name: rust
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'tests/**'
+      - '.github/workflows/rust.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'tests/**'
+      - '.github/workflows/rust.yml'
+
+defaults:
+  run:
+    working-directory: tests
+
+jobs:
+  fmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tests
+
+      - name: cargo clippy
+        run: cargo clippy --all-targets --locked -- -D warnings

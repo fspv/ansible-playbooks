@@ -1,4 +1,6 @@
 ---
+default_install_hook_types: [pre-commit, pre-push]
+
 repos:
   - repo: local
     hooks:
@@ -7,3 +9,31 @@ repos:
         entry: yamllint -s
         language: system
         types: [yaml]
+
+      - id: cargo-fmt
+        name: cargo fmt --check (tests/)
+        entry: cargo fmt --manifest-path tests/Cargo.toml --all -- --check
+        language: system
+        files: ^tests/.*\.rs$
+        pass_filenames: false
+
+      - id: cargo-clippy
+        name: cargo clippy (tests/)
+        entry: cargo clippy --manifest-path tests/Cargo.toml --all-targets --locked -- -D warnings
+        language: system
+        files: ^tests/(.*\.rs|Cargo\.(toml|lock))$
+        pass_filenames: false
+
+      - id: act-rust-workflow
+        name: act .github/workflows/rust.yml (pre-push)
+        entry: >-
+          sh -c '
+          DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+          act -W .github/workflows/rust.yml pull_request
+          -P ubuntu-latest=catthehacker/ubuntu:act-latest
+          --container-daemon-socket unix://$XDG_RUNTIME_DIR/podman/podman.sock
+          '
+        language: system
+        stages: [pre-push]
+        files: ^(tests/|\.github/workflows/rust\.yml$)
+        pass_filenames: false

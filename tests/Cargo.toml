@@ -1,0 +1,35 @@
+[package]
+name = "ansible-playbook-tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+rust_2018_idioms = { level = "deny", priority = -1 }
+unused_must_use = "deny"
+warnings = "deny"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+cargo = { level = "deny", priority = -1 }
+unwrap_used = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+# This is a test crate: panics, expects, and prints to stderr/stdout are
+# the normal way `#[test]` reports failures and progress.
+expect_used = "allow"
+panic = "allow"
+print_stdout = "allow"
+print_stderr = "allow"
+# Multiple crates in tests/ feature graph — versions converge in lockfile.
+multiple_crate_versions = "allow"
