@@ -1,4 +1,0 @@
-- name: service tlp restart
-  service:
-    name: tlp
-    state: restarted

@@ -13,17 +13,17 @@ Examples
 Apply local configuraiton changes
 
 ```
-./bootstrap.sh common-desktop.yml LOCAL
+./bootstrap.sh common-devserver.yml LOCAL
 ```
 
 Apply upstream config
 ```
-./bootstrap.sh common-desktop.yml REMOTE
+./bootstrap.sh common-devserver.yml REMOTE
 ```
 
 Dry run
 ```
-./check.sh common-desktop.yml LOCAL
+./check.sh common-devserver.yml LOCAL
 ```
 
 Playbooks

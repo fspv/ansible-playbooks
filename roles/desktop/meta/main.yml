@@ -1,4 +1,0 @@
-dependencies:
-  - { role: ubuntu-desktop, when: ansible_distribution == "Ubuntu" }
-  # FIXME: apt handler is getting skipped when this is enabled
-  # - { role: fedora-desktop, when: ansible_distribution == "Fedora" }

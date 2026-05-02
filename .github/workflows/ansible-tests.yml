@@ -44,14 +44,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - playbook: common-desktop.yml
-            suffix: common-desktop-amd64
-            server_type: cx23
-            image: ubuntu-24.04
-          - playbook: common-desktop.yml
-            suffix: common-desktop-arm64
-            server_type: cax11
-            image: ubuntu-24.04
           - playbook: common-devserver.yml
             suffix: common-devserver-amd64
             server_type: cx23

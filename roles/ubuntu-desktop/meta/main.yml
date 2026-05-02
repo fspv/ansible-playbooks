@@ -1,4 +1,0 @@
-dependencies:
-  - { role: ubuntu-devserver }
-  - { role: minimal-ubuntu-desktop }
-  - { role: tlp }
