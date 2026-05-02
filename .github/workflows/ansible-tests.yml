@@ -1,0 +1,145 @@
+---
+name: ansible-tests
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+
+env:
+  HCLOUD_IMAGE: ubuntu-24.04
+  HCLOUD_LOCATION: hel1
+  HCLOUD_SSH_KEY_NAME: ci-ansible-tests
+
+jobs:
+  hetzner-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - playbook: user.yml
+            suffix: user
+            server_type: cx22
+          - playbook: common-desktop.yml
+            suffix: common-desktop
+            server_type: cx22
+          - playbook: common-devserver.yml
+            suffix: common-devserver
+            server_type: cx22
+          - playbook: common-devserver.yml
+            suffix: common-devserver-arm64
+            server_type: cax11
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+      VM_NAME: ci-ansible-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.suffix }}
+      SSH_KEY_PATH: /home/runner/.ssh/id_ci_ansible
+      SSH_OPTS: >-
+        -o StrictHostKeyChecking=no
+        -o UserKnownHostsFile=/dev/null
+        -o LogLevel=ERROR
+        -o ConnectTimeout=10
+        -o BatchMode=yes
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: install hcloud cli
+        run: |
+          set -eu
+          version="v1.50.0"
+          curl -fsSL "https://github.com/hetznercloud/cli/releases/download/${version}/hcloud-linux-amd64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin hcloud
+          hcloud version
+
+      - name: write ssh private key
+        run: |
+          set -eu
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          umask 077
+          # GitHub masks the secret in logs; do not enable shell tracing here.
+          printf '%s\n' "${CI_SSH_PRIVATE_KEY}" > "$SSH_KEY_PATH"
+          chmod 600 "$SSH_KEY_PATH"
+        env:
+          CI_SSH_PRIVATE_KEY: ${{ secrets.CI_SSH_PRIVATE_KEY }}
+
+      - name: create VM
+        run: |
+          set -eu
+          hcloud server create \
+            --name "$VM_NAME" \
+            --type "${{ matrix.server_type }}" \
+            --image "$HCLOUD_IMAGE" \
+            --location "$HCLOUD_LOCATION" \
+            --ssh-key "$HCLOUD_SSH_KEY_NAME" \
+            --label purpose=ci \
+            --label run_id=${{ github.run_id }} \
+            --label run_attempt=${{ github.run_attempt }} \
+            --label suffix=${{ matrix.suffix }}
+
+      - name: get VM IP
+        id: ip
+        run: |
+          set -eu
+          ip=$(hcloud server ip "$VM_NAME")
+          echo "ip=$ip" >> "$GITHUB_OUTPUT"
+
+      - name: wait for ssh
+        env:
+          IP: ${{ steps.ip.outputs.ip }}
+        run: |
+          set -u
+          for i in $(seq 1 60); do
+            if ssh $SSH_OPTS -i "$SSH_KEY_PATH" "root@$IP" true 2>/dev/null; then
+              echo "SSH ready after attempt $i"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "SSH did not become ready within 5 minutes" >&2
+          exit 1
+
+      - name: sync repo to VM
+        env:
+          IP: ${{ steps.ip.outputs.ip }}
+        run: |
+          set -eu
+          rsync -az --delete \
+            -e "ssh $SSH_OPTS -i $SSH_KEY_PATH" \
+            ./ "root@$IP:/root/ansible-playbooks/"
+
+      - name: run playbook on VM
+        env:
+          IP: ${{ steps.ip.outputs.ip }}
+          PLAYBOOK: ${{ matrix.playbook }}
+        run: |
+          set -eu
+          ssh $SSH_OPTS -i "$SSH_KEY_PATH" "root@$IP" \
+              "PLAYBOOK='$PLAYBOOK' bash -s" <<'REMOTE'
+          set -uex
+          cd /root/ansible-playbooks
+          rm -rf manual
+          mkdir manual
+          sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
+          ./bootstrap.sh "$PLAYBOOK" LOCAL
+          apt-get update
+          apt-get -y upgrade
+          apt-get -y dist-upgrade
+          apt-get -y upgrade
+          apt-get -y autoremove
+          REMOTE
+
+      - name: destroy VM
+        if: always()
+        run: |
+          set -u
+          hcloud server delete "$VM_NAME" || true

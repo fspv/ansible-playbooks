@@ -1,0 +1,69 @@
+---
+name: hetzner-janitor
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      max_age_minutes:
+        description: 'Delete CI VMs older than this many minutes'
+        required: false
+        default: '120'
+      dry_run:
+        description: 'List candidates without deleting'
+        required: false
+        default: 'false'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+      MAX_AGE_MINUTES: ${{ github.event.inputs.max_age_minutes || '120' }}
+      DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+    steps:
+      - name: install hcloud cli
+        run: |
+          set -eu
+          version="v1.50.0"
+          curl -fsSL "https://github.com/hetznercloud/cli/releases/download/${version}/hcloud-linux-amd64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin hcloud
+          hcloud version
+
+      - name: install jq
+        run: |
+          set -eu
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y jq
+          fi
+
+      - name: list and delete old CI VMs
+        run: |
+          set -eu
+          threshold_seconds=$((MAX_AGE_MINUTES * 60))
+          now=$(date -u +%s)
+          # Use a label selector so we never touch anything that wasn't tagged purpose=ci.
+          servers=$(hcloud server list --selector purpose=ci -o json)
+          count=$(echo "$servers" | jq 'length')
+          echo "Found $count CI VM(s) with purpose=ci"
+          if [ "$count" = "0" ]; then
+            exit 0
+          fi
+          echo "$servers" \
+            | jq -r '.[] | "\(.id) \(.name) \(.created)"' \
+            | while read -r id name created; do
+                created_ts=$(date -u -d "$created" +%s)
+                age=$((now - created_ts))
+                if [ "$age" -gt "$threshold_seconds" ]; then
+                  if [ "$DRY_RUN" = "true" ]; then
+                    echo "[dry-run] would delete $name (id=$id, age=${age}s, threshold=${threshold_seconds}s)"
+                  else
+                    echo "deleting $name (id=$id, age=${age}s)"
+                    hcloud server delete "$id"
+                  fi
+                else
+                  echo "keeping $name (id=$id, age=${age}s, under threshold)"
+                fi
+              done
