@@ -14,6 +14,7 @@ on:
       - '**.md'
 
 concurrency:
+  # New pushes cancel the previous in-progress run for the same ref.
   group: ansible-tests-${{ github.ref }}
   cancel-in-progress: true
 
