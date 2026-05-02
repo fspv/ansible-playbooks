@@ -40,7 +40,6 @@ jobs:
     env:
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
       VM_NAME: ci-ansible-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.suffix }}
-      SSH_KEY_PATH: /home/runner/.ssh/id_ci_ansible
       SSH_OPTS: >-
         -o StrictHostKeyChecking=no
         -o UserKnownHostsFile=/dev/null
@@ -67,8 +66,8 @@ jobs:
           chmod 700 ~/.ssh
           umask 077
           # GitHub masks the secret in logs; do not enable shell tracing here.
-          printf '%s\n' "${CI_SSH_PRIVATE_KEY}" > "$SSH_KEY_PATH"
-          chmod 600 "$SSH_KEY_PATH"
+          printf '%s\n' "${CI_SSH_PRIVATE_KEY}" > /home/runner/.ssh/id_ci_ansible
+          chmod 600 /home/runner/.ssh/id_ci_ansible
         env:
           CI_SSH_PRIVATE_KEY: ${{ secrets.CI_SSH_PRIVATE_KEY }}
 
@@ -99,7 +98,7 @@ jobs:
         run: |
           set -u
           for i in $(seq 1 60); do
-            if ssh $SSH_OPTS -i "$SSH_KEY_PATH" "root@$IP" true 2>/dev/null; then
+            if ssh $SSH_OPTS -i /home/runner/.ssh/id_ci_ansible "root@$IP" true 2>/dev/null; then
               echo "SSH ready after attempt $i"
               exit 0
             fi
@@ -114,7 +113,7 @@ jobs:
         run: |
           set -eu
           rsync -az --delete \
-            -e "ssh $SSH_OPTS -i $SSH_KEY_PATH" \
+            -e "ssh $SSH_OPTS -i /home/runner/.ssh/id_ci_ansible" \
             ./ "root@$IP:/root/ansible-playbooks/"
 
       - name: run playbook on VM
@@ -123,7 +122,7 @@ jobs:
           PLAYBOOK: ${{ matrix.playbook }}
         run: |
           set -eu
-          ssh $SSH_OPTS -i "$SSH_KEY_PATH" "root@$IP" \
+          ssh $SSH_OPTS -i /home/runner/.ssh/id_ci_ansible "root@$IP" \
               "PLAYBOOK='$PLAYBOOK' bash -s" <<'REMOTE'
           set -uex
           cd /root/ansible-playbooks
