@@ -77,6 +77,23 @@ jobs:
       - name: lock down ssh key perms
         run: chmod 600 /home/runner/.ssh/id_ci_ansible
 
+      - name: derive ssh public key
+        run: ssh-keygen -y -f /home/runner/.ssh/id_ci_ansible > /home/runner/.ssh/id_ci_ansible.pub
+
+      - name: write cloud-init user-data
+        run: |
+          pubkey=$(cat /home/runner/.ssh/id_ci_ansible.pub)
+          cat > /tmp/user-data.yaml <<EOF
+          #cloud-config
+          users:
+            - name: ubuntu
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              shell: /bin/bash
+              groups: [sudo]
+              ssh_authorized_keys:
+                - ${pubkey}
+          EOF
+
       - name: create VM
         env:
           HCLOUD_LOCATION: ${{ secrets.HCLOUD_LOCATION }}
@@ -88,6 +105,7 @@ jobs:
             --image "${{ matrix.image }}" \
             --location "$HCLOUD_LOCATION" \
             --ssh-key "$HCLOUD_SSH_KEY_NAME" \
+            --user-data-from-file /tmp/user-data.yaml \
             --label purpose=ci \
             --label run_id=${{ github.run_id }} \
             --label run_attempt=${{ github.run_attempt }} \
@@ -100,7 +118,7 @@ jobs:
       - name: wait for ssh
         run: |
           for i in $(seq 1 60); do
-            if $SSH "root@$IP" true 2>/dev/null; then
+            if $SSH "ubuntu@$IP" true 2>/dev/null; then
               echo "SSH ready after attempt $i"
               exit 0
             fi
@@ -110,36 +128,36 @@ jobs:
           exit 1
 
       - name: sync repo to VM
-        run: rsync -az --delete -e "$SSH" ./ "root@$IP:/root/ansible-playbooks/"
+        run: rsync -az --delete -e "$SSH" ./ "ubuntu@$IP:/home/ubuntu/ansible-playbooks/"
 
       - name: clean manual dir on VM
-        run: $SSH "root@$IP" "rm -rf /root/ansible-playbooks/manual"
+        run: $SSH "ubuntu@$IP" "rm -rf /home/ubuntu/ansible-playbooks/manual"
 
       - name: create manual dir on VM
-        run: $SSH "root@$IP" "mkdir /root/ansible-playbooks/manual"
+        run: $SSH "ubuntu@$IP" "mkdir /home/ubuntu/ansible-playbooks/manual"
 
       - name: generate manual/common.yml on VM
-        run: $SSH "root@$IP" "cd /root/ansible-playbooks && sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml"
+        run: $SSH "ubuntu@$IP" "cd /home/ubuntu/ansible-playbooks && sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml"
 
       - name: run bootstrap on VM
         env:
           PLAYBOOK: ${{ matrix.playbook }}
-        run: $SSH "root@$IP" "cd /root/ansible-playbooks && ./bootstrap.sh '$PLAYBOOK' LOCAL"
+        run: $SSH "ubuntu@$IP" "cd /home/ubuntu/ansible-playbooks && ./bootstrap.sh '$PLAYBOOK' LOCAL"
 
       - name: apt update on VM
-        run: $SSH "root@$IP" "apt-get update"
+        run: $SSH "ubuntu@$IP" "sudo apt-get update"
 
       - name: apt upgrade on VM
-        run: $SSH "root@$IP" "apt-get -y upgrade"
+        run: $SSH "ubuntu@$IP" "sudo apt-get -y upgrade"
 
       - name: apt dist-upgrade on VM
-        run: $SSH "root@$IP" "apt-get -y dist-upgrade"
+        run: $SSH "ubuntu@$IP" "sudo apt-get -y dist-upgrade"
 
       - name: apt upgrade on VM (final)
-        run: $SSH "root@$IP" "apt-get -y upgrade"
+        run: $SSH "ubuntu@$IP" "sudo apt-get -y upgrade"
 
       - name: apt autoremove on VM
-        run: $SSH "root@$IP" "apt-get -y autoremove"
+        run: $SSH "ubuntu@$IP" "sudo apt-get -y autoremove"
 
       - name: destroy VM
         if: always()
