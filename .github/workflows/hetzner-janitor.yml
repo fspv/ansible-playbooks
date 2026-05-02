@@ -26,7 +26,9 @@ jobs:
       - name: install hcloud cli
         run: |
           set -eu
-          version="v1.50.0"
+          version=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+            https://github.com/hetznercloud/cli/releases/latest | sed 's|.*/||')
+          echo "Installing hcloud $version"
           curl -fsSL "https://github.com/hetznercloud/cli/releases/download/${version}/hcloud-linux-amd64.tar.gz" \
             | sudo tar -xz -C /usr/local/bin hcloud
           hcloud version
