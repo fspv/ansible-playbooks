@@ -15,8 +15,11 @@ use tracing_subscriber::EnvFilter;
 #[derive(Parser, Debug)]
 #[command(name = "host-setup", about = "Declarative host configuration")]
 struct Args {
-    #[arg(long, value_enum, default_value_t = BundleName::Apt)]
-    bundle: BundleName,
+    /// Bundles to apply. Repeat to run several in one Plan
+    /// (`--bundle apt --bundle users`). Defaults to all known bundles when
+    /// omitted.
+    #[arg(long = "bundle", value_enum)]
+    bundles: Vec<BundleName>,
 
     /// Path to a YAML config file (per-host data: users, ...). Defaults to
     /// nothing — bundles that need config will see an empty Config.
@@ -59,16 +62,24 @@ async fn main() -> ExitCode {
         None => Config::default(),
     };
 
+    let bundles_to_run: Vec<BundleName> = if args.bundles.is_empty() {
+        BundleName::value_variants().to_vec()
+    } else {
+        args.bundles.clone()
+    };
+
     let mut plan = Plan::new();
-    match args.bundle {
-        BundleName::Apt => bundles::apt::apply(&mut plan, &env),
-        BundleName::Users => bundles::users::apply(&mut plan, &env, &cfg.users),
+    for bundle in &bundles_to_run {
+        match bundle {
+            BundleName::Apt => bundles::apt::apply(&mut plan, &env),
+            BundleName::Users => bundles::users::apply(&mut plan, &env, &cfg.users),
+        }
     }
 
     if args.dry_run {
         warn!("DRY RUN — no changes will be applied");
     }
-    info!(resources = plan.len(), bundle = ?args.bundle, dry_run = args.dry_run, "running plan");
+    info!(resources = plan.len(), bundles = ?bundles_to_run, dry_run = args.dry_run, "running plan");
 
     let yes_label = if args.dry_run {
         "would-change"

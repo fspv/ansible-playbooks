@@ -21,7 +21,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
         | sh -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal \
-            --component rustfmt clippy
+            --component rustfmt --component clippy
 
 WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
@@ -31,7 +31,11 @@ COPY e2e-tests ./e2e-tests
 
 RUN cargo fmt --check
 RUN cargo clippy -p host-setup --all-targets --locked -- -D warnings
-RUN cargo test -p host-setup --locked
+# Container-gated tests need /.dockerenv (or /run/.containerenv from podman).
+# Buildah / podman build environments don't always create one; touch it so
+# Env::detect()'s container check passes during cargo test.
+RUN touch /.dockerenv
+RUN cargo test -p host-setup --locked -- --include-ignored
 RUN cargo build -p host-setup --release --locked
 
 FROM ubuntu:24.04 AS runtime

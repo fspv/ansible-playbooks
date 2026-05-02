@@ -26,13 +26,7 @@ repos:
 
       - id: act-rust-workflow
         name: act .github/workflows/rust.yml (pre-push)
-        entry: >-
-          sh -c '
-          DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
-          act -W .github/workflows/rust.yml pull_request
-          -P ubuntu-latest=catthehacker/ubuntu:act-latest
-          --container-daemon-socket unix://$XDG_RUNTIME_DIR/podman/podman.sock
-          '
+        entry: act -W .github/workflows/rust.yml pull_request
         language: system
         stages: [pre-push]
         files: ^(.*\.rs|Cargo\.(toml|lock)|\.github/workflows/rust\.yml$)
