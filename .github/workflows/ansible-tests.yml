@@ -39,42 +39,53 @@ jobs:
     env:
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
       VM_NAME: ci-ansible-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.suffix }}-${{ matrix.image }}
-      SSH_OPTS: >-
+      SSH: >-
+        ssh
         -o StrictHostKeyChecking=no
         -o UserKnownHostsFile=/dev/null
         -o LogLevel=ERROR
         -o ConnectTimeout=10
         -o BatchMode=yes
+        -i /home/runner/.ssh/id_ci_ansible
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: install hcloud cli
+      - name: resolve latest hcloud version
         run: |
-          set -eu
           version=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
             https://github.com/hetznercloud/cli/releases/latest | sed 's|.*/||')
-          echo "Installing hcloud $version"
-          curl -fsSL "https://github.com/hetznercloud/cli/releases/download/${version}/hcloud-linux-amd64.tar.gz" \
+          echo "HCLOUD_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: install hcloud cli
+        run: |
+          curl -fsSL "https://github.com/hetznercloud/cli/releases/download/${HCLOUD_VERSION}/hcloud-linux-amd64.tar.gz" \
             | sudo tar -xz -C /usr/local/bin hcloud
-          hcloud version
+
+      - name: verify hcloud cli
+        run: hcloud version
+
+      - name: ensure ~/.ssh exists
+        run: mkdir -p /home/runner/.ssh
+
+      - name: lock down ~/.ssh perms
+        run: chmod 700 /home/runner/.ssh
 
       - name: write ssh private key
-        run: |
-          set -eu
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          umask 077
-          # GitHub masks the secret in logs; do not enable shell tracing here.
-          printf '%s\n' "${CI_SSH_PRIVATE_KEY}" > /home/runner/.ssh/id_ci_ansible
-          chmod 600 /home/runner/.ssh/id_ci_ansible
         env:
           CI_SSH_PRIVATE_KEY: ${{ secrets.CI_SSH_PRIVATE_KEY }}
+        # GitHub masks the secret in logs; do not enable shell tracing here.
+        run: printf '%s\n' "${CI_SSH_PRIVATE_KEY}" > /home/runner/.ssh/id_ci_ansible
+
+      - name: lock down ssh key perms
+        run: chmod 600 /home/runner/.ssh/id_ci_ansible
 
       - name: create VM
+        env:
+          HCLOUD_LOCATION: ${{ secrets.HCLOUD_LOCATION }}
+          HCLOUD_SSH_KEY_NAME: ${{ secrets.HCLOUD_SSH_KEY_NAME }}
         run: |
-          set -eu
           hcloud server create \
             --name "$VM_NAME" \
             --type "${{ matrix.server_type }}" \
@@ -86,24 +97,14 @@ jobs:
             --label run_attempt=${{ github.run_attempt }} \
             --label suffix=${{ matrix.suffix }} \
             --label image=${{ matrix.image }}
-        env:
-          HCLOUD_LOCATION: ${{ secrets.HCLOUD_LOCATION }}
-          HCLOUD_SSH_KEY_NAME: ${{ secrets.HCLOUD_SSH_KEY_NAME }}
 
-      - name: get VM IP
-        id: ip
-        run: |
-          set -eu
-          ip=$(hcloud server ip "$VM_NAME")
-          echo "ip=$ip" >> "$GITHUB_OUTPUT"
+      - name: resolve VM IP
+        run: echo "IP=$(hcloud server ip "$VM_NAME")" >> "$GITHUB_ENV"
 
       - name: wait for ssh
-        env:
-          IP: ${{ steps.ip.outputs.ip }}
         run: |
-          set -u
           for i in $(seq 1 60); do
-            if ssh $SSH_OPTS -i /home/runner/.ssh/id_ci_ansible "root@$IP" true 2>/dev/null; then
+            if $SSH "root@$IP" true 2>/dev/null; then
               echo "SSH ready after attempt $i"
               exit 0
             fi
@@ -113,37 +114,37 @@ jobs:
           exit 1
 
       - name: sync repo to VM
-        env:
-          IP: ${{ steps.ip.outputs.ip }}
-        run: |
-          set -eu
-          rsync -az --delete \
-            -e "ssh $SSH_OPTS -i /home/runner/.ssh/id_ci_ansible" \
-            ./ "root@$IP:/root/ansible-playbooks/"
+        run: rsync -az --delete -e "$SSH" ./ "root@$IP:/root/ansible-playbooks/"
 
-      - name: run playbook on VM
+      - name: clean manual dir on VM
+        run: $SSH "root@$IP" "rm -rf /root/ansible-playbooks/manual"
+
+      - name: create manual dir on VM
+        run: $SSH "root@$IP" "mkdir /root/ansible-playbooks/manual"
+
+      - name: generate manual/common.yml on VM
+        run: $SSH "root@$IP" "cd /root/ansible-playbooks && sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml"
+
+      - name: run bootstrap on VM
         env:
-          IP: ${{ steps.ip.outputs.ip }}
           PLAYBOOK: ${{ matrix.playbook }}
-        run: |
-          set -eu
-          ssh $SSH_OPTS -i /home/runner/.ssh/id_ci_ansible "root@$IP" \
-              "PLAYBOOK='$PLAYBOOK' bash -s" <<'REMOTE'
-          set -uex
-          cd /root/ansible-playbooks
-          rm -rf manual
-          mkdir manual
-          sed 's/# //g' roles/user/defaults/main.yml > manual/common.yml
-          ./bootstrap.sh "$PLAYBOOK" LOCAL
-          apt-get update
-          apt-get -y upgrade
-          apt-get -y dist-upgrade
-          apt-get -y upgrade
-          apt-get -y autoremove
-          REMOTE
+        run: $SSH "root@$IP" "cd /root/ansible-playbooks && ./bootstrap.sh '$PLAYBOOK' LOCAL"
+
+      - name: apt update on VM
+        run: $SSH "root@$IP" "apt-get update"
+
+      - name: apt upgrade on VM
+        run: $SSH "root@$IP" "apt-get -y upgrade"
+
+      - name: apt dist-upgrade on VM
+        run: $SSH "root@$IP" "apt-get -y dist-upgrade"
+
+      - name: apt upgrade on VM (final)
+        run: $SSH "root@$IP" "apt-get -y upgrade"
+
+      - name: apt autoremove on VM
+        run: $SSH "root@$IP" "apt-get -y autoremove"
 
       - name: destroy VM
         if: always()
-        run: |
-          set -u
-          hcloud server delete "$VM_NAME" || true
+        run: hcloud server delete "$VM_NAME" || true
