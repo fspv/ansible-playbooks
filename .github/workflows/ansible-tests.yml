@@ -147,4 +147,4 @@ jobs:
 
       - name: destroy VM
         if: always()
-        run: hcloud server delete "$VM_NAME" || true
+        run: hcloud server delete "$VM_NAME"
