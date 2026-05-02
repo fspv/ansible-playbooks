@@ -16,7 +16,6 @@ on:
 jobs:
   smoke:
     strategy:
-      fail-fast: false
       matrix:
         include:
           - playbook: user.yml
@@ -38,7 +37,6 @@ jobs:
   full:
     needs: smoke
     strategy:
-      fail-fast: false
       matrix:
         include:
           - playbook: common-desktop.yml
