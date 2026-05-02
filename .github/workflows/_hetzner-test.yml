@@ -147,6 +147,27 @@ jobs:
       - name: apt autoremove on VM
         run: $SSH "ubuntu@$IP" "sudo apt-get -y autoremove"
 
+      - name: reboot VM
+        run: hcloud server reboot "$VM_NAME"
+
+      - name: wait for ssh after reboot
+        run: |
+          sleep 15
+          for i in $(seq 1 60); do
+            if $SSH "ubuntu@$IP" true 2>/dev/null; then
+              echo "SSH ready after reboot, attempt $i"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "SSH did not become ready within 5 minutes after reboot" >&2
+          exit 1
+
+      - name: re-run bootstrap on VM after reboot
+        env:
+          PLAYBOOK: ${{ inputs.playbook }}
+        run: $SSH "ubuntu@$IP" "cd /home/ubuntu/ansible-playbooks && ./bootstrap.sh '$PLAYBOOK' LOCAL"
+
       - name: destroy VM
         if: always()
         run: hcloud server delete "$VM_NAME"
