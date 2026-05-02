@@ -52,6 +52,8 @@ pub fn apply(plan: &mut Plan, _env: &Env) {
     // (python3-apt, python3-pycurl, software-properties-common, aptitude) are
     // only relevant when ansible itself drives apt; kept for now so the
     // framework can be applied to ansible-managed hosts without diverging.
+    // apt-get update is run by the AptPackage batcher itself before any
+    // install, so no explicit Command is needed in this bundle.
     let bootstrap_ids: Vec<_> = [
         "software-properties-common",
         "python3-pycurl",

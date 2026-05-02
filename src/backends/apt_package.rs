@@ -43,9 +43,10 @@ impl Resource for AptPackage {
             return Ok(Changed::No);
         }
         if env.is_dry_run() {
-            debug!(package = %self.name, "dry-run: would apt-get install");
+            debug!(package = %self.name, "dry-run: would apt-get update + install");
             return Ok(Changed::Yes);
         }
+        run_apt_update().await?;
         run_apt_install(std::slice::from_ref(&self.name)).await?;
         Ok(Changed::Yes)
     }
@@ -87,9 +88,10 @@ impl Batcher for AptPackageBatcher {
         if to_install.is_empty() {
             debug!("all batched apt packages already installed");
         } else if env.is_dry_run() {
-            info!(count = to_install.len(), packages = ?to_install, "dry-run: would install batched apt packages");
+            info!(count = to_install.len(), packages = ?to_install, "dry-run: would apt-get update + install batched apt packages");
         } else {
-            info!(count = to_install.len(), packages = ?to_install, "installing batched apt packages");
+            info!(count = to_install.len(), packages = ?to_install, "running apt-get update then installing batched apt packages");
+            run_apt_update().await?;
             run_apt_install(&to_install).await?;
         }
 
@@ -136,6 +138,26 @@ async fn read_installed_packages() -> Result<HashSet<String>, BackendError> {
         }
     }
     Ok(installed)
+}
+
+async fn run_apt_update() -> Result<(), BackendError> {
+    let output = Command::new("apt-get")
+        .env("DEBIAN_FRONTEND", "noninteractive")
+        .arg("update")
+        .output()
+        .await
+        .map_err(|e| BackendError::with_source(BACKEND, "spawn apt-get update", e))?;
+
+    if !output.status.success() {
+        return Err(BackendError::new(
+            BACKEND,
+            format!(
+                "apt-get update failed; stderr:\n{}",
+                String::from_utf8_lossy(&output.stderr),
+            ),
+        ));
+    }
+    Ok(())
 }
 
 async fn run_apt_install(names: &[String]) -> Result<(), BackendError> {
