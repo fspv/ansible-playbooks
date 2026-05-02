@@ -22,19 +22,15 @@ jobs:
         include:
           - playbook: user.yml
             suffix: user
-            server_type: cx22
+            server_type: cx23
             image: ubuntu-24.04
           - playbook: common-desktop.yml
             suffix: common-desktop
-            server_type: cx22
+            server_type: cx23
             image: ubuntu-24.04
           - playbook: common-devserver.yml
             suffix: common-devserver
-            server_type: cx22
-            image: ubuntu-24.04
-          - playbook: common-devserver.yml
-            suffix: common-devserver-arm64
-            server_type: cax11
+            server_type: cx23
             image: ubuntu-24.04
     env:
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
