@@ -118,6 +118,17 @@ The lint config in `Cargo.toml` already denies `clippy::all`, `pedantic`,
    reader to scroll for what is literal data and adds an indirection per
    read. Multi-line raw strings (`r#"..."#`) keep multi-line bodies readable
    inline.
+9. **Fail loudly; do not recover silently.** When a declared intent can't
+   be fulfilled — a group doesn't exist, a path is unwritable, a service
+   won't start, a downcast fails — return the error and let the user fix
+   the underlying state. Do **not** silently filter, skip, swap in a
+   default, "best-effort" past the failure, or `warn!` and continue. If a
+   group the user listed isn't on the system, that is an error worth
+   surfacing, not a problem to paper over. Optional-by-design inputs
+   (`--config` not provided, `Skip::InContainer` matching) are fine to
+   absent — that's not failure recovery, nothing was asked for. The
+   distinction: was the work requested? If yes and it can't be done,
+   surface the error.
 
 ## Style rules
 
@@ -207,6 +218,11 @@ The lint config in `Cargo.toml` already denies `clippy::all`, `pedantic`,
   honest at the import site.
 - Named constants for one-off file bodies, paths, or short string lists —
   inline at the call site (raw strings for multi-line content).
+- Silent recovery from failure: filtering away groups/packages/paths that
+  don't exist, swallowing subprocess errors, falling back to defaults when
+  the user asked for something specific, "warn-and-continue" patterns. If
+  the user's intent can't be carried out, return the error. They need to
+  see it to act on it.
 
 ## When in doubt
 

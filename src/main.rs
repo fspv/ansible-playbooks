@@ -1,8 +1,10 @@
+use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::Arc;
 
 use clap::{Parser, ValueEnum};
 use host_setup::bundles;
+use host_setup::config::Config;
 use host_setup::env::{Env, RunMode};
 use host_setup::executor::Executor;
 use host_setup::plan::Plan;
@@ -16,6 +18,11 @@ struct Args {
     #[arg(long, value_enum, default_value_t = BundleName::Apt)]
     bundle: BundleName,
 
+    /// Path to a YAML config file (per-host data: users, ...). Defaults to
+    /// nothing — bundles that need config will see an empty Config.
+    #[arg(long)]
+    config: Option<PathBuf>,
+
     /// Sense state and report what would change without modifying the
     /// system. Read-only commands still run; writes and apt-get install
     /// are skipped.
@@ -26,6 +33,7 @@ struct Args {
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum BundleName {
     Apt,
+    Users,
 }
 
 #[tokio::main]
@@ -40,9 +48,21 @@ async fn main() -> ExitCode {
     };
     let env = Arc::new(Env::detect().with_run_mode(run_mode));
 
+    let cfg = match args.config.as_deref() {
+        Some(path) => match Config::load(path) {
+            Ok(cfg) => cfg,
+            Err(e) => {
+                error!(error = %e, "config load failed");
+                return ExitCode::FAILURE;
+            }
+        },
+        None => Config::default(),
+    };
+
     let mut plan = Plan::new();
     match args.bundle {
         BundleName::Apt => bundles::apt::apply(&mut plan, &env),
+        BundleName::Users => bundles::users::apply(&mut plan, &env, &cfg.users),
     }
 
     if args.dry_run {

@@ -1,4 +1,5 @@
 use std::fmt;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub enum Error {
@@ -15,6 +16,10 @@ pub enum Error {
     },
     TaskPanicked {
         context: String,
+    },
+    ConfigLoad {
+        path: PathBuf,
+        source: Box<dyn std::error::Error + Send + Sync + 'static>,
     },
 }
 
@@ -66,6 +71,9 @@ impl fmt::Display for Error {
             Self::TaskPanicked { context } => {
                 write!(f, "internal task panicked or was cancelled: {context}")
             }
+            Self::ConfigLoad { path, source } => {
+                write!(f, "loading config `{}`: {source}", path.display())
+            }
         }
     }
 }
@@ -74,6 +82,7 @@ impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::Backend { source, .. } => Some(source),
+            Self::ConfigLoad { source, .. } => Some(source.as_ref()),
             Self::PlanCycle { .. }
             | Self::PlanReferencesUnknownResource { .. }
             | Self::TaskPanicked { .. } => None,
