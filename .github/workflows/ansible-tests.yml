@@ -13,11 +13,6 @@ on:
     paths-ignore:
       - '**.md'
 
-env:
-  HCLOUD_IMAGE: ubuntu-24.04
-  HCLOUD_LOCATION: hel1
-  HCLOUD_SSH_KEY_NAME: ci-ansible-tests
-
 jobs:
   hetzner-test:
     runs-on: ubuntu-latest
@@ -28,18 +23,22 @@ jobs:
           - playbook: user.yml
             suffix: user
             server_type: cx22
+            image: ubuntu-24.04
           - playbook: common-desktop.yml
             suffix: common-desktop
             server_type: cx22
+            image: ubuntu-24.04
           - playbook: common-devserver.yml
             suffix: common-devserver
             server_type: cx22
+            image: ubuntu-24.04
           - playbook: common-devserver.yml
             suffix: common-devserver-arm64
             server_type: cax11
+            image: ubuntu-24.04
     env:
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
-      VM_NAME: ci-ansible-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.suffix }}
+      VM_NAME: ci-ansible-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.suffix }}-${{ matrix.image }}
       SSH_OPTS: >-
         -o StrictHostKeyChecking=no
         -o UserKnownHostsFile=/dev/null
@@ -79,13 +78,17 @@ jobs:
           hcloud server create \
             --name "$VM_NAME" \
             --type "${{ matrix.server_type }}" \
-            --image "$HCLOUD_IMAGE" \
+            --image "${{ matrix.image }}" \
             --location "$HCLOUD_LOCATION" \
             --ssh-key "$HCLOUD_SSH_KEY_NAME" \
             --label purpose=ci \
             --label run_id=${{ github.run_id }} \
             --label run_attempt=${{ github.run_attempt }} \
-            --label suffix=${{ matrix.suffix }}
+            --label suffix=${{ matrix.suffix }} \
+            --label image=${{ matrix.image }}
+        env:
+          HCLOUD_LOCATION: ${{ secrets.HCLOUD_LOCATION }}
+          HCLOUD_SSH_KEY_NAME: ${{ secrets.HCLOUD_SSH_KEY_NAME }}
 
       - name: get VM IP
         id: ip
