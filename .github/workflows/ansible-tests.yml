@@ -1,0 +1,69 @@
+---
+name: ansible-tests
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+
+concurrency:
+  # New pushes cancel the previous in-progress run for the same ref.
+  group: ansible-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    strategy:
+      matrix:
+        include:
+          - playbook: user.yml
+            suffix: user-amd64
+            server_type: cx23
+            image: ubuntu-24.04
+          - playbook: user.yml
+            suffix: user-arm64
+            server_type: cax11
+            image: ubuntu-24.04
+    uses: ./.github/workflows/_hetzner-test.yml
+    with:
+      playbook: ${{ matrix.playbook }}
+      suffix: ${{ matrix.suffix }}
+      server_type: ${{ matrix.server_type }}
+      image: ${{ matrix.image }}
+    secrets: inherit
+
+  full:
+    needs: smoke
+    strategy:
+      matrix:
+        include:
+          - playbook: common-desktop.yml
+            suffix: common-desktop-amd64
+            server_type: cx23
+            image: ubuntu-24.04
+          - playbook: common-desktop.yml
+            suffix: common-desktop-arm64
+            server_type: cax11
+            image: ubuntu-24.04
+          - playbook: common-devserver.yml
+            suffix: common-devserver-amd64
+            server_type: cx23
+            image: ubuntu-24.04
+          - playbook: common-devserver.yml
+            suffix: common-devserver-arm64
+            server_type: cax11
+            image: ubuntu-24.04
+    uses: ./.github/workflows/_hetzner-test.yml
+    with:
+      playbook: ${{ matrix.playbook }}
+      suffix: ${{ matrix.suffix }}
+      server_type: ${{ matrix.server_type }}
+      image: ${{ matrix.image }}
+    secrets: inherit
