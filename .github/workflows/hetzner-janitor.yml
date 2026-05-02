@@ -10,10 +10,6 @@ on:
         description: 'Delete CI VMs older than this many minutes'
         required: false
         default: '120'
-      dry_run:
-        description: 'List candidates without deleting'
-        required: false
-        default: 'false'
 
 jobs:
   cleanup:
@@ -21,7 +17,6 @@ jobs:
     env:
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
       MAX_AGE_MINUTES: ${{ github.event.inputs.max_age_minutes || '120' }}
-      DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
     steps:
       - name: install hcloud sdk
         run: pip install hcloud
@@ -34,7 +29,6 @@ jobs:
           from hcloud import Client
 
           max_age = timedelta(minutes=int(os.environ["MAX_AGE_MINUTES"]))
-          dry_run = os.environ["DRY_RUN"].lower() == "true"
           client = Client(token=os.environ["HCLOUD_TOKEN"])
 
           now = datetime.now(timezone.utc)
@@ -43,11 +37,8 @@ jobs:
           for s in servers:
               age = now - s.created
               if age > max_age:
-                  if dry_run:
-                      print(f"[dry-run] would delete {s.name} (age={age})")
-                  else:
-                      print(f"deleting {s.name} (age={age})")
-                      s.delete()
+                  print(f"deleting {s.name} (age={age})")
+                  s.delete()
               else:
                   print(f"keeping {s.name} (age={age}, under threshold)")
           PY
