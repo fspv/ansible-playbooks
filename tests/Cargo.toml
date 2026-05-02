@@ -7,6 +7,9 @@ publish = false
 [lib]
 path = "src/lib.rs"
 
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["blocking"] }
+
 [dev-dependencies]
 
 [lints.rust]

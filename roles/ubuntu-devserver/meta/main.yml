@@ -1,6 +1,6 @@
 dependencies:
   - { role: docker }
-  - { role: libvirtd }
+  - { role: libvirtd, when: ansible_virtualization_type != 'docker' }
   - { role: et }
   - { role: nvim }
   - { role: node_exporter }
