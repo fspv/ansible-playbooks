@@ -31,3 +31,11 @@ repos:
         stages: [pre-push]
         files: ^(.*\.rs|Cargo\.(toml|lock)|\.github/workflows/rust\.yml$)
         pass_filenames: false
+
+      - id: act-host-setup-workflow
+        name: act .github/workflows/host-setup.yml (pre-push)
+        entry: act -W .github/workflows/host-setup.yml pull_request
+        language: system
+        stages: [pre-push]
+        files: ^(src/.*\.rs|tests/.*\.rs|Cargo\.(toml|lock)|Dockerfile\.host-setup|\.github/workflows/host-setup\.yml)$
+        pass_filenames: false

@@ -16,6 +16,24 @@ use crate::error::Error;
 #[serde(default)]
 pub struct Config {
     pub users: BTreeMap<String, UserSpec>,
+    pub nvidia: bool,
+    pub system_vendor: Option<String>,
+    pub ca_cert: BTreeMap<String, String>,
+    pub iptables_open_ports: IptablesPorts,
+}
+
+#[derive(Debug, Default, Clone, Deserialize)]
+#[serde(default)]
+pub struct IptablesPorts {
+    pub remote: IptablesPortsBySection,
+    pub local: IptablesPortsBySection,
+}
+
+#[derive(Debug, Default, Clone, Deserialize)]
+#[serde(default)]
+pub struct IptablesPortsBySection {
+    pub tcp: Vec<u16>,
+    pub udp: Vec<u16>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

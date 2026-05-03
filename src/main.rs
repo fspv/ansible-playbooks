@@ -35,9 +35,35 @@ struct Args {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 enum BundleName {
+    ApcUps,
+    Apparmor,
     Apt,
+    CaCert,
+    Chrony,
+    Common,
+    CommonDevserver,
     CommonTools,
+    CommonTweaks,
+    Devserver,
+    Docker,
+    Et,
+    Flatpak,
+    Gpg,
+    Iptables,
+    Libvirtd,
+    Locales,
+    Nix,
+    NodeExporter,
+    Nvidia,
+    Nvim,
+    Pip,
+    SmartctlExporter,
+    Snapd,
+    Tuxedo,
+    Tzdata,
+    UbuntuDevserver,
     Users,
+    Yubico,
 }
 
 #[tokio::main]
@@ -63,8 +89,12 @@ async fn main() -> ExitCode {
         None => Config::default(),
     };
 
+    // Default-no-flag is equivalent to running the legacy `common-devserver.yml`
+    // playbook. To run something narrower or wider, the user passes one or
+    // more `--bundle` flags explicitly. Each bundle's own `build` body
+    // pulls in its transitive deps via `ctx.<other>()` calls.
     let bundles_to_run: Vec<BundleName> = if args.bundles.is_empty() {
-        BundleName::value_variants().to_vec()
+        vec![BundleName::CommonDevserver]
     } else {
         args.bundles.clone()
     };
@@ -73,17 +103,7 @@ async fn main() -> ExitCode {
     {
         let mut ctx = bundles::Context::new(&mut plan, &env, &cfg);
         for bundle in &bundles_to_run {
-            match bundle {
-                BundleName::Apt => {
-                    ctx.apt();
-                }
-                BundleName::CommonTools => {
-                    ctx.common_tools();
-                }
-                BundleName::Users => {
-                    ctx.users();
-                }
-            }
+            dispatch(&mut ctx, *bundle);
         }
     }
 
@@ -129,6 +149,98 @@ async fn main() -> ExitCode {
         Err(e) => {
             error!(error = %e, "plan run failed");
             ExitCode::FAILURE
+        }
+    }
+}
+
+fn dispatch(ctx: &mut bundles::Context<'_>, bundle: BundleName) {
+    match bundle {
+        BundleName::ApcUps => {
+            ctx.apc_ups();
+        }
+        BundleName::Apparmor => {
+            ctx.apparmor();
+        }
+        BundleName::Apt => {
+            ctx.apt();
+        }
+        BundleName::CaCert => {
+            ctx.ca_cert();
+        }
+        BundleName::Chrony => {
+            ctx.chrony();
+        }
+        BundleName::Common => {
+            ctx.common();
+        }
+        BundleName::CommonDevserver => {
+            ctx.common_devserver();
+        }
+        BundleName::CommonTools => {
+            ctx.common_tools();
+        }
+        BundleName::CommonTweaks => {
+            ctx.common_tweaks();
+        }
+        BundleName::Devserver => {
+            ctx.devserver();
+        }
+        BundleName::Docker => {
+            ctx.docker();
+        }
+        BundleName::Et => {
+            ctx.et();
+        }
+        BundleName::Flatpak => {
+            ctx.flatpak();
+        }
+        BundleName::Gpg => {
+            ctx.gpg();
+        }
+        BundleName::Iptables => {
+            ctx.iptables();
+        }
+        BundleName::Libvirtd => {
+            ctx.libvirtd();
+        }
+        BundleName::Locales => {
+            ctx.locales();
+        }
+        BundleName::Nix => {
+            ctx.nix();
+        }
+        BundleName::NodeExporter => {
+            ctx.node_exporter();
+        }
+        BundleName::Nvidia => {
+            ctx.nvidia();
+        }
+        BundleName::Nvim => {
+            ctx.nvim();
+        }
+        BundleName::Pip => {
+            ctx.pip();
+        }
+        BundleName::SmartctlExporter => {
+            ctx.smartctl_exporter();
+        }
+        BundleName::Snapd => {
+            ctx.snapd();
+        }
+        BundleName::Tuxedo => {
+            ctx.tuxedo();
+        }
+        BundleName::Tzdata => {
+            ctx.tzdata();
+        }
+        BundleName::UbuntuDevserver => {
+            ctx.ubuntu_devserver();
+        }
+        BundleName::Users => {
+            ctx.users();
+        }
+        BundleName::Yubico => {
+            ctx.yubico();
         }
     }
 }

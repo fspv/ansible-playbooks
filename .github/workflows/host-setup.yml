@@ -1,0 +1,40 @@
+---
+name: host-setup
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'Dockerfile.host-setup'
+      - '.github/workflows/host-setup.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'Dockerfile.host-setup'
+      - '.github/workflows/host-setup.yml'
+
+jobs:
+  dockerfile:
+    name: build + lint + test (incl. e2e)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The Dockerfile runs every gate that matters as RUN steps inside the
+      # builder stage: cargo fmt --check, cargo clippy --all-targets -D
+      # warnings, cargo test --include-ignored (the ignored ones are
+      # container-gated e2e tests for backends that mutate /etc/passwd
+      # etc.), then cargo build --release. If any step fails the image
+      # build fails and so does this job.
+      - name: build host-setup container with all gates
+        run: docker build -f Dockerfile.host-setup -t host-setup:ci .
