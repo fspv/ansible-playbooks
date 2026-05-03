@@ -26,9 +26,9 @@ struct Args {
     #[arg(long)]
     config: Option<PathBuf>,
 
-    /// Sense state and report what would change without modifying the
-    /// system. Read-only commands still run; writes and apt-get install
-    /// are skipped.
+    /// Sense state and report what changed without modifying the system.
+    /// Read-only commands still run; writes and apt-get install are
+    /// skipped.
     #[arg(long)]
     dry_run: bool,
 }
@@ -120,38 +120,23 @@ async fn main() -> ExitCode {
     }
     info!(resources = plan.len(), bundles = ?bundles_to_run, dry_run = args.dry_run, "running plan");
 
-    let yes_label = if args.dry_run {
-        "would-change"
-    } else {
-        "changed"
-    };
-
     match Executor::new(plan).run(env).await {
         Ok(report) => {
             for outcome in &report.outcomes {
                 let status = match outcome.changed {
-                    Changed::Yes => yes_label,
+                    Changed::Yes => "changed",
                     Changed::No => "unchanged",
                     Changed::Skipped => "skipped",
                 };
                 info!(resource = %outcome.id_hint, status);
             }
-            let changed_count = report.count(Changed::Yes);
-            if args.dry_run {
-                info!(
-                    would_change = changed_count,
-                    unchanged = report.count(Changed::No),
-                    skipped = report.count(Changed::Skipped),
-                    "done (dry run)",
-                );
-            } else {
-                info!(
-                    changed = changed_count,
-                    unchanged = report.count(Changed::No),
-                    skipped = report.count(Changed::Skipped),
-                    "done",
-                );
-            }
+            info!(
+                changed = report.count(Changed::Yes),
+                unchanged = report.count(Changed::No),
+                skipped = report.count(Changed::Skipped),
+                dry_run = args.dry_run,
+                "done",
+            );
             ExitCode::SUCCESS
         }
         Err(e) => {

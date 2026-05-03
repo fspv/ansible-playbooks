@@ -308,7 +308,6 @@ COMMIT
 -A FORWARD -j NF_PERSIST_FORWARD
 :OUTPUT ACCEPT [0:0]
 COMMIT
-
 ",
         remote_tcp = render_remote_tcp(&ports.remote.tcp),
         local_tcp = render_local_tcp(&ports.local.tcp),

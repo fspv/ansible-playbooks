@@ -77,7 +77,7 @@ impl Executor {
 
         info!(
             total = report.outcomes.len(),
-            changed_or_would_change = report.count(Changed::Yes),
+            changed = report.count(Changed::Yes),
             unchanged = report.count(Changed::No),
             skipped = report.count(Changed::Skipped),
             dry_run = env.is_dry_run(),

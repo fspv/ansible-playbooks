@@ -289,7 +289,7 @@ bundles need them.
 The binary configures `tracing-subscriber` with `EnvFilter`. Defaults to
 `info,host_setup=debug`. Override via `RUST_LOG`. Notable events:
 
-- `info!` — top-level run progress, would-change reports, executor batch
+- `info!` — top-level run progress, change reports, executor batch
   dispatches, apt install batches.
 - `info!("file content drift\n...")` — emitted from `File` and
   `LineInFile` backends whenever their planned write would differ from

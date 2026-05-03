@@ -36,7 +36,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         content: "# APC UPS devices\n\
                   SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"051d\", GROUP=\"dialout\", MODE=\"0664\"\n\
                   SUBSYSTEM==\"hidraw\", ATTRS{idVendor}==\"051d\", GROUP=\"dialout\", MODE=\"0664\"\n\
-                  KERNEL==\"hiddev*\", ATTRS{idVendor}==\"051d\", GROUP=\"dialout\", MODE=\"0664\"\n"
+                  KERNEL==\"hiddev*\", ATTRS{idVendor}==\"051d\", GROUP=\"dialout\", MODE=\"0664\""
             .to_string(),
         mode: Some(Permissions::from_mode(0o644)),
         deps: vec![udev_pkg],
