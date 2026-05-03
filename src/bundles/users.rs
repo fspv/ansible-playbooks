@@ -1,8 +1,6 @@
 use std::fs::Permissions;
 use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
-
-use tracing::warn;
+use std::path::PathBuf;
 
 use crate::backends::directory::Directory;
 use crate::backends::marker::Marker;
@@ -83,22 +81,10 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         });
         all_resources.push(private_dir);
 
-        // Legacy gates the .cache mount on `item.user != 'root'` and on the
-        // host not being a docker container. The unit name
-        // `home-<user>-.cache.mount` is what systemd derives from the path
-        // /home/<user>/.cache; if `home` differs from /home/<user>, the unit
-        // name doesn't match and systemd would refuse to load the mount.
-        // Fail-loudly: log a TODO and skip the .cache mount for that user.
+        // Legacy hardcodes /home/<user>/.cache for the mount path and unit
+        // name regardless of `item.home` (see roles/user/tasks/configs.yml).
+        // Match that exactly — non-standard homes are the user's problem.
         if name == "root" {
-            continue;
-        }
-        let expected_home = PathBuf::from(format!("/home/{name}"));
-        if home.as_path() != Path::new(&expected_home) {
-            warn!(
-                user = %name,
-                home = %home.display(),
-                "TODO: .cache tmpfs mount unit name assumes /home/<user>; non-standard home — skipping"
-            );
             continue;
         }
 

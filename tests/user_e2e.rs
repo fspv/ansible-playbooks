@@ -22,7 +22,7 @@ use host_setup::env::Env;
 use host_setup::resource::{Changed, Resource};
 
 fn assert_in_container() {
-    let env = Env::detect();
+    let env = Env::detect().unwrap_or_else(|e| panic!("Env::detect failed: {e}"));
     assert!(
         env.is_container(),
         "user e2e tests must run inside a container — invoke `cargo test --locked -- --include-ignored` from a Dockerfile-built image, not on the host",

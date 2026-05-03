@@ -15,16 +15,16 @@ use super::Context;
 // 3653E21064B19D134466702E43D5C49532CBA1A9 from keyserver.ubuntu.com into
 // /etc/apt/trusted.gpg.d/ppa-yubico.gpg; we replicate that with a `gpg
 // --recv-keys` Command (same pattern as bundles/et.rs). Ubuntu codename in
-// the deb URL is hard-coded to `noble` (24.04), the only target this
-// framework supports. After the udev rule changes, a single shell Command
-// runs `udevadm control --reload-rules && udevadm trigger` so newly-plugged
-// keys pick up the rule immediately.
+// the deb URL comes from `ctx.env.ubuntu_codename()`. After the udev rule
+// changes, a single shell Command runs `udevadm control --reload-rules &&
+// udevadm trigger` so newly-plugged keys pick up the rule immediately.
 
 // Body length is data, not logic — the inlined u2f udev rule is ~200 lines
 // of vendor-product entries copied verbatim from the legacy template.
 #[allow(clippy::too_many_lines)]
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();
+    let codename = ctx.env.ubuntu_codename();
 
     let pin = ctx.plan.add(File {
         path: PathBuf::from("/etc/apt/preferences.d/ppa-yubico.pref"),
@@ -67,9 +67,10 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
 
     let repo = ctx.plan.add(AptRepo {
         name: "ppa-yubico".to_string(),
-        list_content: "deb http://ppa.launchpad.net/yubico/stable/ubuntu noble main\n\
-                       deb-src http://ppa.launchpad.net/yubico/stable/ubuntu noble main\n"
-            .to_string(),
+        list_content: format!(
+            "deb http://ppa.launchpad.net/yubico/stable/ubuntu {codename} main\n\
+             deb-src http://ppa.launchpad.net/yubico/stable/ubuntu {codename} main\n",
+        ),
         deps: vec![apt_ready, pin, key],
         ..Default::default()
     });

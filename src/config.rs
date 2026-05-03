@@ -12,7 +12,7 @@ use crate::error::Error;
 // `custom_secrets_from_file`, and `gpg_keys` — serde drops unknown fields by
 // default, so existing files parse without modification.
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
     pub users: BTreeMap<String, UserSpec>,
@@ -20,6 +20,67 @@ pub struct Config {
     pub system_vendor: Option<String>,
     pub ca_cert: BTreeMap<String, String>,
     pub iptables_open_ports: IptablesPorts,
+    /// Ubuntu archive components to enable. Mirrors
+    /// `roles/apt/defaults/main.yml: apt_repos`. Each entry maps to a pin
+    /// file under `/etc/apt/preferences.d/<name>.pref` and a sources file
+    /// under `/etc/apt/sources.list.d/<name>.list`. Unknown values fail at
+    /// `Config::load` (serde rejects them with an enum-of-strings error).
+    pub apt_repos: Vec<AptRepo>,
+}
+
+/// Closed set of recognised `apt_repos` entries. Names match the legacy
+/// ansible templates under `roles/apt/templates/etc/apt/`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum AptRepo {
+    #[serde(rename = "ubuntu")]
+    Ubuntu,
+    #[serde(rename = "ubuntu-security")]
+    UbuntuSecurity,
+    #[serde(rename = "ubuntu-updates")]
+    UbuntuUpdates,
+    #[serde(rename = "ubuntu-backports")]
+    UbuntuBackports,
+    #[serde(rename = "ubuntu-proposed")]
+    UbuntuProposed,
+    #[serde(rename = "ppa-pv-safronov-backports")]
+    PpaPvSafronovBackports,
+}
+
+impl AptRepo {
+    /// File-name stem used for both `<stem>.pref` and `<stem>.list`.
+    #[must_use]
+    pub const fn stem(&self) -> &'static str {
+        match self {
+            Self::Ubuntu => "ubuntu",
+            Self::UbuntuSecurity => "ubuntu-security",
+            Self::UbuntuUpdates => "ubuntu-updates",
+            Self::UbuntuBackports => "ubuntu-backports",
+            Self::UbuntuProposed => "ubuntu-proposed",
+            Self::PpaPvSafronovBackports => "ppa-pv-safronov-backports",
+        }
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            users: BTreeMap::new(),
+            nvidia: false,
+            system_vendor: None,
+            ca_cert: BTreeMap::new(),
+            iptables_open_ports: IptablesPorts::default(),
+            apt_repos: default_apt_repos(),
+        }
+    }
+}
+
+fn default_apt_repos() -> Vec<AptRepo> {
+    vec![
+        AptRepo::Ubuntu,
+        AptRepo::UbuntuSecurity,
+        AptRepo::UbuntuUpdates,
+        AptRepo::UbuntuBackports,
+    ]
 }
 
 #[derive(Debug, Default, Clone, Deserialize)]

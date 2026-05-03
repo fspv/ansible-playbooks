@@ -59,10 +59,12 @@ enum BundleName {
     Pip,
     SmartctlExporter,
     Snapd,
+    Tailscale,
     Tuxedo,
     Tzdata,
     UbuntuDevserver,
     Users,
+    Virtualbox,
     Yubico,
 }
 
@@ -76,7 +78,13 @@ async fn main() -> ExitCode {
     } else {
         RunMode::Apply
     };
-    let env = Arc::new(Env::detect().with_run_mode(run_mode));
+    let env = match Env::detect() {
+        Ok(e) => Arc::new(e.with_run_mode(run_mode)),
+        Err(e) => {
+            error!(error = %e, "env detect failed");
+            return ExitCode::FAILURE;
+        }
+    };
 
     let cfg = match args.config.as_deref() {
         Some(path) => match Config::load(path) {
@@ -227,6 +235,9 @@ fn dispatch(ctx: &mut bundles::Context<'_>, bundle: BundleName) {
         BundleName::Snapd => {
             ctx.snapd();
         }
+        BundleName::Tailscale => {
+            ctx.tailscale();
+        }
         BundleName::Tuxedo => {
             ctx.tuxedo();
         }
@@ -238,6 +249,9 @@ fn dispatch(ctx: &mut bundles::Context<'_>, bundle: BundleName) {
         }
         BundleName::Users => {
             ctx.users();
+        }
+        BundleName::Virtualbox => {
+            ctx.virtualbox();
         }
         BundleName::Yubico => {
             ctx.yubico();

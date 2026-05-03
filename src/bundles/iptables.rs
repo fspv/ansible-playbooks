@@ -27,9 +27,9 @@ use super::Context;
 // iteration) followed by 2022, byte-identical to what the ansible role
 // would produce.
 //
-// TODO: legacy role pulls in `tailscale` via meta deps; that bundle does
-// not exist in this framework yet, so its firewall rules are not applied.
-// Add `ctx.tailscale()` once the bundle lands.
+// Bundle dep: legacy `roles/iptables/meta/main.yml` requires the tailscale
+// role first so the tailscale package (and any apt repo it brings) is
+// installed before netfilter-persistent comes up.
 
 #[allow(clippy::too_many_lines)]
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
@@ -42,10 +42,11 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     }
 
     let apt_ready = ctx.apt();
+    let tailscale_ready = ctx.tailscale();
 
     let pkg = ctx.plan.add(AptPackage {
         name: "iptables-persistent".to_string(),
-        deps: vec![apt_ready],
+        deps: vec![apt_ready, tailscale_ready],
         ..Default::default()
     });
 

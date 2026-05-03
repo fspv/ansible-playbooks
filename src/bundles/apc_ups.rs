@@ -2,6 +2,7 @@ use std::fs::Permissions;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
+use crate::backends::apt_package::AptPackage;
 use crate::backends::command::Command;
 use crate::backends::file::File;
 use crate::backends::marker::Marker;
@@ -22,6 +23,14 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         });
     }
 
+    let apt_ready = ctx.apt();
+
+    let udev_pkg = ctx.plan.add(AptPackage {
+        name: "udev".to_string(),
+        deps: vec![apt_ready],
+        ..Default::default()
+    });
+
     let rule = ctx.plan.add(File {
         path: PathBuf::from("/etc/udev/rules.d/99-apc-ups.rules"),
         content: "# APC UPS devices\n\
@@ -30,6 +39,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
                   KERNEL==\"hiddev*\", ATTRS{idVendor}==\"051d\", GROUP=\"dialout\", MODE=\"0664\"\n"
             .to_string(),
         mode: Some(Permissions::from_mode(0o644)),
+        deps: vec![udev_pkg],
         ..Default::default()
     });
 
@@ -47,7 +57,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
 
     ctx.plan.add(Marker {
         name: "apc_ups:ready".to_string(),
-        deps: vec![rule, udev_reload],
+        deps: vec![udev_pkg, rule, udev_reload],
         ..Default::default()
     })
 }

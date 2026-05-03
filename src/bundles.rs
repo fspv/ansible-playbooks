@@ -29,10 +29,13 @@ pub mod nvim;
 pub mod pip;
 pub mod smartctl_exporter;
 pub mod snapd;
+pub mod systemd;
+pub mod tailscale;
 pub mod tuxedo;
 pub mod tzdata;
 pub mod ubuntu_devserver;
 pub mod users;
+pub mod virtualbox;
 pub mod yubico;
 
 /// Mutable working context threaded through every bundle's `build`.
@@ -160,6 +163,14 @@ impl<'a> Context<'a> {
         self.memoized("snapd", snapd::build)
     }
 
+    pub fn systemd(&mut self) -> ResourceId {
+        self.memoized("systemd", systemd::build)
+    }
+
+    pub fn tailscale(&mut self) -> ResourceId {
+        self.memoized("tailscale", tailscale::build)
+    }
+
     pub fn tuxedo(&mut self) -> ResourceId {
         self.memoized("tuxedo", tuxedo::build)
     }
@@ -174,6 +185,10 @@ impl<'a> Context<'a> {
 
     pub fn users(&mut self) -> ResourceId {
         self.memoized("users", users::build)
+    }
+
+    pub fn virtualbox(&mut self) -> ResourceId {
+        self.memoized("virtualbox", virtualbox::build)
     }
 
     pub fn yubico(&mut self) -> ResourceId {

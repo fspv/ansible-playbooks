@@ -35,6 +35,8 @@ src/
 │   └── user.rs
 └── bundles/           role-equivalent compositions
     ├── apt.rs
+    ├── tailscale.rs
+    ├── virtualbox.rs
     ├── ...
     └── common_devserver.rs   (top-level entry point)
 ```
@@ -242,8 +244,12 @@ should be able to pass `--bundle <name>` explicitly.
 ## Env
 
 `env.rs` carries facts about the target host: `is_container()`,
-`run_mode()`, `architecture()`. It is detected once at startup and passed
-into every backend via `Resource::converge_one(env: &Env, ...)`.
+`run_mode()`, `architecture()`, `ubuntu_codename()` (read from
+`/etc/os-release`), `is_in_virtualbox()` (lspci probe). It is detected
+once at startup and passed into every backend via
+`Resource::converge_one(env: &Env, ...)`. `Env::detect()` returns
+`Result` — a missing/unparseable `/etc/os-release` is a hard error so
+bundles never bake a guessed codename into apt repo URLs.
 
 `Skip::InContainer` is the conventional way to skip host-only resources
 inside containers (e.g. systemd Service resources). Bundles that should
@@ -258,8 +264,11 @@ startup, passed through `Context`. Field shape mirrors the keys in
 existing legacy configs parse without modification.
 
 Currently modelled per-host fields: users (map), nvidia (bool),
-system_vendor, ca_cert (map), iptables_open_ports (nested map). New
-fields go here as more bundles need them.
+system_vendor, ca_cert (map), iptables_open_ports (nested map),
+apt_repos (list — closed enum of recognised archive components, defaults
+to ubuntu/security/updates/backports; opt into ubuntu-proposed or
+ppa-pv-safronov-backports by listing them). New fields go here as more
+bundles need them.
 
 ## Errors
 

@@ -34,6 +34,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let gpg_ready = ctx.gpg();
     let locales_ready = ctx.locales();
     let apparmor_ready = ctx.apparmor();
+    let systemd_ready = ctx.systemd();
     // Conditional bundles per the legacy common-tweaks meta. Each bundle
     // self-gates: nvidia checks ctx.config.nvidia, tuxedo checks
     // ctx.config.system_vendor == "TUXEDO", apc_ups and iptables skip in
@@ -130,15 +131,31 @@ fi
         ..Default::default()
     });
 
-    // Legacy role used `with_fileglob: /etc/profile.d/vte*.sh`; we don't have
-    // glob support, so target the canonical filename. If other vte-* variants
-    // appear (e.g. vte.sh proper, or future versions), add explicit
-    // File-absent resources for each.
-    let vte_absent = ctx.plan.add(AbsentFile {
-        path: PathBuf::from("/etc/profile.d/vte-2.91.sh"),
-        deps: vec![apt_ready],
-        ..Default::default()
-    });
+    // Legacy role used `with_fileglob: /etc/profile.d/vte*.sh`. Reproduce
+    // that by enumerating /etc/profile.d at bundle build time and emitting
+    // one AbsentFile per matching entry. Files added between runs get
+    // cleaned up on the next run; if the directory is missing or contains
+    // no matches, the loop yields nothing — same as the ansible fileglob.
+    let mut vte_absents: Vec<ResourceId> = Vec::new();
+    if let Ok(entries) = std::fs::read_dir("/etc/profile.d") {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let Some(name) = path.file_name().and_then(|s| s.to_str()) else {
+                continue;
+            };
+            if name.starts_with("vte")
+                && std::path::Path::new(name)
+                    .extension()
+                    .is_some_and(|e| e == "sh")
+            {
+                vte_absents.push(ctx.plan.add(AbsentFile {
+                    path: path.clone(),
+                    deps: vec![apt_ready],
+                    ..Default::default()
+                }));
+            }
+        }
+    }
 
     let command_not_found_absent = ctx.plan.add(AbsentAptPackage {
         name: "command-not-found".to_string(),
@@ -177,33 +194,43 @@ fi
         ..Default::default()
     });
 
-    // TODO: install linux-headers-{ansible_kernel} once Env exposes the
-    // running kernel release. The legacy role pulls in matching headers so
-    // nvidia DKMS modules build against the booted kernel.
+    // Install linux-headers matching the booted kernel so nvidia DKMS
+    // builds against the right tree. Skipped in containers — the host
+    // kernel is irrelevant inside one and Env::kernel_release reports the
+    // host's release, not anything installable from the container's apt.
+    let kernel_headers = ctx.plan.add(AptPackage {
+        name: format!("linux-headers-{}", ctx.env.kernel_release()),
+        deps: vec![apt_ready],
+        skip_when: Skip::InContainer,
+    });
+
+    let mut deps = vec![
+        users_ready,
+        tzdata_ready,
+        ca_cert_ready,
+        chrony_ready,
+        gpg_ready,
+        locales_ready,
+        apparmor_ready,
+        systemd_ready,
+        nvidia_ready,
+        tuxedo_ready,
+        apc_ups_ready,
+        iptables_ready,
+        drivers,
+        sh_link,
+        history,
+        command_not_found_absent,
+        sysctl_file,
+        sysctl_reload,
+        drivers_install,
+        kernel_headers,
+    ];
+    deps.extend(vte_absents);
 
     ctx.plan.add(Marker {
         name: "common_tweaks:ready".to_string(),
-        deps: vec![
-            users_ready,
-            tzdata_ready,
-            ca_cert_ready,
-            chrony_ready,
-            gpg_ready,
-            locales_ready,
-            apparmor_ready,
-            nvidia_ready,
-            tuxedo_ready,
-            apc_ups_ready,
-            iptables_ready,
-            drivers,
-            sh_link,
-            history,
-            vte_absent,
-            command_not_found_absent,
-            sysctl_file,
-            sysctl_reload,
-            drivers_install,
-        ],
+        deps,
         ..Default::default()
     })
 }

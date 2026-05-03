@@ -15,8 +15,8 @@ use super::Context;
 // "TUXEDO" — for everyone else the marker is empty so downstream bundles can
 // depend on `tuxedo:ready` unconditionally.
 //
-// Ubuntu codename hard-coded to `noble` (24.04), the only target this
-// framework supports — matches the docker / yubico bundles.
+// Ubuntu codename comes from `ctx.env.ubuntu_codename()` (read from
+// /etc/os-release).
 
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     if ctx.config.system_vendor.as_deref() != Some("TUXEDO") {
@@ -28,6 +28,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     }
 
     let apt_ready = ctx.apt();
+    let codename = ctx.env.ubuntu_codename();
 
     let pins = ctx.plan.add(File {
         path: PathBuf::from("/etc/apt/preferences.d/tuxedo.pref"),
@@ -83,7 +84,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
 
     let repo = ctx.plan.add(AptRepo {
         name: "tuxedo-computers".to_string(),
-        list_content: "deb https://deb.tuxedocomputers.com/ubuntu noble main\n".to_string(),
+        list_content: format!("deb https://deb.tuxedocomputers.com/ubuntu {codename} main\n"),
         deps: vec![apt_ready, pins, key],
         ..Default::default()
     });

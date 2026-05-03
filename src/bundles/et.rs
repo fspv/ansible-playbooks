@@ -7,7 +7,8 @@ use crate::backends::apt_repo::AptRepo;
 use crate::backends::command::Command;
 use crate::backends::file::File;
 use crate::backends::marker::Marker;
-use crate::resource::ResourceId;
+use crate::backends::service::Service;
+use crate::resource::{ResourceId, Skip};
 
 use super::Context;
 
@@ -16,11 +17,12 @@ use super::Context;
 // /etc/apt/trusted.gpg.d/ppa-et.gpg; we replicate that with a `gpg --recv-keys`
 // Command. `Command` always reports Changed::Yes, so this re-fetches on every
 // run — acceptable here, the keyring file content stabilises after the first
-// run. The Ubuntu codename in the deb URL is hard-coded to `noble` (24.04),
-// matching the only target this framework supports.
+// run. The Ubuntu codename in the deb URL comes from
+// `ctx.env.ubuntu_codename()`, which reads `/etc/os-release` at startup.
 
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();
+    let codename = ctx.env.ubuntu_codename();
 
     let pin = ctx.plan.add(File {
         path: PathBuf::from("/etc/apt/preferences.d/ppa-et.pref"),
@@ -51,9 +53,10 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
 
     let repo = ctx.plan.add(AptRepo {
         name: "ppa-et".to_string(),
-        list_content: "deb http://ppa.launchpad.net/jgmath2000/et/ubuntu noble main\n\
-                       deb-src http://ppa.launchpad.net/jgmath2000/et/ubuntu noble main\n"
-            .to_string(),
+        list_content: format!(
+            "deb http://ppa.launchpad.net/jgmath2000/et/ubuntu {codename} main\n\
+             deb-src http://ppa.launchpad.net/jgmath2000/et/ubuntu {codename} main\n",
+        ),
         deps: vec![apt_ready, pin, key],
         ..Default::default()
     });
@@ -85,9 +88,18 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
+    let service = ctx.plan.add(Service {
+        name: "et.service".to_string(),
+        enabled: true,
+        started: true,
+        restart_on: vec![cfg],
+        deps: vec![pkg, cfg],
+        skip_when: Skip::InContainer,
+    });
+
     ctx.plan.add(Marker {
         name: "et:ready".to_string(),
-        deps: vec![pin, key, repo, pkg, cfg],
+        deps: vec![pin, key, repo, pkg, cfg, service],
         ..Default::default()
     })
 }

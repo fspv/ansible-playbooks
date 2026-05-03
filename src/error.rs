@@ -21,6 +21,10 @@ pub enum Error {
         path: PathBuf,
         source: Box<dyn std::error::Error + Send + Sync + 'static>,
     },
+    EnvDetect {
+        what: &'static str,
+        source: Box<dyn std::error::Error + Send + Sync + 'static>,
+    },
 }
 
 #[derive(Debug)]
@@ -74,6 +78,9 @@ impl fmt::Display for Error {
             Self::ConfigLoad { path, source } => {
                 write!(f, "loading config `{}`: {source}", path.display())
             }
+            Self::EnvDetect { what, source } => {
+                write!(f, "detecting host environment ({what}): {source}")
+            }
         }
     }
 }
@@ -82,7 +89,9 @@ impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::Backend { source, .. } => Some(source),
-            Self::ConfigLoad { source, .. } => Some(source.as_ref()),
+            Self::ConfigLoad { source, .. } | Self::EnvDetect { source, .. } => {
+                Some(source.as_ref())
+            }
             Self::PlanCycle { .. }
             | Self::PlanReferencesUnknownResource { .. }
             | Self::TaskPanicked { .. } => None,
