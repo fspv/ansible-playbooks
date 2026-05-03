@@ -19,7 +19,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build-e2e:
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            target: x86_64-unknown-linux-musl
+            runner: ubuntu-latest
+          - arch: arm64
+            target: aarch64-unknown-linux-musl
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: install musl-tools
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - name: install cargo-nextest
+        run: cargo install cargo-nextest --locked
+      - name: archive e2e tests
+        working-directory: e2e-tests
+        run: cargo nextest archive --target ${{ matrix.target }} --release --archive-file ../e2e-${{ matrix.arch }}.tar.zst
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e2e-${{ matrix.arch }}
+          path: e2e-${{ matrix.arch }}.tar.zst
+          retention-days: 1
+
   smoke:
+    needs: build-e2e
     strategy:
       matrix:
         include:
@@ -27,16 +57,19 @@ jobs:
             suffix: user-amd64
             server_type: cx23
             image: ubuntu-24.04
+            arch: amd64
           - playbook: user.yml
             suffix: user-arm64
             server_type: cax11
             image: ubuntu-24.04
+            arch: arm64
     uses: ./.github/workflows/_hetzner-test.yml
     with:
       playbook: ${{ matrix.playbook }}
       suffix: ${{ matrix.suffix }}
       server_type: ${{ matrix.server_type }}
       image: ${{ matrix.image }}
+      arch: ${{ matrix.arch }}
     secrets: inherit
 
   full:
@@ -48,14 +81,18 @@ jobs:
             suffix: common-devserver-amd64
             server_type: cx23
             image: ubuntu-24.04
+            arch: amd64
           - playbook: common-devserver.yml
             suffix: common-devserver-arm64
             server_type: cax11
             image: ubuntu-24.04
+            arch: arm64
     uses: ./.github/workflows/_hetzner-test.yml
     with:
       playbook: ${{ matrix.playbook }}
       suffix: ${{ matrix.suffix }}
       server_type: ${{ matrix.server_type }}
       image: ${{ matrix.image }}
+      arch: ${{ matrix.arch }}
+      run_e2e: true
     secrets: inherit

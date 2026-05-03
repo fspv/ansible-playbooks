@@ -16,6 +16,13 @@ on:
       image:
         type: string
         required: true
+      arch:
+        type: string
+        required: true
+      run_e2e:
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   test:
@@ -167,6 +174,41 @@ jobs:
         env:
           PLAYBOOK: ${{ inputs.playbook }}
         run: $SSH "ubuntu@$IP" "cd /home/ubuntu/ansible-playbooks && ./bootstrap.sh '$PLAYBOOK' LOCAL"
+
+      - name: download e2e archive
+        if: ${{ inputs.run_e2e }}
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-${{ inputs.arch }}
+          path: /tmp/e2e
+
+      - name: copy e2e archive to VM
+        if: ${{ inputs.run_e2e }}
+        run: |
+          scp \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o LogLevel=ERROR \
+            -i /home/runner/.ssh/id_ci_ansible \
+            "/tmp/e2e/e2e-${{ inputs.arch }}.tar.zst" \
+            "ubuntu@$IP:/home/ubuntu/e2e.tar.zst"
+
+      - name: install cargo-nextest on VM
+        if: ${{ inputs.run_e2e }}
+        env:
+          NEXTEST_PLATFORM: ${{ inputs.arch == 'arm64' && 'linux-arm' || 'linux' }}
+        run: |
+          $SSH "ubuntu@$IP" "mkdir -p \$HOME/.local/bin && curl -fsSL https://get.nexte.st/latest/$NEXTEST_PLATFORM | tar -xz -C \$HOME/.local/bin"
+
+      - name: run e2e tests on VM
+        if: ${{ inputs.run_e2e }}
+        env:
+          REMOTE_CMD: >-
+            cd /home/ubuntu/ansible-playbooks/e2e-tests &&
+            $HOME/.local/bin/cargo-nextest nextest run
+            --archive-file /home/ubuntu/e2e.tar.zst
+            --workspace-remap /home/ubuntu/ansible-playbooks/e2e-tests
+        run: $SSH "ubuntu@$IP" "$REMOTE_CMD"
 
       - name: destroy VM
         if: always()
