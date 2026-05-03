@@ -18,6 +18,7 @@ pub enum Changed {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BatchFamily {
     AptPackage,
+    AbsentAptPackage,
     AptRepo,
     SystemctlEnable,
     Sysctl,
@@ -29,6 +30,7 @@ impl BatchFamily {
     pub const fn name(self) -> &'static str {
         match self {
             Self::AptPackage => "apt-package",
+            Self::AbsentAptPackage => "absent-apt-package",
             Self::AptRepo => "apt-repo",
             Self::SystemctlEnable => "systemctl-enable",
             Self::Sysctl => "sysctl",

@@ -3,6 +3,8 @@ use std::path::Path;
 use similar::TextDiff;
 use tracing::info;
 
+pub mod absent_apt_package;
+pub mod absent_file;
 pub mod apt_package;
 pub mod apt_repo;
 pub mod command;

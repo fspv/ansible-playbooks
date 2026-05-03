@@ -14,16 +14,14 @@ use crate::resource::{Changed, Resource, ResourceId, Skip};
 
 const BACKEND: &str = "file";
 
-/// Manage a file on disk.
-///
-/// When `absent` is `true`, the backend ensures `path` does not exist; the
-/// `content` and `mode` fields are ignored in that mode.
+/// Manage a file on disk: ensure `content` is written with optional `mode`.
+/// Use [`AbsentFile`](super::absent_file::AbsentFile) to ensure a file
+/// does not exist.
 #[derive(Debug, Default)]
 pub struct File {
     pub path: PathBuf,
     pub content: String,
     pub mode: Option<Permissions>,
-    pub absent: bool,
     pub deps: Vec<ResourceId>,
     pub skip_when: Skip,
 }
@@ -43,9 +41,6 @@ impl Resource for File {
     }
 
     async fn converge_one(&self, env: &Env) -> Result<Changed, BackendError> {
-        if self.absent {
-            return self.converge_absent(env).await;
-        }
         let current_content = read_existing_content(&self.path).await?;
         let content_matches = current_content.as_deref() == Some(self.content.as_str());
         let mode_matches = self.mode_matches_disk().await?;
@@ -99,34 +94,6 @@ impl Resource for File {
 }
 
 impl File {
-    async fn converge_absent(&self, env: &Env) -> Result<Changed, BackendError> {
-        match fs::metadata(&self.path).await {
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                debug!(path = %self.path.display(), "file already absent");
-                Ok(Changed::No)
-            }
-            Err(e) => Err(BackendError::with_source(
-                BACKEND,
-                format!("stat `{}`", self.path.display()),
-                e,
-            )),
-            Ok(_) => {
-                if env.is_dry_run() {
-                    debug!(path = %self.path.display(), "dry-run: would remove file");
-                    return Ok(Changed::Yes);
-                }
-                fs::remove_file(&self.path).await.map_err(|e| {
-                    BackendError::with_source(
-                        BACKEND,
-                        format!("remove `{}`", self.path.display()),
-                        e,
-                    )
-                })?;
-                Ok(Changed::Yes)
-            }
-        }
-    }
-
     async fn mode_matches_disk(&self) -> Result<bool, BackendError> {
         let Some(want) = self.mode.as_ref() else {
             return Ok(true);

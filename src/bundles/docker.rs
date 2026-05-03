@@ -2,6 +2,7 @@ use std::fs::Permissions;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
+use crate::backends::absent_apt_package::AbsentAptPackage;
 use crate::backends::apt_package::AptPackage;
 use crate::backends::apt_repo::AptRepo;
 use crate::backends::directory::Directory;
@@ -201,9 +202,8 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     ]
     .iter()
     .map(|name| {
-        ctx.plan.add(AptPackage {
+        ctx.plan.add(AbsentAptPackage {
             name: (*name).to_string(),
-            absent: true,
             deps: vec![apt_ready],
             ..Default::default()
         })

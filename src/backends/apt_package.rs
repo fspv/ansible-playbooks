@@ -12,10 +12,12 @@ use crate::resource::{BatchFamily, Changed, Resource, ResourceId, Skip};
 
 const BACKEND: &str = "apt-package";
 
+/// Ensure a package is installed. Use
+/// [`AbsentAptPackage`](super::absent_apt_package::AbsentAptPackage) to
+/// ensure a package is removed.
 #[derive(Debug, Default)]
 pub struct AptPackage {
     pub name: String,
-    pub absent: bool,
     pub deps: Vec<ResourceId>,
     pub skip_when: Skip,
 }
@@ -40,19 +42,7 @@ impl Resource for AptPackage {
 
     async fn converge_one(&self, env: &Env) -> Result<Changed, BackendError> {
         let installed = read_installed_packages().await?;
-        let is_installed = installed.contains(&self.name);
-        if self.absent {
-            if !is_installed {
-                return Ok(Changed::No);
-            }
-            if env.is_dry_run() {
-                debug!(package = %self.name, "dry-run: would apt-get remove");
-                return Ok(Changed::Yes);
-            }
-            run_apt_remove(std::slice::from_ref(&self.name)).await?;
-            return Ok(Changed::Yes);
-        }
-        if is_installed {
+        if installed.contains(&self.name) {
             return Ok(Changed::No);
         }
         if env.is_dry_run() {
@@ -94,12 +84,7 @@ impl Batcher for AptPackageBatcher {
         let installed = read_installed_packages().await?;
         let to_install: Vec<String> = pkgs
             .iter()
-            .filter(|p| !p.absent && !installed.contains(&p.name))
-            .map(|p| p.name.clone())
-            .collect();
-        let to_remove: Vec<String> = pkgs
-            .iter()
-            .filter(|p| p.absent && installed.contains(&p.name))
+            .filter(|p| !installed.contains(&p.name))
             .map(|p| p.name.clone())
             .collect();
 
@@ -113,26 +98,10 @@ impl Batcher for AptPackageBatcher {
             run_apt_install(&to_install).await?;
         }
 
-        if to_remove.is_empty() {
-            debug!("no batched apt packages to remove");
-        } else if env.is_dry_run() {
-            info!(count = to_remove.len(), packages = ?to_remove, "dry-run: would apt-get remove batched apt packages");
-        } else {
-            info!(count = to_remove.len(), packages = ?to_remove, "removing batched apt packages");
-            run_apt_remove(&to_remove).await?;
-        }
-
         Ok(pkgs
             .iter()
             .map(|p| {
-                let is_installed = installed.contains(&p.name);
-                if p.absent {
-                    if is_installed {
-                        Changed::Yes
-                    } else {
-                        Changed::No
-                    }
-                } else if is_installed {
+                if installed.contains(&p.name) {
                     Changed::No
                 } else {
                     Changed::Yes
@@ -142,7 +111,7 @@ impl Batcher for AptPackageBatcher {
     }
 }
 
-async fn read_installed_packages() -> Result<HashSet<String>, BackendError> {
+pub(super) async fn read_installed_packages() -> Result<HashSet<String>, BackendError> {
     let output = Command::new("dpkg-query")
         .args(["-W", "-f=${Package}\t${db:Status-Abbrev}\n"])
         .output()
@@ -219,7 +188,7 @@ async fn run_apt_install(names: &[String]) -> Result<(), BackendError> {
     Ok(())
 }
 
-async fn run_apt_remove(names: &[String]) -> Result<(), BackendError> {
+pub(super) async fn run_apt_remove(names: &[String]) -> Result<(), BackendError> {
     if names.is_empty() {
         return Ok(());
     }

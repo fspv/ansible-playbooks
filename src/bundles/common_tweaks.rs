@@ -2,6 +2,8 @@ use std::fs::Permissions;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
+use crate::backends::absent_apt_package::AbsentAptPackage;
+use crate::backends::absent_file::AbsentFile;
 use crate::backends::apt_package::AptPackage;
 use crate::backends::command::Command;
 use crate::backends::file::File;
@@ -132,16 +134,14 @@ fi
     // glob support, so target the canonical filename. If other vte-* variants
     // appear (e.g. vte.sh proper, or future versions), add explicit
     // File-absent resources for each.
-    let vte_absent = ctx.plan.add(File {
+    let vte_absent = ctx.plan.add(AbsentFile {
         path: PathBuf::from("/etc/profile.d/vte-2.91.sh"),
-        absent: true,
         deps: vec![apt_ready],
         ..Default::default()
     });
 
-    let command_not_found_absent = ctx.plan.add(AptPackage {
+    let command_not_found_absent = ctx.plan.add(AbsentAptPackage {
         name: "command-not-found".to_string(),
-        absent: true,
         deps: vec![apt_ready],
         ..Default::default()
     });

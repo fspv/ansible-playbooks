@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tokio::task::JoinSet;
 use tracing::{debug, info};
 
+use crate::backends::absent_apt_package::AbsentAptPackageBatcher;
 use crate::backends::apt_package::AptPackageBatcher;
 use crate::batcher::Batcher;
 use crate::env::Env;
@@ -41,6 +42,10 @@ impl Executor {
     pub fn new(plan: Plan) -> Self {
         let mut batchers: HashMap<BatchFamily, Arc<dyn Batcher>> = HashMap::new();
         batchers.insert(BatchFamily::AptPackage, Arc::new(AptPackageBatcher));
+        batchers.insert(
+            BatchFamily::AbsentAptPackage,
+            Arc::new(AbsentAptPackageBatcher),
+        );
         Self { plan, batchers }
     }
 

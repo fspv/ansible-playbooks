@@ -109,17 +109,20 @@ HTTPS GETs, etc. — only the mutations skip.
 
 Each backend is a struct with named fields that callers construct via
 struct literals (no fluent builders). All include `deps: Vec<ResourceId>`
-and `skip_when: Skip` for cross-cutting concerns. Field-level absent
-flags (`File.absent`, `AptPackage.absent`) opt into removal mode.
+and `skip_when: Skip` for cross-cutting concerns. Removal is a separate
+backend (`AbsentFile`, `AbsentAptPackage`) rather than a flag on the
+present-tense type — this keeps each struct's fields all-relevant.
 
 | Backend       | Senses via                              | Mutates via                         |
 | ------------- | --------------------------------------- | ----------------------------------- |
-| `AptPackage`  | `dpkg-query -W`                         | `apt-get update` + `install`/`remove` |
+| `AptPackage`  | `dpkg-query -W`                         | `apt-get update` + `install`        |
+| `AbsentAptPackage` | `dpkg-query -W`                    | `apt-get remove --purge`            |
 | `AptRepo`     | (file content)                          | atomic write to `/etc/apt/sources.list.d/<name>.list` |
 | `Command`     | (none)                                  | spawn argv (always reports `Yes`)   |
 | `Directory`   | `stat`, `getent passwd/group`           | `create_dir_all` + `chmod` + `chown` |
 | `Download`    | HTTPS GET + byte-compare against disk   | atomic temp+rename                  |
-| `File`        | content + permissions                   | atomic temp+rename, optional `remove_file` for `absent: true` |
+| `File`        | content + permissions                   | atomic temp+rename                  |
+| `AbsentFile`  | `stat`                                  | `remove_file`                       |
 | `LineInFile`  | regex-match + content                   | atomic temp+rename                  |
 | `Marker`      | (none, no-op)                           | (none, no-op)                       |
 | `Service`     | `systemctl is-enabled` + `is-active`    | `systemctl enable`/`start`          |
