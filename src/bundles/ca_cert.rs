@@ -48,6 +48,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let update = ctx.plan.add(Command {
         name: "update-ca-certificates".to_string(),
         argv: vec!["update-ca-certificates".to_string()],
+        trigger_on: Some(cert_ids.clone()),
         deps: update_deps,
         ..Default::default()
     });

@@ -59,6 +59,7 @@ WantedBy=multi-user.target
         name: "smartctl_exporter.service".to_string(),
         enabled: true,
         started: true,
+        restart_on: vec![unit],
         deps: vec![unit],
         skip_when: Skip::InContainer,
     });

@@ -14,11 +14,19 @@ const BACKEND: &str = "service";
 /// never disables or stops a unit. Both flags default to `false` meaning
 /// "leave alone"; set them to `true` to ensure that state. `name` includes
 /// the suffix (e.g. `docker.service`, `docker-cleanup.timer`).
+///
+/// `restart_on` is the ansible-`notify` equivalent: list any `ResourceId`
+/// whose change should trigger `systemctl restart <name>` even when the
+/// unit is already enabled and active. Typical use is the unit's config
+/// files / drop-ins. When `started` is true and any `restart_on` id
+/// changed, this resource emits one `systemctl restart` (which also covers
+/// the "not running yet" case).
 #[derive(Debug, Default)]
 pub struct Service {
     pub name: String,
     pub enabled: bool,
     pub started: bool,
+    pub restart_on: Vec<ResourceId>,
     pub deps: Vec<ResourceId>,
     pub skip_when: Skip,
 }
@@ -43,8 +51,9 @@ impl Resource for Service {
 
         let needs_enable = self.enabled && !is_enabled;
         let needs_start = self.started && !is_active;
+        let needs_restart = self.started && is_active && env.any_changed(&self.restart_on).await;
 
-        if !needs_enable && !needs_start {
+        if !needs_enable && !needs_start && !needs_restart {
             return Ok(Changed::No);
         }
 
@@ -53,6 +62,7 @@ impl Resource for Service {
                 service = %self.name,
                 will_enable = needs_enable,
                 will_start = needs_start,
+                will_restart = needs_restart,
                 "dry-run: would adjust service",
             );
             return Ok(Changed::Yes);
@@ -61,7 +71,9 @@ impl Resource for Service {
         if needs_enable {
             run_systemctl(&["enable", &self.name]).await?;
         }
-        if needs_start {
+        if needs_restart {
+            run_systemctl(&["restart", &self.name]).await?;
+        } else if needs_start {
             run_systemctl(&["start", &self.name]).await?;
         }
         Ok(Changed::Yes)

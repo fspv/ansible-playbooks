@@ -50,6 +50,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         started: true,
         deps: vec![pkg, bwrap_profile],
         skip_when: Skip::InContainer,
+        ..Default::default()
     });
 
     ctx.plan.add(Marker {

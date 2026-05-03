@@ -66,7 +66,13 @@ impl Executor {
                 resource_count = level.len(),
                 "starting level"
             );
+            let outcomes_before = report.outcomes.len();
             self.run_level(level, &env, &mut report).await?;
+            for outcome in &report.outcomes[outcomes_before..] {
+                if outcome.changed == Changed::Yes {
+                    env.record_changed(outcome.id).await;
+                }
+            }
         }
 
         info!(

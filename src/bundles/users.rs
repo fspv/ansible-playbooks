@@ -127,6 +127,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             started: true,
             deps: vec![unit_id],
             skip_when: Skip::InContainer,
+            ..Default::default()
         });
         all_resources.push(unit_id);
         all_resources.push(svc_id);

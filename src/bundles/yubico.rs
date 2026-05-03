@@ -347,6 +347,7 @@ LABEL="fido_end"
             "-c".to_string(),
             "udevadm control --reload-rules && udevadm trigger".to_string(),
         ],
+        trigger_on: Some(vec![udev_rule]),
         deps: vec![udev_rule],
         ..Default::default()
     });

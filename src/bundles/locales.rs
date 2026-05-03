@@ -528,6 +528,7 @@ ru_RU.UTF-8 UTF-8
     let locale_gen_cmd = ctx.plan.add(Command {
         name: "locale-gen".to_string(),
         argv: vec!["locale-gen".to_string()],
+        trigger_on: Some(vec![locale_gen_file]),
         deps: vec![pkg, locale_gen_file],
         ..Default::default()
     });

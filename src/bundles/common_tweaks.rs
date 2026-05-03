@@ -160,6 +160,7 @@ fi
     let sysctl_reload = ctx.plan.add(Command {
         name: "sysctl --system".to_string(),
         argv: vec!["sysctl".to_string(), "--system".to_string()],
+        trigger_on: Some(vec![sysctl_file]),
         deps: vec![sysctl_file],
         skip_when: Skip::InContainer,
     });
@@ -173,6 +174,7 @@ fi
         ],
         deps: vec![drivers],
         skip_when: Skip::InContainer,
+        ..Default::default()
     });
 
     // TODO: install linux-headers-{ansible_kernel} once Env exposes the

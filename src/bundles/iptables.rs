@@ -85,6 +85,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         name: "netfilter-persistent.service".to_string(),
         enabled: true,
         started: true,
+        restart_on: vec![netfilter_default, rules_v4, rules_v6],
         deps: vec![pkg, netfilter_default, rules_v4, rules_v6],
         skip_when: Skip::InContainer,
     });

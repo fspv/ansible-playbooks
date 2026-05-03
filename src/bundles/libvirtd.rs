@@ -47,6 +47,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         name: "libvirtd.service".to_string(),
         enabled: true,
         started: true,
+        restart_on: vec![security_driver],
         deps: {
             let mut d = pkg_ids.clone();
             d.push(security_driver);

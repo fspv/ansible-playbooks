@@ -40,6 +40,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             "-c".to_string(),
             "udevadm control --reload-rules && udevadm trigger".to_string(),
         ],
+        trigger_on: Some(vec![rule]),
         deps: vec![rule],
         skip_when: Skip::InContainer,
     });

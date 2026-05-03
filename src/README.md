@@ -113,19 +113,32 @@ and `skip_when: Skip` for cross-cutting concerns. Removal is a separate
 backend (`AbsentFile`, `AbsentAptPackage`) rather than a flag on the
 present-tense type — this keeps each struct's fields all-relevant.
 
+`Service` has `restart_on: Vec<ResourceId>` and `Command` has
+`trigger_on: Option<Vec<ResourceId>>`: ansible's notify-handler shape.
+The executor records every `Changed::Yes` outcome in `Env`'s run-state
+between levels; downstream resources read `env.any_changed(&[…])` to
+decide whether their listed inputs drifted in the current run. A
+`Service` whose `restart_on` ids changed runs `systemctl restart`; a
+`Command` whose `trigger_on` is set and saw no change is a no-op. Use
+this for "restart docker.service when daemon.json drifts",
+"update-ca-certificates when /usr/local/share/ca-certificates/* drifts",
+"udevadm reload-rules + trigger when udev rules change", etc.
+`SystemdUnit` runs `systemctl daemon-reload` on its own change; bundle
+authors don't have to wire that.
+
 | Backend       | Senses via                              | Mutates via                         |
 | ------------- | --------------------------------------- | ----------------------------------- |
 | `AptPackage`  | `dpkg-query -W`                         | `apt-get update` + `install`        |
 | `AbsentAptPackage` | `dpkg-query -W`                    | `apt-get remove --purge`            |
 | `AptRepo`     | (file content)                          | atomic write to `/etc/apt/sources.list.d/<name>.list` |
-| `Command`     | (none)                                  | spawn argv (always reports `Yes`)   |
+| `Command`     | optional `trigger_on` change-check      | spawn argv when triggered (or always, if no `trigger_on`) |
 | `Directory`   | `stat`, `getent passwd/group`           | `create_dir_all` + `chmod` + `chown` |
 | `Download`    | HTTPS GET + byte-compare against disk   | atomic temp+rename                  |
 | `File`        | content + permissions                   | atomic temp+rename                  |
 | `AbsentFile`  | `stat`                                  | `remove_file`                       |
 | `LineInFile`  | regex-match + content                   | atomic temp+rename                  |
 | `Marker`      | (none, no-op)                           | (none, no-op)                       |
-| `Service`     | `systemctl is-enabled` + `is-active`    | `systemctl enable`/`start`          |
+| `Service`     | `systemctl is-enabled` + `is-active` + `restart_on` change-check | `systemctl enable`/`start`/`restart` |
 | `Symlink`     | `read_link`                             | `remove_file` + `symlink`           |
 | `SystemdUnit` | content of `/etc/systemd/system/<name>` | atomic write + `systemctl daemon-reload` |
 | `User`        | `getent passwd`, `id -nG`               | `useradd` / `usermod -aG` / `usermod -p` |

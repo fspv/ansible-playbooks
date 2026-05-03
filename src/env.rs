@@ -1,6 +1,12 @@
+use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
+use std::sync::Arc;
+
+use tokio::sync::RwLock;
+
+use crate::resource::ResourceId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum RunMode {
@@ -9,11 +15,17 @@ pub enum RunMode {
     DryRun,
 }
 
+#[derive(Debug, Default)]
+struct RunState {
+    changed: RwLock<HashSet<ResourceId>>,
+}
+
 #[derive(Debug, Clone)]
 pub struct Env {
     is_container: bool,
     run_mode: RunMode,
     architecture: String,
+    run_state: Arc<RunState>,
 }
 
 impl Env {
@@ -23,6 +35,7 @@ impl Env {
             is_container: detect_container(),
             run_mode: RunMode::default(),
             architecture: detect_architecture(),
+            run_state: Arc::default(),
         }
     }
 
@@ -37,6 +50,7 @@ impl Env {
             is_container,
             run_mode: RunMode::Apply,
             architecture: architecture.to_string(),
+            run_state: Arc::default(),
         }
     }
 
@@ -44,6 +58,20 @@ impl Env {
     pub const fn with_run_mode(mut self, mode: RunMode) -> Self {
         self.run_mode = mode;
         self
+    }
+
+    /// Record that `id` produced a change in the current run. Called by the
+    /// executor after a level completes so resources in subsequent levels
+    /// can react via [`Self::any_changed`].
+    pub async fn record_changed(&self, id: ResourceId) {
+        self.run_state.changed.write().await.insert(id);
+    }
+
+    /// True if any of `ids` has been recorded as changed in the current run.
+    /// Used by `Service` and `Command` to gate restart / trigger semantics.
+    pub async fn any_changed(&self, ids: &[ResourceId]) -> bool {
+        let lock = self.run_state.changed.read().await;
+        ids.iter().any(|id| lock.contains(id))
     }
 
     #[must_use]

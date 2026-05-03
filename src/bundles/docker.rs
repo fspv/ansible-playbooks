@@ -112,6 +112,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         name: "docker.service".to_string(),
         enabled: true,
         started: true,
+        restart_on: vec![daemon_json, docker_dropin],
         deps: vec![daemon_json, docker_dropin],
         skip_when: Skip::InContainer,
     });
@@ -153,6 +154,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         started: true,
         deps: vec![docker_cleanup_timer_unit],
         skip_when: Skip::InContainer,
+        ..Default::default()
     });
 
     let podman_cleanup_service = ctx.plan.add(SystemdUnit {
@@ -192,6 +194,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         started: true,
         deps: vec![podman_cleanup_timer_unit],
         skip_when: Skip::InContainer,
+        ..Default::default()
     });
 
     let removed_ids: Vec<_> = [
