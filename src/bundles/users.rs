@@ -21,6 +21,7 @@ use super::Context;
 // `roles/user/tasks/configs.yml`). The custom-secrets handling from the
 // legacy role is intentionally out of scope here.
 
+#[expect(clippy::too_many_lines)]
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     // Snapshot the spec list so the borrow on `ctx.config` is released
     // before we start mutating `ctx.plan`.
@@ -72,14 +73,19 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             continue;
         };
 
-        for subdir in [".local", ".config"] {
-            all_resources.push(ctx.plan.add(Directory {
-                path: PathBuf::from(format!("{}/{subdir}", home.display())),
-                owner: Some(name.clone()),
-                deps: vec![user_id],
-                ..Default::default()
-            }));
-        }
+        all_resources.push(ctx.plan.add(Directory {
+            path: PathBuf::from(format!("{}/.local", home.display())),
+            owner: Some(name.clone()),
+            deps: vec![user_id],
+            ..Default::default()
+        }));
+
+        all_resources.push(ctx.plan.add(Directory {
+            path: PathBuf::from(format!("{}/.config", home.display())),
+            owner: Some(name.clone()),
+            deps: vec![user_id],
+            ..Default::default()
+        }));
 
         all_resources.push(ctx.plan.add(Directory {
             path: PathBuf::from(format!("{}/.local/private", home.display())),
