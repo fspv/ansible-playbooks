@@ -1,0 +1,8 @@
+[Unit]
+Description=Throttled rolling check of all active LVM raid LVs
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'lvs --noheadings -o lv_full_name -S "lv_attr=~^[rR] && lv_active=active && raid_sync_action!=idle && raid_sync_action!=check" | xargs -r -n1 lvchange --quiet --maxrecoveryrate 0'
+ExecStart=/bin/sh -c 'lvs --noheadings -o lv_full_name -S "lv_attr=~^[rR] && lv_active=active && raid_sync_action=idle" | xargs -r -n1 lvchange --quiet --maxrecoveryrate 8M'
+ExecStart=/bin/sh -c 'lvs --noheadings -o lv_full_name -S "lv_attr=~^[rR] && lv_active=active && raid_sync_action=idle" | xargs -r -n1 lvchange --quiet --syncaction check'

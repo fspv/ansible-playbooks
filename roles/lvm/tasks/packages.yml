@@ -1,0 +1,6 @@
+---
+- name: install lvm2
+  become: true
+  apt:
+    name: lvm2
+    state: present

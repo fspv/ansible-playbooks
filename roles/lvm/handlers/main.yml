@@ -1,0 +1,8 @@
+---
+- name: restart lvm-raid-check.timer
+  become: true
+  systemd:
+    name: lvm-raid-check.timer
+    state: restarted
+    daemon_reload: true
+  ignore_errors: "{{ ansible_virtualization_type == 'docker' }}"
