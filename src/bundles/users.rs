@@ -72,33 +72,22 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             continue;
         };
 
-        // Create the intermediate ~/.local (and ~/.config, used by other
-        // bundles) explicitly — creating only the leaf would leave the
-        // parent root-owned.
-        let local_dir = ctx.plan.add(Directory {
-            path: PathBuf::from(format!("{}/.local", home.display())),
-            owner: Some(name.clone()),
-            deps: vec![user_id],
-            ..Default::default()
-        });
-        all_resources.push(local_dir);
+        for subdir in [".local", ".config"] {
+            all_resources.push(ctx.plan.add(Directory {
+                path: PathBuf::from(format!("{}/{subdir}", home.display())),
+                owner: Some(name.clone()),
+                deps: vec![user_id],
+                ..Default::default()
+            }));
+        }
 
-        let config_dir = ctx.plan.add(Directory {
-            path: PathBuf::from(format!("{}/.config", home.display())),
-            owner: Some(name.clone()),
-            deps: vec![user_id],
-            ..Default::default()
-        });
-        all_resources.push(config_dir);
-
-        let private_dir = ctx.plan.add(Directory {
+        all_resources.push(ctx.plan.add(Directory {
             path: PathBuf::from(format!("{}/.local/private", home.display())),
             mode: Some(Permissions::from_mode(0o700)),
             owner: Some(name.clone()),
-            deps: vec![local_dir],
+            deps: vec![user_id],
             ..Default::default()
-        });
-        all_resources.push(private_dir);
+        }));
 
         // Legacy hardcodes /home/<user>/.cache for the mount path and unit
         // name regardless of `item.home` (see roles/user/tasks/configs.yml).
@@ -107,7 +96,37 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             continue;
         }
 
-        let [unit_id, svc_id] = add_cache_tmpfs_mount(ctx, name, spec.uid, user_id);
+        let ownership_options = spec.uid.map_or_else(
+            || "mode=1777".to_string(),
+            |uid| format!("mode=0700,uid={uid},gid={uid}"),
+        );
+        let unit_name = format!("home-{name}-.cache.mount");
+        let unit_id = ctx.plan.add(SystemdUnit {
+            name: unit_name.clone(),
+            content: format!(
+                "[Unit]\n\
+                 Description=Mount tmpfs to /home/{name}/.cache\n\
+                 \n\
+                 [Mount]\n\
+                 Where=/home/{name}/.cache\n\
+                 Options=defaults,noatime,nodiratime,nosuid,nodev,{ownership_options}\n\
+                 What=tmpfs\n\
+                 Type=tmpfs\n\
+                 \n\
+                 [Install]\n\
+                 WantedBy=multi-user.target\n"
+            ),
+            deps: vec![user_id],
+            skip_when: Skip::InContainer,
+        });
+        let svc_id = ctx.plan.add(Service {
+            name: unit_name,
+            enabled: true,
+            started: true,
+            deps: vec![unit_id],
+            skip_when: Skip::InContainer,
+            ..Default::default()
+        });
         all_resources.push(unit_id);
         all_resources.push(svc_id);
     }
@@ -117,47 +136,4 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         deps: all_resources,
         ..Default::default()
     })
-}
-
-fn add_cache_tmpfs_mount(
-    ctx: &mut Context<'_>,
-    name: &str,
-    uid: Option<u32>,
-    user_id: ResourceId,
-) -> [ResourceId; 2] {
-    // Without uid=/gid= the kernel mounts the tmpfs root-owned; the
-    // kernel only accepts numeric ids here, so a spec without an
-    // explicit uid keeps the legacy world-writable root-owned mount.
-    let ownership_options = uid.map_or_else(
-        || "mode=1777".to_string(),
-        |uid| format!("mode=0700,uid={uid},gid={uid}"),
-    );
-    let unit_name = format!("home-{name}-.cache.mount");
-    let unit_id = ctx.plan.add(SystemdUnit {
-        name: unit_name.clone(),
-        content: format!(
-            "[Unit]\n\
-             Description=Mount tmpfs to /home/{name}/.cache\n\
-             \n\
-             [Mount]\n\
-             Where=/home/{name}/.cache\n\
-             Options=defaults,noatime,nodiratime,nosuid,nodev,{ownership_options}\n\
-             What=tmpfs\n\
-             Type=tmpfs\n\
-             \n\
-             [Install]\n\
-             WantedBy=multi-user.target\n"
-        ),
-        deps: vec![user_id],
-        skip_when: Skip::InContainer,
-    });
-    let svc_id = ctx.plan.add(Service {
-        name: unit_name,
-        enabled: true,
-        started: true,
-        deps: vec![unit_id],
-        skip_when: Skip::InContainer,
-        ..Default::default()
-    });
-    [unit_id, svc_id]
 }
