@@ -1,0 +1,9 @@
+[Unit]
+Description=Throttled rolling check of all active LVM raid LVs
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+
+[Install]
+WantedBy=timers.target

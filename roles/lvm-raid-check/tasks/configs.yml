@@ -1,0 +1,14 @@
+---
+- name: template lvm-raid-check.service
+  become: true
+  template:
+    src: lvm-raid-check.service.j2
+    dest: /etc/systemd/system/lvm-raid-check.service
+  notify: restart lvm-raid-check.timer
+
+- name: template lvm-raid-check.timer
+  become: true
+  template:
+    src: lvm-raid-check.timer.j2
+    dest: /etc/systemd/system/lvm-raid-check.timer
+  notify: restart lvm-raid-check.timer
