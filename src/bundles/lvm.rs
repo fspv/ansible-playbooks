@@ -6,11 +6,6 @@ use crate::resource::{ResourceId, Skip};
 
 use super::Context;
 
-// Mirrors roles/lvm-raid-check. A timer-driven rolling scrub of all active
-// LVM raid LVs: every 15 minutes it throttles any in-flight resync to keep
-// the machine usable, then kicks off a `syncaction check` on idle LVs at a
-// capped recovery rate. Hosts without raid LVs get a no-op run — `lvs`
-// matches nothing and `xargs -r` skips lvchange.
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();
     let systemd_ready = ctx.systemd();
@@ -64,7 +59,7 @@ WantedBy=timers.target
     });
 
     ctx.plan.add(Marker {
-        name: "lvm_raid_check:ready".to_string(),
+        name: "lvm:ready".to_string(),
         deps: vec![lvm2, service_unit, timer_unit, timer],
         ..Default::default()
     })

@@ -52,7 +52,7 @@ enum BundleName {
     Iptables,
     Libvirtd,
     Locales,
-    LvmRaidCheck,
+    Lvm,
     Nix,
     NodeExporter,
     Nvidia,
@@ -200,8 +200,8 @@ fn dispatch(ctx: &mut bundles::Context<'_>, bundle: BundleName) {
         BundleName::Locales => {
             ctx.locales();
         }
-        BundleName::LvmRaidCheck => {
-            ctx.lvm_raid_check();
+        BundleName::Lvm => {
+            ctx.lvm();
         }
         BundleName::Nix => {
             ctx.nix();

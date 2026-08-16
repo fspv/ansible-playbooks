@@ -44,7 +44,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let tuxedo_ready = ctx.tuxedo();
     let apc_ups_ready = ctx.apc_ups();
     let iptables_ready = ctx.iptables();
-    let lvm_raid_check_ready = ctx.lvm_raid_check();
+    let lvm_ready = ctx.lvm();
 
     let drivers = ctx.plan.add(AptPackage {
         name: "ubuntu-drivers-common".to_string(),
@@ -218,7 +218,7 @@ fi
         tuxedo_ready,
         apc_ups_ready,
         iptables_ready,
-        lvm_raid_check_ready,
+        lvm_ready,
         drivers,
         sh_link,
         history,

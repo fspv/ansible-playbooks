@@ -12,4 +12,4 @@ dependencies:
   - { role: locales, when: ansible_distribution == "Ubuntu" }
   - { role: nvidia, when: nvidia }
   - { role: apc-ups, when: ansible_virtualization_type != 'docker' }
-  - { role: lvm-raid-check }
+  - { role: lvm }

@@ -22,7 +22,7 @@ pub mod gpg;
 pub mod iptables;
 pub mod libvirtd;
 pub mod locales;
-pub mod lvm_raid_check;
+pub mod lvm;
 pub mod nix;
 pub mod node_exporter;
 pub mod nvidia;
@@ -132,8 +132,8 @@ impl<'a> Context<'a> {
         self.memoized("locales", locales::build)
     }
 
-    pub fn lvm_raid_check(&mut self) -> ResourceId {
-        self.memoized("lvm_raid_check", lvm_raid_check::build)
+    pub fn lvm(&mut self) -> ResourceId {
+        self.memoized("lvm", lvm::build)
     }
 
     pub fn nix(&mut self) -> ResourceId {
