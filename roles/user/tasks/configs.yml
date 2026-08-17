@@ -1,3 +1,17 @@
+- name: config .local dir
+  file:
+    path: "{{ item.home }}/.local/"
+    state: directory
+    owner: "{{ item.user }}"
+  with_items: "{{ users.values() | list }}"
+
+- name: config .config dir
+  file:
+    path: "{{ item.home }}/.config/"
+    state: directory
+    owner: "{{ item.user }}"
+  with_items: "{{ users.values() | list }}"
+
 - name: config .private dir
   file:
     path: "{{ item.home }}/.local/private/"
@@ -14,7 +28,7 @@
 
       [Mount]
       Where=/home/{{ item.user }}/.cache
-      Options=defaults,noatime,nodiratime,nosuid,nodev,mode=1777
+      Options=defaults,noatime,nodiratime,nosuid,nodev,mode=0700,uid={{ item.uid }},gid={{ item.uid }}
       What=tmpfs
       Type=tmpfs
 
@@ -24,6 +38,8 @@
     owner: "root"
   with_items: "{{ users.values() | list }}"
   when: item.user != 'root' and ansible_virtualization_type != 'docker' and ansible_user_id == 'root'
+  notify:
+    - user .cache mount restart
 
 - name: config .cache mount enable systemd
   systemd:

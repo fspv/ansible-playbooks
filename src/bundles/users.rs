@@ -21,6 +21,7 @@ use super::Context;
 // `roles/user/tasks/configs.yml`). The custom-secrets handling from the
 // legacy role is intentionally out of scope here.
 
+#[expect(clippy::too_many_lines)]
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     // Snapshot the spec list so the borrow on `ctx.config` is released
     // before we start mutating `ctx.plan`.
@@ -72,14 +73,27 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             continue;
         };
 
-        let private_dir = ctx.plan.add(Directory {
+        all_resources.push(ctx.plan.add(Directory {
+            path: PathBuf::from(format!("{}/.local", home.display())),
+            owner: Some(name.clone()),
+            deps: vec![user_id],
+            ..Default::default()
+        }));
+
+        all_resources.push(ctx.plan.add(Directory {
+            path: PathBuf::from(format!("{}/.config", home.display())),
+            owner: Some(name.clone()),
+            deps: vec![user_id],
+            ..Default::default()
+        }));
+
+        all_resources.push(ctx.plan.add(Directory {
             path: PathBuf::from(format!("{}/.local/private", home.display())),
             mode: Some(Permissions::from_mode(0o700)),
             owner: Some(name.clone()),
             deps: vec![user_id],
             ..Default::default()
-        });
-        all_resources.push(private_dir);
+        }));
 
         // Legacy hardcodes /home/<user>/.cache for the mount path and unit
         // name regardless of `item.home` (see roles/user/tasks/configs.yml).
@@ -88,6 +102,10 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             continue;
         }
 
+        let ownership_options = spec.uid.map_or_else(
+            || "mode=1777".to_string(),
+            |uid| format!("mode=0700,uid={uid},gid={uid}"),
+        );
         let unit_name = format!("home-{name}-.cache.mount");
         let unit_id = ctx.plan.add(SystemdUnit {
             name: unit_name.clone(),
@@ -97,7 +115,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
                  \n\
                  [Mount]\n\
                  Where=/home/{name}/.cache\n\
-                 Options=defaults,noatime,nodiratime,nosuid,nodev,mode=1777\n\
+                 Options=defaults,noatime,nodiratime,nosuid,nodev,{ownership_options}\n\
                  What=tmpfs\n\
                  Type=tmpfs\n\
                  \n\

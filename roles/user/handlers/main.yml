@@ -1,0 +1,7 @@
+- name: user .cache mount restart
+  systemd:
+    name: "home-{{ item.user }}-.cache.mount"
+    state: restarted
+    daemon_reload: true
+  with_items: "{{ users.values() | list }}"
+  when: item.user != 'root' and ansible_virtualization_type != 'docker' and ansible_user_id == 'root'
