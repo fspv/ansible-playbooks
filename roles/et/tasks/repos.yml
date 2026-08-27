@@ -12,11 +12,24 @@
     - apt-get update
   when: ansible_distribution == "Ubuntu"
 
+- name: repo dir keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo remove legacy key
+  file:
+    path: /etc/apt/trusted.gpg.d/ppa-et.gpg
+    state: absent
+  when: ansible_distribution == "Ubuntu"
+
 - name: repo key
-  apt_key:
-    keyserver: keyserver.ubuntu.com
-    id: D3614CB0B3C2D154356BD436CB4ADEA5B72A07A1
-    keyring: /etc/apt/trusted.gpg.d/ppa-et.gpg
+  get_url:
+    url: "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0xD3614CB0B3C2D154356BD436CB4ADEA5B72A07A1"
+    dest: /etc/apt/keyrings/ppa-et.asc
+    mode: '0644'
   notify:
     - apt-get update
   when: ansible_distribution == "Ubuntu"

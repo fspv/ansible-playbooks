@@ -12,12 +12,24 @@
     - apt-get update
   when: ansible_distribution == "Ubuntu"
 
+- name: repo dir keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo remove legacy key
+  file:
+    path: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    state: absent
+  when: ansible_distribution == "Ubuntu"
+
 - name: repo key
-  apt_key:
-    id: 458CA832957F5868
-    keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
-    url: https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg
-    state: present
+  get_url:
+    url: https://pkgs.tailscale.com/stable/ubuntu/jammy.asc
+    dest: /etc/apt/keyrings/tailscale.asc
+    mode: '0644'
   notify:
     - apt-get update
   when: ansible_distribution == "Ubuntu"
