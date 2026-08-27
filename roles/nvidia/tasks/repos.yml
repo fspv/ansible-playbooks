@@ -12,12 +12,24 @@
     - apt-get update
   when: ansible_distribution == "Ubuntu"
 
+- name: repo dir keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when: ansible_distribution == "Ubuntu"
+
+- name: repo remove legacy key
+  file:
+    path: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+    state: absent
+  when: ansible_distribution == "Ubuntu"
+
 - name: repo key
-  apt_key:
-    id: DDCAE044F796ECB0
-    keyring: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+  get_url:
     url: https://nvidia.github.io/libnvidia-container/gpgkey
-    state: present
+    dest: /etc/apt/keyrings/nvidia-container-toolkit.asc
+    mode: '0644'
   notify:
     - apt-get update
   when: ansible_distribution == "Ubuntu"

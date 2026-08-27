@@ -1,7 +1,19 @@
+- name: repo dir keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: repo remove legacy key
+  file:
+    path: /etc/apt/trusted.gpg.d/docker.gpg
+    state: absent
+
 - name: repo key
-  apt_key:
+  get_url:
     url: https://download.docker.com/linux/ubuntu/gpg
-    keyring: /etc/apt/trusted.gpg.d/docker.gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
 
 - name: repo
   template:

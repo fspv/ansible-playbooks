@@ -1,10 +1,20 @@
 ---
+- name: repo dir keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: repo remove legacy key
+  file:
+    path: /etc/apt/trusted.gpg.d/tuxedo.gpg
+    state: absent
+
 - name: repo key
-  apt_key:
-    id: "54840598"
+  get_url:
     url: https://deb.tuxedocomputers.com/0x54840598.pub.asc
-    keyring: /etc/apt/trusted.gpg.d/tuxedo.gpg
-    state: present
+    dest: /etc/apt/keyrings/tuxedo.asc
+    mode: '0644'
 
 - name: repo pins
   copy:
@@ -46,7 +56,7 @@
   copy:
     dest: /etc/apt/sources.list.d/tuxedo-computers.list
     content: |
-      deb https://deb.tuxedocomputers.com/ubuntu {{ ansible_distribution_release }} main
+      deb [signed-by=/etc/apt/keyrings/tuxedo.asc] https://deb.tuxedocomputers.com/ubuntu {{ ansible_distribution_release }} main
   notify:
     - apt-get update
 

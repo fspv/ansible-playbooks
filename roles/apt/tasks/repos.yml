@@ -33,11 +33,22 @@
     dest: "/etc/apt/sources.list.d/{{ item }}.list"
   with_items: "{{ apt_repos }}"
 
+- name: repo dir keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: repo remove legacy key
+  file:
+    path: /etc/apt/trusted.gpg.d/ppa-pv-safronov-backports.gpg
+    state: absent
+
 - name: repo key
-  apt_key:
-    keyserver: keyserver.ubuntu.com
-    id: FED902047AF1397755144CF6B47BBF2062DDDB70
-    keyring: /etc/apt/trusted.gpg.d/ppa-pv-safronov-backports.gpg
+  get_url:
+    url: "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0xFED902047AF1397755144CF6B47BBF2062DDDB70"
+    dest: /etc/apt/keyrings/ppa-pv-safronov-backports.asc
+    mode: '0644'
 
 - meta: flush_handlers
 
