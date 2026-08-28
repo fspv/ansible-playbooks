@@ -20,6 +20,24 @@ pub struct Config {
     pub system_vendor: Option<String>,
     pub ca_cert: BTreeMap<String, String>,
     pub iptables_open_ports: IptablesPorts,
+    /// Interfaces whose inbound traffic is trusted as "local". Empty by
+    /// default, which is what makes a host safe with no per-host config:
+    /// every rule granting LAN-level access is bound to an entry here, so an
+    /// empty list emits none of them. Mirrors
+    /// `roles/iptables/defaults/main.yml: iptables_lan_interfaces`.
+    ///
+    /// An allowlist of trusted interfaces rather than a denylist of the
+    /// internet-facing one, because the latter cannot be derived reliably: a
+    /// cloud VM's default route carries an RFC1918 address behind 1:1 NAT,
+    /// and a multihomed host has no single WAN.
+    pub iptables_lan_interfaces: Vec<String>,
+    /// Open the whole ephemeral UDP range to `iptables_lan_interfaces` for
+    /// Chromecast discovery. That range also covers the source port of every
+    /// outbound UDP socket on the host, so it stays off unless asked for.
+    pub iptables_allow_chromecast: bool,
+    /// TCP ports to rate-limit new connections on, per source address.
+    /// Applied only to ports actually opened by `iptables_open_ports`.
+    pub iptables_rate_limited_tcp_ports: Vec<u16>,
     /// Ubuntu archive components to enable. Mirrors
     /// `roles/apt/defaults/main.yml: apt_repos`. Each entry maps to a pin
     /// file under `/etc/apt/preferences.d/<name>.pref` and a sources file
@@ -69,9 +87,16 @@ impl Default for Config {
             system_vendor: None,
             ca_cert: BTreeMap::new(),
             iptables_open_ports: IptablesPorts::default(),
+            iptables_lan_interfaces: Vec::new(),
+            iptables_allow_chromecast: false,
+            iptables_rate_limited_tcp_ports: default_rate_limited_tcp_ports(),
             apt_repos: default_apt_repos(),
         }
     }
+}
+
+fn default_rate_limited_tcp_ports() -> Vec<u16> {
+    vec![22, 2022]
 }
 
 fn default_apt_repos() -> Vec<AptRepo> {

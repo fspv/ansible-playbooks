@@ -1,7 +1,35 @@
+---
 iptables: true
+
+# Interfaces whose inbound traffic is trusted as "local". Empty by default:
+# with no entry here every interface is untrusted, so the rules below that
+# grant LAN-level access emit nothing at all and a host is safe without any
+# per-host configuration. Name the LAN interface (e.g. "enp3s0", "wlan0", or
+# a wildcard like "enp+") only on hosts genuinely behind a trusted perimeter.
+#
+# This is deliberately an allowlist of trusted interfaces rather than a
+# denylist of the "WAN" interface: which interface faces the internet cannot
+# be derived reliably (a cloud VM's default route carries an RFC1918 address
+# behind 1:1 NAT, a multihomed host has no single WAN), whereas the operator
+# always knows which of their own interfaces they trust.
+iptables_lan_interfaces: []
+
+# Chromecast discovery needs the entire ephemeral UDP port range opened,
+# which also covers the source port of every outbound UDP socket on the host
+# (DNS, NTP, QUIC). Far too broad to enable implicitly; also requires
+# iptables_lan_interfaces to be set, or it still emits nothing.
+iptables_allow_chromecast: false
 
 iptables_open_ports:
   remote:
     tcp:
       - 22
       - 2022
+
+# Per-source-address new-connection rate limit (10 per 60s) for these TCP
+# ports, applied only to ports that are actually opened above. Blunts
+# credential stuffing against the shell ports without touching a port serving
+# real traffic. Set to [] to disable.
+iptables_rate_limited_tcp_ports:
+  - 22
+  - 2022

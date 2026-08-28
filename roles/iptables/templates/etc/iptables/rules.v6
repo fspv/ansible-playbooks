@@ -6,7 +6,7 @@
 :POSTROUTING ACCEPT [0:0]
 COMMIT
 *nat
-:NF_PERSIST_POSTROUTING [0:0]
+:NF_PERSIST_POSTROUTING - [0:0]
 # Do not forward locally generated packets
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
 
@@ -25,38 +25,23 @@ COMMIT
 -A POSTROUTING -j NF_PERSIST_POSTROUTING
 COMMIT
 *filter
-:NF_PERSIST_INPUT [0:0]
--A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d ::1/128 -j ACCEPT
--A NF_PERSIST_INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A NF_PERSIST_INPUT -m tcp -p tcp --dport 22 -j ACCEPT
-{% for port in iptables_open_ports.get("remote", {}).get("tcp", []) %}
--A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -j ACCEPT
-{% endfor %}
-{% for port in iptables_open_ports.get("local", {}).get("tcp", []) %}
--A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/8 --dport {{ port }} -j ACCEPT
--A NF_PERSIST_INPUT -m tcp -p tcp -s 172.16.0.0/12 --dport {{ port }} -j ACCEPT
--A NF_PERSIST_INPUT -m tcp -p tcp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
-{% endfor %}
-{% for port in iptables_open_ports.get("remote", {}).get("udp", []) %}
--A NF_PERSIST_INPUT -m udp -p udp --dport {{ port }} -j ACCEPT
-{% endfor %}
-{% for port in iptables_open_ports.get("local", {}).get("udp", []) %}
--A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/8 --dport {{ port }} -j ACCEPT
--A NF_PERSIST_INPUT -m udp -p udp -s 172.16.0.0/12 --dport {{ port }} -j ACCEPT
--A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
-{% endfor %}
+:NF_PERSIST_INPUT - [0:0]
+# A loopback source address is only ever legitimate on lo; arriving anywhere
+# else it is forged. Must precede every ACCEPT below.
+-A NF_PERSIST_INPUT ! -i lo -s ::1/128 -j DROP
+-A NF_PERSIST_INPUT -i lo -j ACCEPT
 
-# Allow some ICMPv6 types in the INPUT chain
-# Using ICMPv6 type names to be clear.
+# ICMPv6 is accepted ahead of the INVALID drop below: conntrack does not
+# track NDP, so neighbour solicit/advert would be classed INVALID and
+# dropping them first would break IPv6 address resolution outright.
 
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type destination-unreachable -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type packet-too-big -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type time-exceeded -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type parameter-problem -j ACCEPT
 
-# Allow some other types in the INPUT chain
--A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type echo-request -j ACCEPT
--A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type echo-reply -j ACCEPT
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type echo-request -m limit --limit 5/second --limit-burst 10 -j ACCEPT
+-A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type echo-reply -m limit --limit 5/second --limit-burst 10 -j ACCEPT
 
 # Allow others ICMPv6 types but only if the hop limit field is 255.
 
@@ -65,28 +50,53 @@ COMMIT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type neighbor-advertisement -m hl --hl-eq 255 -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type redirect -m hl --hl-eq 255 -j ACCEPT
 
--A NF_PERSIST_INPUT -i lo -j ACCEPT
+-A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
+-A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+{% for port in iptables_open_ports.get("remote", {}).get("tcp", []) %}
+{% if port in iptables_rate_limited_tcp_ports %}
+-A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -m conntrack --ctstate NEW -m recent --name NF_PERSIST_RATE_{{ port }} --set
+-A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -m conntrack --ctstate NEW -m recent --name NF_PERSIST_RATE_{{ port }} --update --seconds 60 --hitcount 10 -j DROP
+{% endif %}
+-A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% for port in iptables_open_ports.get("local", {}).get("tcp", []) %}
+{% for iface in iptables_lan_interfaces %}
+-A NF_PERSIST_INPUT -i {{ iface }} -m tcp -p tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% endfor %}
+{% for port in iptables_open_ports.get("remote", {}).get("udp", []) %}
+-A NF_PERSIST_INPUT -m udp -p udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% for port in iptables_open_ports.get("local", {}).get("udp", []) %}
+{% for iface in iptables_lan_interfaces %}
+-A NF_PERSIST_INPUT -i {{ iface }} -m udp -p udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% endfor %}
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i br-+ -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
-:NF_PERSIST_FORWARD [0:0]
-# Do not forward packets from interfaces not identified as local
+:NF_PERSIST_FORWARD - [0:0]
+-A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
+# Return traffic for connections a container or VM opened outbound.
+-A NF_PERSIST_FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+# New connections may originate FROM a container/VM interface, never toward
+# one: docker runs with "iptables": false, so these rules are the only thing
+# standing between an off-host packet and a container's ports.
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
--A NF_PERSIST_FORWARD -o lo -j ACCEPT
 -A NF_PERSIST_FORWARD -i docker+ -j ACCEPT
--A NF_PERSIST_FORWARD -o docker+ -j ACCEPT
 -A NF_PERSIST_FORWARD -i lxcbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -o lxcbr+ -j ACCEPT
 -A NF_PERSIST_FORWARD -i virbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -o virbr+ -j ACCEPT
 -A NF_PERSIST_FORWARD -i br-+ -j ACCEPT
--A NF_PERSIST_FORWARD -o br-+ -j ACCEPT
+-A NF_PERSIST_FORWARD -i veth+ -j ACCEPT
+{% for iface in iptables_lan_interfaces %}
+-A NF_PERSIST_FORWARD -i {{ iface }} -j ACCEPT
+{% endfor %}
 -A NF_PERSIST_FORWARD -j DROP
-:INPUT ACCEPT [0:0]
+:INPUT DROP [0:0]
 -A INPUT -j NF_PERSIST_INPUT
-:FORWARD ACCEPT [0:0]
+:FORWARD DROP [0:0]
 -A FORWARD -j NF_PERSIST_FORWARD
 :OUTPUT ACCEPT [0:0]
 COMMIT
