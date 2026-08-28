@@ -30,6 +30,7 @@ pub mod nvim;
 pub mod pip;
 pub mod smartctl_exporter;
 pub mod snapd;
+pub mod ssh;
 pub mod systemd;
 pub mod tailscale;
 pub mod tuxedo;
@@ -166,6 +167,10 @@ impl<'a> Context<'a> {
 
     pub fn snapd(&mut self) -> ResourceId {
         self.memoized("snapd", snapd::build)
+    }
+
+    pub fn ssh(&mut self) -> ResourceId {
+        self.memoized("ssh", ssh::build)
     }
 
     pub fn systemd(&mut self) -> ResourceId {

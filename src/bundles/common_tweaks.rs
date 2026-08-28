@@ -35,6 +35,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let locales_ready = ctx.locales();
     let apparmor_ready = ctx.apparmor();
     let systemd_ready = ctx.systemd();
+    let ssh_ready = ctx.ssh();
     // Conditional bundles per the legacy common-tweaks meta. Each bundle
     // self-gates: nvidia checks ctx.config.nvidia, tuxedo checks
     // ctx.config.system_vendor == "TUXEDO", apc_ups and iptables skip in
@@ -214,6 +215,7 @@ fi
         locales_ready,
         apparmor_ready,
         systemd_ready,
+        ssh_ready,
         nvidia_ready,
         tuxedo_ready,
         apc_ups_ready,

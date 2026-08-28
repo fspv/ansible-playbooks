@@ -60,6 +60,7 @@ enum BundleName {
     Pip,
     SmartctlExporter,
     Snapd,
+    Ssh,
     Tailscale,
     Tuxedo,
     Tzdata,
@@ -148,104 +149,41 @@ async fn main() -> ExitCode {
 }
 
 fn dispatch(ctx: &mut bundles::Context<'_>, bundle: BundleName) {
-    match bundle {
-        BundleName::ApcUps => {
-            ctx.apc_ups();
-        }
-        BundleName::Apparmor => {
-            ctx.apparmor();
-        }
-        BundleName::Apt => {
-            ctx.apt();
-        }
-        BundleName::CaCert => {
-            ctx.ca_cert();
-        }
-        BundleName::Chrony => {
-            ctx.chrony();
-        }
-        BundleName::Common => {
-            ctx.common();
-        }
-        BundleName::CommonDevserver => {
-            ctx.common_devserver();
-        }
-        BundleName::CommonTools => {
-            ctx.common_tools();
-        }
-        BundleName::CommonTweaks => {
-            ctx.common_tweaks();
-        }
-        BundleName::Devserver => {
-            ctx.devserver();
-        }
-        BundleName::Docker => {
-            ctx.docker();
-        }
-        BundleName::Et => {
-            ctx.et();
-        }
-        BundleName::Flatpak => {
-            ctx.flatpak();
-        }
-        BundleName::Gpg => {
-            ctx.gpg();
-        }
-        BundleName::Iptables => {
-            ctx.iptables();
-        }
-        BundleName::Libvirtd => {
-            ctx.libvirtd();
-        }
-        BundleName::Locales => {
-            ctx.locales();
-        }
-        BundleName::Lvm => {
-            ctx.lvm();
-        }
-        BundleName::Nix => {
-            ctx.nix();
-        }
-        BundleName::NodeExporter => {
-            ctx.node_exporter();
-        }
-        BundleName::Nvidia => {
-            ctx.nvidia();
-        }
-        BundleName::Nvim => {
-            ctx.nvim();
-        }
-        BundleName::Pip => {
-            ctx.pip();
-        }
-        BundleName::SmartctlExporter => {
-            ctx.smartctl_exporter();
-        }
-        BundleName::Snapd => {
-            ctx.snapd();
-        }
-        BundleName::Tailscale => {
-            ctx.tailscale();
-        }
-        BundleName::Tuxedo => {
-            ctx.tuxedo();
-        }
-        BundleName::Tzdata => {
-            ctx.tzdata();
-        }
-        BundleName::UbuntuDevserver => {
-            ctx.ubuntu_devserver();
-        }
-        BundleName::Users => {
-            ctx.users();
-        }
-        BundleName::Virtualbox => {
-            ctx.virtualbox();
-        }
-        BundleName::Yubico => {
-            ctx.yubico();
-        }
-    }
+    let _bundle_ready = match bundle {
+        BundleName::ApcUps => ctx.apc_ups(),
+        BundleName::Apparmor => ctx.apparmor(),
+        BundleName::Apt => ctx.apt(),
+        BundleName::CaCert => ctx.ca_cert(),
+        BundleName::Chrony => ctx.chrony(),
+        BundleName::Common => ctx.common(),
+        BundleName::CommonDevserver => ctx.common_devserver(),
+        BundleName::CommonTools => ctx.common_tools(),
+        BundleName::CommonTweaks => ctx.common_tweaks(),
+        BundleName::Devserver => ctx.devserver(),
+        BundleName::Docker => ctx.docker(),
+        BundleName::Et => ctx.et(),
+        BundleName::Flatpak => ctx.flatpak(),
+        BundleName::Gpg => ctx.gpg(),
+        BundleName::Iptables => ctx.iptables(),
+        BundleName::Libvirtd => ctx.libvirtd(),
+        BundleName::Locales => ctx.locales(),
+        BundleName::Lvm => ctx.lvm(),
+        BundleName::Nix => ctx.nix(),
+        BundleName::NodeExporter => ctx.node_exporter(),
+        BundleName::Nvidia => ctx.nvidia(),
+        BundleName::Nvim => ctx.nvim(),
+        BundleName::Pip => ctx.pip(),
+        BundleName::SmartctlExporter => ctx.smartctl_exporter(),
+        BundleName::Snapd => ctx.snapd(),
+        BundleName::Ssh => ctx.ssh(),
+        BundleName::Tailscale => ctx.tailscale(),
+        BundleName::Tuxedo => ctx.tuxedo(),
+        BundleName::Tzdata => ctx.tzdata(),
+        BundleName::UbuntuDevserver => ctx.ubuntu_devserver(),
+        BundleName::Users => ctx.users(),
+        BundleName::Virtualbox => ctx.virtualbox(),
+        BundleName::Yubico => ctx.yubico(),
+    };
 }
 
 fn init_tracing() {

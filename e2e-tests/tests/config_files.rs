@@ -1,5 +1,5 @@
 use std::os::unix::fs::PermissionsExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use ansible_playbook_tests::{current_user_home_dir, read_file_to_string, read_symlink_target};
 
@@ -94,5 +94,25 @@ fn networkmanager_conf_disables_internal_dns() {
     assert!(
         body.contains("dns=none"),
         "dns=none missing in NetworkManager.conf:\n{body}"
+    );
+}
+
+#[test]
+fn sshd_config_d_holds_no_drop_ins() {
+    let dir = Path::new("/etc/ssh/sshd_config.d");
+    let drop_ins: Vec<PathBuf> = match std::fs::read_dir(dir) {
+        Ok(entries) => entries
+            .map(|entry| {
+                entry
+                    .unwrap_or_else(|e| panic!("read {}: {e}", dir.display()))
+                    .path()
+            })
+            .collect(),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
+        Err(e) => panic!("read {}: {e}", dir.display()),
+    };
+    assert!(
+        drop_ins.is_empty(),
+        "sshd_config.d drop-ins left behind: {drop_ins:?}"
     );
 }

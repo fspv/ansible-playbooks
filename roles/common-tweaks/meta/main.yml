@@ -4,6 +4,7 @@ dependencies:
   - { role: tzdata }
   - { role: ca-cert }
   - { role: systemd }
+  - { role: ssh }
   - { role: apparmor }
   - { role: tuxedo, when: ansible_system_vendor == "TUXEDO" }
   - { role: ntp, when: ansible_distribution == "Ubuntu" }

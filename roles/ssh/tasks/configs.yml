@@ -1,0 +1,6 @@
+- name: config remove sshd_config.d drop-ins
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_fileglob: /etc/ssh/sshd_config.d/*
+  notify: handler ssh restart
