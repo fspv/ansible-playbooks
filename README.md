@@ -77,6 +77,7 @@ PubkeyAuthentication yes
 AuthenticationMethods publickey,password
 ```
 
+2. `rm /etc/ssh/sshd_config.d/*`
 3. `systemctl restart sshd`
 
 # Wayland tips and tricks
