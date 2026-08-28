@@ -5,25 +5,8 @@ use crate::resource::{ResourceId, Skip};
 
 use super::Context;
 
-// Mirrors roles/ssh. Ubuntu ships drop-ins under /etc/ssh/sshd_config.d
-// (cloud-init, vendor packages) that override /etc/ssh/sshd_config, so the
-// settings in the main config never take effect. The legacy role used
-// `with_fileglob: /etc/ssh/sshd_config.d/*`; reproduce that by enumerating
-// the directory at bundle build time and emitting one AbsentFile per entry,
-// same as common_tweaks does for the vte profile.d shims. A missing
-// directory (openssh-server not installed) yields nothing, and with nothing
-// removed the restart never triggers.
-
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
-    let mut drop_in_absents: Vec<ResourceId> = Vec::new();
-    if let Ok(entries) = std::fs::read_dir("/etc/ssh/sshd_config.d") {
-        for entry in entries.flatten() {
-            drop_in_absents.push(ctx.plan.add(AbsentFile {
-                path: entry.path(),
-                ..Default::default()
-            }));
-        }
-    }
+    let removed_drop_ins = remove_every_sshd_config_drop_in(ctx);
 
     let sshd_restart = ctx.plan.add(Command {
         name: "systemctl restart ssh".to_string(),
@@ -32,12 +15,12 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             "restart".to_string(),
             "ssh".to_string(),
         ],
-        trigger_on: Some(drop_in_absents.clone()),
-        deps: drop_in_absents.clone(),
+        trigger_on: Some(removed_drop_ins.clone()),
+        deps: removed_drop_ins.clone(),
         skip_when: Skip::InContainer,
     });
 
-    let mut deps = drop_in_absents;
+    let mut deps = removed_drop_ins;
     deps.push(sshd_restart);
 
     ctx.plan.add(Marker {
@@ -45,4 +28,20 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         deps,
         ..Default::default()
     })
+}
+
+fn remove_every_sshd_config_drop_in(ctx: &mut Context<'_>) -> Vec<ResourceId> {
+    let Ok(drop_ins) = std::fs::read_dir("/etc/ssh/sshd_config.d") else {
+        return Vec::new();
+    };
+
+    drop_ins
+        .flatten()
+        .map(|drop_in| {
+            ctx.plan.add(AbsentFile {
+                path: drop_in.path(),
+                ..Default::default()
+            })
+        })
+        .collect()
 }
