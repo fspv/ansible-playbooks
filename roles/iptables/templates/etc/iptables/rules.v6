@@ -33,7 +33,7 @@ COMMIT
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -j ACCEPT
 {% endfor %}
 {% for port in iptables_open_ports.get("local", {}).get("tcp", []) %}
--A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/8 --dport {{ port }} -j ACCEPT
+-A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/16 --dport {{ port }} -j ACCEPT
 -A NF_PERSIST_INPUT -m tcp -p tcp -s 172.16.0.0/12 --dport {{ port }} -j ACCEPT
 -A NF_PERSIST_INPUT -m tcp -p tcp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
 {% endfor %}
@@ -41,7 +41,7 @@ COMMIT
 -A NF_PERSIST_INPUT -m udp -p udp --dport {{ port }} -j ACCEPT
 {% endfor %}
 {% for port in iptables_open_ports.get("local", {}).get("udp", []) %}
--A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/8 --dport {{ port }} -j ACCEPT
+-A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/16 --dport {{ port }} -j ACCEPT
 -A NF_PERSIST_INPUT -m udp -p udp -s 172.16.0.0/12 --dport {{ port }} -j ACCEPT
 -A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
 {% endfor %}

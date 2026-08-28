@@ -114,7 +114,7 @@ fn render_local_tcp(ports: &[u16]) -> String {
     for port in ports {
         let _ = writeln!(
             out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/8 --dport {port} -j ACCEPT",
+            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/16 --dport {port} -j ACCEPT",
         );
         let _ = writeln!(
             out,
@@ -144,7 +144,7 @@ fn render_local_udp(ports: &[u16]) -> String {
     for port in ports {
         let _ = writeln!(
             out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/8 --dport {port} -j ACCEPT",
+            "-A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/16 --dport {port} -j ACCEPT",
         );
         let _ = writeln!(
             out,
@@ -196,7 +196,7 @@ COMMIT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i br-+ -j ACCEPT
--A NF_PERSIST_INPUT -s 192.168.0.0/8 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
+-A NF_PERSIST_INPUT -s 192.168.0.0/16 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
 -A NF_PERSIST_INPUT -s 10.0.0.0/8 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
 -A NF_PERSIST_INPUT -s 172.16.0.0/12 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
