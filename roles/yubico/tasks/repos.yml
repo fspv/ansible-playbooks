@@ -1,5 +1,3 @@
-# The PPA has no publication past 25.10, and the archive carries the same or
-# newer yubikey-manager, libpam-yubico and libpam-u2f
 - name: repo remove ppa-yubico
   file:
     path: "{{ item }}"
