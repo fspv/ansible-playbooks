@@ -13,7 +13,6 @@ use crate::error::Error;
 // default, so existing files parse without modification.
 
 #[derive(Debug, Deserialize)]
-#[serde(default)]
 pub struct Config {
     pub users: BTreeMap<String, UserSpec>,
     pub nvidia: bool,
@@ -61,37 +60,13 @@ impl AptRepo {
     }
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            users: BTreeMap::new(),
-            nvidia: false,
-            system_vendor: None,
-            ca_cert: BTreeMap::new(),
-            iptables_open_ports: IptablesPorts::default(),
-            apt_repos: default_apt_repos(),
-        }
-    }
-}
-
-fn default_apt_repos() -> Vec<AptRepo> {
-    vec![
-        AptRepo::Ubuntu,
-        AptRepo::UbuntuSecurity,
-        AptRepo::UbuntuUpdates,
-        AptRepo::UbuntuBackports,
-    ]
-}
-
-#[derive(Debug, Default, Clone, Deserialize)]
-#[serde(default)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct IptablesPorts {
     pub remote: IptablesPortsBySection,
     pub local: IptablesPortsBySection,
 }
 
-#[derive(Debug, Default, Clone, Deserialize)]
-#[serde(default)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct IptablesPortsBySection {
     pub tcp: Vec<u16>,
     pub udp: Vec<u16>,

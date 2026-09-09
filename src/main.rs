@@ -21,10 +21,9 @@ struct Args {
     #[arg(long = "bundle", value_enum)]
     bundles: Vec<BundleName>,
 
-    /// Path to a YAML config file (per-host data: users, ...). Defaults to
-    /// nothing — bundles that need config will see an empty Config.
+    /// Path to a YAML config file (per-host data: users, ...).
     #[arg(long)]
-    config: Option<PathBuf>,
+    config: PathBuf,
 
     /// Sense state and report what changed without modifying the system.
     /// Read-only commands still run; writes and apt-get install are
@@ -87,15 +86,12 @@ async fn main() -> ExitCode {
         }
     };
 
-    let cfg = match args.config.as_deref() {
-        Some(path) => match Config::load(path) {
-            Ok(cfg) => cfg,
-            Err(e) => {
-                error!(error = %e, "config load failed");
-                return ExitCode::FAILURE;
-            }
-        },
-        None => Config::default(),
+    let cfg = match Config::load(&args.config) {
+        Ok(cfg) => cfg,
+        Err(e) => {
+            error!(error = %e, "config load failed");
+            return ExitCode::FAILURE;
+        }
     };
 
     // Default-no-flag is equivalent to running the legacy `common-devserver.yml`
