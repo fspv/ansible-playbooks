@@ -15,7 +15,7 @@ a fleet of unlike machines:
 | Class | Patterns | Treatment |
 | --- | --- | --- |
 | Trusted | `tailscale+` | Reaches ports in `iptables_open_ports.local` |
-| Container/VM | `docker+`, `podman+`, `lxcbr+`, `virbr+`, `br-+` | Reaches all host ports |
+| Container/VM | `docker+`, `podman+`, `lxcbr+`, `virbr+`, `br-+` | Reaches all host ports; may originate forwarded connections |
 | Everything else | physical NICs, anything unrecognised | Reaches only `iptables_open_ports.remote` |
 
 Physical interfaces are never trusted, so it does not matter whether a host
@@ -48,5 +48,9 @@ either family grants access on source address alone.
   `:NAME [0:0]`, but xtables-legacy reads that as a policy on a non-built-in
   chain and rejects the whole file, which with an `ACCEPT` policy would remove
   the firewall silently.
+- `FORWARD` accepts new connections only *from* container/VM interfaces, never
+  toward them; return traffic comes from the conntrack rule. Docker runs with
+  `"iptables": false`, so no `DOCKER-USER` chain exists and these rules are the
+  entire container network boundary.
 - `rules.v6` contains no IPv4 literals. Emitting one makes `ip6tables-restore`
   reject the file and leaves IPv6 unfiltered.

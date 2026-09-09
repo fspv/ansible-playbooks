@@ -194,22 +194,11 @@ COMMIT
 {remote_tcp}{trusted_tcp}{remote_udp}{trusted_udp}-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -m limit --limit {ICMP_ECHO_RATE} --limit-burst {ICMP_ECHO_BURST} -j ACCEPT
 {containers}-A NF_PERSIST_INPUT -j DROP
 :NF_PERSIST_FORWARD - [0:0]
-# Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
--A NF_PERSIST_FORWARD -o lo -j ACCEPT
--A NF_PERSIST_FORWARD -i docker+ -j ACCEPT
--A NF_PERSIST_FORWARD -o docker+ -j ACCEPT
--A NF_PERSIST_FORWARD -i lxcbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -o lxcbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -i virbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -o virbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -i br-+ -j ACCEPT
--A NF_PERSIST_FORWARD -o br-+ -j ACCEPT
--A NF_PERSIST_FORWARD -i veth+ -j ACCEPT
--A NF_PERSIST_FORWARD -o veth+ -j ACCEPT
--A NF_PERSIST_FORWARD -j DROP
+{forward_containers}-A NF_PERSIST_FORWARD -i veth+ -j ACCEPT
+{forward_trusted}-A NF_PERSIST_FORWARD -j DROP
 :INPUT DROP [0:0]
 -A INPUT -j NF_PERSIST_INPUT
 :FORWARD DROP [0:0]
@@ -224,6 +213,8 @@ COMMIT
         trusted_udp = render_trusted_ports(&inputs.ports.local.udp, "udp"),
         masquerade_returns = render_masquerade_returns(),
         containers = render_interface_accepts("NF_PERSIST_INPUT", &CONTAINER_INTERFACES),
+        forward_containers = render_interface_accepts("NF_PERSIST_FORWARD", &CONTAINER_INTERFACES),
+        forward_trusted = render_interface_accepts("NF_PERSIST_FORWARD", &TRUSTED_INTERFACES),
     )
 }
 
@@ -265,20 +256,11 @@ COMMIT
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 {remote_tcp}{trusted_tcp}{remote_udp}{trusted_udp}{containers}-A NF_PERSIST_INPUT -j DROP
 :NF_PERSIST_FORWARD - [0:0]
-# Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
--A NF_PERSIST_FORWARD -o lo -j ACCEPT
--A NF_PERSIST_FORWARD -i docker+ -j ACCEPT
--A NF_PERSIST_FORWARD -o docker+ -j ACCEPT
--A NF_PERSIST_FORWARD -i lxcbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -o lxcbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -i virbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -o virbr+ -j ACCEPT
--A NF_PERSIST_FORWARD -i br-+ -j ACCEPT
--A NF_PERSIST_FORWARD -o br-+ -j ACCEPT
--A NF_PERSIST_FORWARD -j DROP
+{forward_containers}-A NF_PERSIST_FORWARD -i veth+ -j ACCEPT
+{forward_trusted}-A NF_PERSIST_FORWARD -j DROP
 :INPUT DROP [0:0]
 -A INPUT -j NF_PERSIST_INPUT
 :FORWARD DROP [0:0]
@@ -292,6 +274,8 @@ COMMIT
         trusted_udp = render_trusted_ports(&inputs.ports.local.udp, "udp"),
         masquerade_returns = render_masquerade_returns(),
         containers = render_interface_accepts("NF_PERSIST_INPUT", &CONTAINER_INTERFACES),
+        forward_containers = render_interface_accepts("NF_PERSIST_FORWARD", &CONTAINER_INTERFACES),
+        forward_trusted = render_interface_accepts("NF_PERSIST_FORWARD", &TRUSTED_INTERFACES),
     )
 }
 
@@ -449,6 +433,23 @@ mod tests {
             literal.is_none(),
             "ip6tables-restore rejects IPv4 literals; found {literal:?} in:\n{v6}"
         );
+    }
+
+    #[test]
+    fn forward_chain_never_accepts_toward_container_interfaces() {
+        for ruleset in render_both(&config_with_local(vec![22], vec![8080])) {
+            for interface in CONTAINER_INTERFACES {
+                let rule = format!("-o {interface} -j ACCEPT");
+                assert!(
+                    !ruleset.contains(&rule),
+                    "unsolicited inbound to containers allowed by {rule} in:\n{ruleset}"
+                );
+            }
+            assert!(
+                !ruleset.contains("-o veth+ -j ACCEPT"),
+                "unsolicited inbound to containers allowed via veth in:\n{ruleset}"
+            );
+        }
     }
 
     #[test]
