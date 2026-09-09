@@ -166,7 +166,10 @@ fi
 
     let sysctl_file = ctx.plan.add(File {
         path: PathBuf::from("/etc/sysctl.d/99-user.conf"),
-        content: "fs.inotify.max_user_instances=8192\nnet.ipv4.ping_group_range=1000 10000\n"
+        content: "fs.inotify.max_user_instances=8192\n\
+                  net.ipv4.ping_group_range=1000 10000\n\
+                  net.core.rmem_max=7340032\n\
+                  net.core.wmem_max=7340032\n"
             .to_string(),
         mode: Some(Permissions::from_mode(0o644)),
         deps: vec![apt_ready],
