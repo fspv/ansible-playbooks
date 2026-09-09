@@ -83,9 +83,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     })
     .collect();
 
-    // The legacy template emits an `nvidia` runtime entry inside
-    // `runtimes` only when the host is a GPU box. Match that exactly so
-    // dpkg's bytewise compare lines up after either tool runs.
     let runtimes_block = if nvidia_enabled {
         "    \"nvidia\": {\n      \"args\": [],\n      \"path\": \"nvidia-container-runtime\"\n    }\n  "
     } else {
@@ -101,9 +98,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    // The legacy template substitutes {{ docker_service_systemd_custom_opts }}
-    // (defaulting to "--experimental=true" in roles/docker/defaults/main.yml).
-    // Resolved inline; if a host needs different flags, layer its own drop-in.
     let docker_dropin = ctx.plan.add(SystemdUnit {
         name: "docker.service.d/custom-docker-opts.conf".to_string(),
         content: "[Service]\n\
@@ -114,11 +108,8 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    // Nvidia oneshot units that replace the legacy nvidia handlers
-    // (`nvidia-ctk runtime configure`, `nvidia-ctk cdi generate`). Each is
-    // defined unconditionally — wiring the corresponding Service in only
-    // happens when ctx.config.nvidia is true. The units are no-ops on
-    // non-GPU hosts because of the ConditionPathExists guard.
+    // Safe to define on every host: the ConditionPathExists guard makes
+    // them no-ops where nvidia-ctk is absent.
     let nvidia_cdi_generate_unit = ctx.plan.add(SystemdUnit {
         name: "nvidia-cdi-generate.service".to_string(),
         content: "[Unit]\n\
@@ -176,10 +167,8 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    // Restart docker when the nvidia toolkit changes — the legacy "docker
-    // restart" handler from roles/nvidia/tasks/packages.yml. nvidia_ready
-    // is a Marker covering the whole nvidia bundle (toolkit pkg, repo,
-    // pins, etc.), so any change there bumps docker.
+    // nvidia_ready covers the whole nvidia bundle, so a change to any of
+    // its resources restarts docker, not just a toolkit upgrade.
     let mut docker_restart_on = vec![daemon_json, docker_dropin];
     if nvidia_enabled {
         docker_restart_on.push(nvidia_ready);
@@ -302,9 +291,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         None
     };
 
-    // Nvidia oneshots: enable+start so they run on boot and re-run when
-    // the unit content changes (covers the ansible "service ... + flush
-    // handler" pattern).
     let nvidia_service_ids: Vec<ResourceId> = if nvidia_enabled {
         vec![
             ctx.plan.add(Service {
