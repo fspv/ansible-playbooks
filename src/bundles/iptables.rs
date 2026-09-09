@@ -85,6 +85,9 @@ const RATE_LIMIT_NEW_CONNECTIONS_PER_WINDOW: u32 = 10;
 const ICMP_ECHO_RATE: &str = "5/second";
 const ICMP_ECHO_BURST: u32 = 10;
 
+const TRUSTED_INTERFACES: [&str; 1] = ["tailscale+"];
+const CONTAINER_INTERFACES: [&str; 5] = ["docker+", "podman+", "lxcbr+", "virbr+", "br-+"];
+
 #[derive(Debug)]
 struct RulesetInputs<'a> {
     ports: &'a IptablesPorts,
@@ -122,25 +125,6 @@ fn render_remote_tcp(ports: &[u16], rate_limited_ports: &[u16]) -> String {
     out
 }
 
-fn render_local_tcp(ports: &[u16]) -> String {
-    let mut out = String::new();
-    for port in ports {
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/8 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 172.16.0.0/12 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 10.0.0.0/8 --dport {port} -j ACCEPT",
-        );
-    }
-    out
-}
-
 fn render_remote_udp(ports: &[u16]) -> String {
     let mut out = String::new();
     for port in ports {
@@ -152,21 +136,31 @@ fn render_remote_udp(ports: &[u16]) -> String {
     out
 }
 
-fn render_local_udp(ports: &[u16]) -> String {
+fn render_trusted_ports(ports: &[u16], protocol: &str) -> String {
     let mut out = String::new();
     for port in ports {
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/8 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 172.16.0.0/12 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {port} -j ACCEPT",
-        );
+        for interface in TRUSTED_INTERFACES {
+            let _ = writeln!(
+                out,
+                "-A NF_PERSIST_INPUT -i {interface} -m {protocol} -p {protocol} --dport {port} -j ACCEPT",
+            );
+        }
+    }
+    out
+}
+
+fn render_interface_accepts(chain: &str, interfaces: &[&str]) -> String {
+    let mut out = String::new();
+    for interface in interfaces {
+        let _ = writeln!(out, "-A {chain} -i {interface} -j ACCEPT");
+    }
+    out
+}
+
+fn render_masquerade_returns() -> String {
+    let mut out = String::new();
+    for interface in CONTAINER_INTERFACES {
+        let _ = writeln!(out, "-A NF_PERSIST_POSTROUTING -o {interface} -j RETURN");
     }
     out
 }
@@ -182,17 +176,9 @@ fn render_rules_v4(inputs: &RulesetInputs<'_>) -> String {
 COMMIT
 *nat
 :NF_PERSIST_POSTROUTING - [0:0]
-# Do not forward locally generated packets
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
-
-# Do not forward packets to internal networks (for security reasons)
 -A NF_PERSIST_POSTROUTING -o lo -j RETURN
--A NF_PERSIST_POSTROUTING -o docker+ -j RETURN
--A NF_PERSIST_POSTROUTING -o lxcbr+ -j RETURN
--A NF_PERSIST_POSTROUTING -o virbr+ -j RETURN
--A NF_PERSIST_POSTROUTING -o br-+ -j RETURN
-
--A NF_PERSIST_POSTROUTING -j MASQUERADE
+{masquerade_returns}-A NF_PERSIST_POSTROUTING -j MASQUERADE
 :PREROUTING ACCEPT [0:0]
 :INPUT ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
@@ -205,12 +191,8 @@ COMMIT
 -A NF_PERSIST_INPUT -i lo -j ACCEPT
 -A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-{remote_tcp}{local_tcp}{remote_udp}{local_udp}-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -m limit --limit {ICMP_ECHO_RATE} --limit-burst {ICMP_ECHO_BURST} -j ACCEPT
--A NF_PERSIST_INPUT -i docker+ -j ACCEPT
--A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
--A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
--A NF_PERSIST_INPUT -i br-+ -j ACCEPT
--A NF_PERSIST_INPUT -j DROP
+{remote_tcp}{trusted_tcp}{remote_udp}{trusted_udp}-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -m limit --limit {ICMP_ECHO_RATE} --limit-burst {ICMP_ECHO_BURST} -j ACCEPT
+{containers}-A NF_PERSIST_INPUT -j DROP
 :NF_PERSIST_FORWARD - [0:0]
 # Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
@@ -237,9 +219,11 @@ COMMIT
 
 ",
         remote_tcp = render_remote_tcp(&inputs.ports.remote.tcp, inputs.rate_limited_tcp_ports),
-        local_tcp = render_local_tcp(&inputs.ports.local.tcp),
+        trusted_tcp = render_trusted_ports(&inputs.ports.local.tcp, "tcp"),
         remote_udp = render_remote_udp(&inputs.ports.remote.udp),
-        local_udp = render_local_udp(&inputs.ports.local.udp),
+        trusted_udp = render_trusted_ports(&inputs.ports.local.udp, "udp"),
+        masquerade_returns = render_masquerade_returns(),
+        containers = render_interface_accepts("NF_PERSIST_INPUT", &CONTAINER_INTERFACES),
     )
 }
 
@@ -254,17 +238,9 @@ fn render_rules_v6(inputs: &RulesetInputs<'_>) -> String {
 COMMIT
 *nat
 :NF_PERSIST_POSTROUTING - [0:0]
-# Do not forward locally generated packets
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
-
-# Do not forward packets to internal networks (for security reasons)
 -A NF_PERSIST_POSTROUTING -o lo -j RETURN
--A NF_PERSIST_POSTROUTING -o docker+ -j RETURN
--A NF_PERSIST_POSTROUTING -o lxcbr+ -j RETURN
--A NF_PERSIST_POSTROUTING -o virbr+ -j RETURN
--A NF_PERSIST_POSTROUTING -o br-+ -j RETURN
-
--A NF_PERSIST_POSTROUTING -j MASQUERADE
+{masquerade_returns}-A NF_PERSIST_POSTROUTING -j MASQUERADE
 :PREROUTING ACCEPT [0:0]
 :INPUT ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
@@ -287,12 +263,7 @@ COMMIT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type redirect -m hl --hl-eq 255 -j ACCEPT
 -A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-{remote_tcp}{local_tcp}{remote_udp}{local_udp}
--A NF_PERSIST_INPUT -i docker+ -j ACCEPT
--A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
--A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
--A NF_PERSIST_INPUT -i br-+ -j ACCEPT
--A NF_PERSIST_INPUT -j DROP
+{remote_tcp}{trusted_tcp}{remote_udp}{trusted_udp}{containers}-A NF_PERSIST_INPUT -j DROP
 :NF_PERSIST_FORWARD - [0:0]
 # Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
@@ -316,9 +287,11 @@ COMMIT
 COMMIT
 ",
         remote_tcp = render_remote_tcp(&inputs.ports.remote.tcp, inputs.rate_limited_tcp_ports),
-        local_tcp = render_local_tcp(&inputs.ports.local.tcp),
+        trusted_tcp = render_trusted_ports(&inputs.ports.local.tcp, "tcp"),
         remote_udp = render_remote_udp(&inputs.ports.remote.udp),
-        local_udp = render_local_udp(&inputs.ports.local.udp),
+        trusted_udp = render_trusted_ports(&inputs.ports.local.udp, "udp"),
+        masquerade_returns = render_masquerade_returns(),
+        containers = render_interface_accepts("NF_PERSIST_INPUT", &CONTAINER_INTERFACES),
     )
 }
 
@@ -328,16 +301,35 @@ mod tests {
     use crate::config::IptablesPortsBySection;
 
     fn config_with(remote_tcp: Vec<u16>) -> Config {
+        config_with_local(remote_tcp, vec![])
+    }
+
+    fn config_with_local(remote_tcp: Vec<u16>, local_tcp: Vec<u16>) -> Config {
         Config {
             iptables_open_ports: IptablesPorts {
                 remote: IptablesPortsBySection {
                     tcp: remote_tcp,
                     udp: vec![],
                 },
-                local: IptablesPortsBySection::default(),
+                local: IptablesPortsBySection {
+                    tcp: local_tcp,
+                    udp: vec![],
+                },
             },
             ..Config::default()
         }
+    }
+
+    fn find_ipv4_literal(ruleset: &str) -> Option<&str> {
+        ruleset.split_whitespace().find(|token| {
+            let address = token.split('/').next().unwrap_or(token);
+            let mut octets = address.split('.');
+            let parsed = (&mut octets)
+                .take(4)
+                .filter(|o| o.parse::<u8>().is_ok())
+                .count();
+            parsed == 4 && octets.next().is_none()
+        })
     }
 
     fn ansible_default_config() -> Config {
@@ -421,6 +413,42 @@ mod tests {
                 "ephemeral UDP range opened in:\n{ruleset}"
             );
         }
+    }
+
+    #[test]
+    fn trusted_ports_are_reachable_only_over_an_unspoofable_interface() {
+        for ruleset in render_both(&config_with_local(vec![22], vec![8080])) {
+            for line in ruleset.lines().filter(|l| l.contains("--dport 8080")) {
+                assert!(
+                    TRUSTED_INTERFACES
+                        .iter()
+                        .any(|i| line.contains(&format!("-i {i}"))),
+                    "trusted-tier rule not bound to a trusted interface: {line}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn no_rule_grants_access_by_source_address_alone() {
+        for ruleset in render_both(&config_with_local(vec![22], vec![8080])) {
+            for line in ruleset.lines().filter(|l| l.contains(" -s ")) {
+                assert!(
+                    line.contains("-j DROP") || line.contains("-i lo"),
+                    "source address used to grant access, which is forgeable: {line}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ipv6_ruleset_contains_no_ipv4_literals() {
+        let [_, v6] = render_both(&config_with_local(vec![22], vec![8080]));
+        let literal = find_ipv4_literal(&v6);
+        assert!(
+            literal.is_none(),
+            "ip6tables-restore rejects IPv4 literals; found {literal:?} in:\n{v6}"
+        );
     }
 
     #[test]

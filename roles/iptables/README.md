@@ -1,0 +1,52 @@
+# iptables
+
+Renders `/etc/iptables/rules.v4` and `rules.v6` and hands them to
+`netfilter-persistent`. The same rulesets are produced by the Rust bundle in
+`src/bundles/iptables.rs`; the two are kept byte-identical and unit tests in
+that file pin the properties below.
+
+## Trust model
+
+There is no per-host interface configuration. Interfaces fall into three
+hardcoded classes, all named by the daemon that creates them rather than by
+hardware enumeration, which is what makes a single hardcoded list work across
+a fleet of unlike machines:
+
+| Class | Patterns | Treatment |
+| --- | --- | --- |
+| Trusted | `tailscale+` | Reaches ports in `iptables_open_ports.local` |
+| Container/VM | `docker+`, `podman+`, `lxcbr+`, `virbr+`, `br-+` | Reaches all host ports |
+| Everything else | physical NICs, anything unrecognised | Reaches only `iptables_open_ports.remote` |
+
+Physical interfaces are never trusted, so it does not matter whether a host
+names its NIC `eth0`, `enp3s0` or `wlp2s0`. That is deliberate: which physical
+interface faces the internet cannot be derived reliably — a cloud VM's default
+route carries an RFC1918 address behind 1:1 NAT, and a multihomed host has no
+single WAN — so the rules never try to guess.
+
+`tailscale+` is the trusted tier because WireGuard authenticates every packet.
+A source-address match is not a substitute: nothing here sets `rp_filter`, and
+strict `rp_filter` would not help a single-homed host anyway, since the default
+route makes a forged RFC1918 source pass the reverse-path check. No rule in
+either family grants access on source address alone.
+
+## Ports
+
+- `iptables_open_ports.remote` — open to the world.
+- `iptables_open_ports.local` — reachable only over the trusted interfaces.
+- `iptables_rate_limited_tcp_ports` — new connections from one source address
+  are capped at 10 per 60s. Applied only to ports actually opened. Set to `[]`
+  to disable.
+
+## Invariants
+
+- Built-in `INPUT`/`FORWARD` policies are `DROP`, so a ruleset that fails to
+  load leaves the host closed. While the `NF_PERSIST_*` chains are intact this
+  is behaviourally a no-op — their terminal `DROP` already covers it — so it
+  costs nothing and pays out on the failure paths.
+- User chains are declared `:NAME - [0:0]`. The nft backend also accepts
+  `:NAME [0:0]`, but xtables-legacy reads that as a policy on a non-built-in
+  chain and rejects the whole file, which with an `ACCEPT` policy would remove
+  the firewall silently.
+- `rules.v6` contains no IPv4 literals. Emitting one makes `ip6tables-restore`
+  reject the file and leaves IPv6 unfiltered.
