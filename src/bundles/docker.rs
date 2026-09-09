@@ -3,6 +3,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
 use crate::backends::absent_apt_package::AbsentAptPackage;
+use crate::backends::absent_file::AbsentFile;
 use crate::backends::apt_package::AptPackage;
 use crate::backends::apt_repo::AptRepo;
 use crate::backends::directory::Directory;
@@ -15,19 +16,9 @@ use crate::resource::{ResourceId, Skip};
 
 use super::Context;
 
-// Mirrors roles/docker/. Differences from the legacy ansible role:
-//  * Repo file lives at /etc/apt/sources.list.d/docker.list (the AptRepo
-//    backend's modern convention) rather than docker-ce.list, and the key
-//    is in /etc/apt/keyrings/docker.asc with `signed-by=` instead of being
-//    dropped under /etc/apt/trusted.gpg.d/.
-//  * `/etc/systemd/user/nvidia-ctk-docker-config.service` is written when
-//    nvidia is enabled. Per-user `systemctl --user enable` is still out of
-//    scope, so the unit lands but isn't enabled — matching the orphan
-//    template in the legacy ansible role (the file existed, no task ever
-//    enabled it).
-
-// Body length is data, not logic — most of it is verbatim systemd unit
-// text inlined per project convention.
+// The user unit at /etc/systemd/user/nvidia-ctk-docker-config.service is
+// written but never enabled: per-user `systemctl --user enable` is out of
+// scope here.
 #[allow(clippy::too_many_lines)]
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();
@@ -56,13 +47,19 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
+    let stale_repo = ctx.plan.add(AbsentFile {
+        path: PathBuf::from("/etc/apt/sources.list.d/docker.list"),
+        deps: vec![apt_ready],
+        ..Default::default()
+    });
+
     let docker_repo = ctx.plan.add(AptRepo {
-        name: "docker".to_string(),
+        name: "docker-ce".to_string(),
         list_content: format!(
-            "deb [arch={apt_arch} signed-by=/etc/apt/keyrings/docker.asc] \
+            "deb [signed-by=/etc/apt/keyrings/docker.asc arch={apt_arch}] \
              https://download.docker.com/linux/ubuntu {codename} stable\n"
         ),
-        deps: vec![apt_ready, pin, key],
+        deps: vec![apt_ready, pin, key, stale_repo],
         ..Default::default()
     });
 
@@ -390,7 +387,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         per_user_ids.push(run_args_id);
     }
 
-    let mut all = vec![key, pin, docker_repo];
+    let mut all = vec![key, pin, stale_repo, docker_repo];
     all.extend(package_ids);
     all.extend([
         daemon_json,
