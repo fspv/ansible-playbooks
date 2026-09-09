@@ -3,6 +3,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
 use crate::backends::absent_apt_package::AbsentAptPackage;
+use crate::backends::absent_file::AbsentFile;
 use crate::backends::apt_package::AptPackage;
 use crate::backends::apt_repo::AptRepo;
 use crate::backends::directory::Directory;
@@ -15,19 +16,9 @@ use crate::resource::{ResourceId, Skip};
 
 use super::Context;
 
-// Mirrors roles/docker/. Differences from the legacy ansible role:
-//  * Repo file lives at /etc/apt/sources.list.d/docker.list (the AptRepo
-//    backend's modern convention) rather than docker-ce.list, and the key
-//    is in /etc/apt/keyrings/docker.asc with `signed-by=` instead of being
-//    dropped under /etc/apt/trusted.gpg.d/.
-//  * `/etc/systemd/user/nvidia-ctk-docker-config.service` is written when
-//    nvidia is enabled. Per-user `systemctl --user enable` is still out of
-//    scope, so the unit lands but isn't enabled — matching the orphan
-//    template in the legacy ansible role (the file existed, no task ever
-//    enabled it).
-
-// Body length is data, not logic — most of it is verbatim systemd unit
-// text inlined per project convention.
+// The user unit at /etc/systemd/user/nvidia-ctk-docker-config.service is
+// written but never enabled: per-user `systemctl --user enable` is out of
+// scope here.
 #[allow(clippy::too_many_lines)]
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();
@@ -56,13 +47,19 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
+    let stale_repo = ctx.plan.add(AbsentFile {
+        path: PathBuf::from("/etc/apt/sources.list.d/docker.list"),
+        deps: vec![apt_ready],
+        ..Default::default()
+    });
+
     let docker_repo = ctx.plan.add(AptRepo {
-        name: "docker".to_string(),
+        name: "docker-ce".to_string(),
         list_content: format!(
-            "deb [arch={apt_arch} signed-by=/etc/apt/keyrings/docker.asc] \
+            "deb [signed-by=/etc/apt/keyrings/docker.asc arch={apt_arch}] \
              https://download.docker.com/linux/ubuntu {codename} stable\n"
         ),
-        deps: vec![apt_ready, pin, key],
+        deps: vec![apt_ready, pin, key, stale_repo],
         ..Default::default()
     });
 
@@ -86,9 +83,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     })
     .collect();
 
-    // The legacy template emits an `nvidia` runtime entry inside
-    // `runtimes` only when the host is a GPU box. Match that exactly so
-    // dpkg's bytewise compare lines up after either tool runs.
     let runtimes_block = if nvidia_enabled {
         "    \"nvidia\": {\n      \"args\": [],\n      \"path\": \"nvidia-container-runtime\"\n    }\n  "
     } else {
@@ -104,9 +98,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    // The legacy template substitutes {{ docker_service_systemd_custom_opts }}
-    // (defaulting to "--experimental=true" in roles/docker/defaults/main.yml).
-    // Resolved inline; if a host needs different flags, layer its own drop-in.
     let docker_dropin = ctx.plan.add(SystemdUnit {
         name: "docker.service.d/custom-docker-opts.conf".to_string(),
         content: "[Service]\n\
@@ -117,11 +108,8 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    // Nvidia oneshot units that replace the legacy nvidia handlers
-    // (`nvidia-ctk runtime configure`, `nvidia-ctk cdi generate`). Each is
-    // defined unconditionally — wiring the corresponding Service in only
-    // happens when ctx.config.nvidia is true. The units are no-ops on
-    // non-GPU hosts because of the ConditionPathExists guard.
+    // Safe to define on every host: the ConditionPathExists guard makes
+    // them no-ops where nvidia-ctk is absent.
     let nvidia_cdi_generate_unit = ctx.plan.add(SystemdUnit {
         name: "nvidia-cdi-generate.service".to_string(),
         content: "[Unit]\n\
@@ -179,10 +167,8 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    // Restart docker when the nvidia toolkit changes — the legacy "docker
-    // restart" handler from roles/nvidia/tasks/packages.yml. nvidia_ready
-    // is a Marker covering the whole nvidia bundle (toolkit pkg, repo,
-    // pins, etc.), so any change there bumps docker.
+    // nvidia_ready covers the whole nvidia bundle, so a change to any of
+    // its resources restarts docker, not just a toolkit upgrade.
     let mut docker_restart_on = vec![daemon_json, docker_dropin];
     if nvidia_enabled {
         docker_restart_on.push(nvidia_ready);
@@ -305,9 +291,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         None
     };
 
-    // Nvidia oneshots: enable+start so they run on boot and re-run when
-    // the unit content changes (covers the ansible "service ... + flush
-    // handler" pattern).
     let nvidia_service_ids: Vec<ResourceId> = if nvidia_enabled {
         vec![
             ctx.plan.add(Service {
@@ -390,7 +373,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         per_user_ids.push(run_args_id);
     }
 
-    let mut all = vec![key, pin, docker_repo];
+    let mut all = vec![key, pin, stale_repo, docker_repo];
     all.extend(package_ids);
     all.extend([
         daemon_json,
