@@ -13,9 +13,6 @@ use crate::resource::{ResourceId, Skip};
 
 use super::Context;
 
-// Mirrors roles/et. The Ubuntu codename in the deb URL comes from
-// `ctx.env.ubuntu_codename()`, which reads `/etc/os-release` at startup.
-
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();
     let codename = ctx.env.ubuntu_codename();

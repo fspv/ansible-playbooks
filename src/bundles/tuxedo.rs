@@ -12,13 +12,6 @@ use crate::resource::ResourceId;
 
 use super::Context;
 
-// Mirrors roles/tuxedo/. Active only on hosts whose ansible_system_vendor is
-// "TUXEDO" — for everyone else the marker is empty so downstream bundles can
-// depend on `tuxedo:ready` unconditionally.
-//
-// Ubuntu codename comes from `ctx.env.ubuntu_codename()` (read from
-// /etc/os-release).
-
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     if ctx.config.system_vendor.as_deref() != Some("TUXEDO") {
         return ctx.plan.add(Marker {

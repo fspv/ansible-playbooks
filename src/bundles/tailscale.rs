@@ -12,9 +12,8 @@ use crate::resource::ResourceId;
 
 use super::Context;
 
-// Mirrors roles/tailscale/. The keyring is shared across releases (tailscale
-// signs all suites with the same key), so the key URL stays pinned to the
-// jammy path regardless of the host's codename.
+// Tailscale signs every suite with the same key, so the key URL stays
+// pinned to the jammy path while the repo tracks the host's codename.
 
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();

@@ -12,18 +12,6 @@ use crate::resource::ResourceId;
 
 use super::Context;
 
-// Paths and bodies are copied verbatim from the legacy ansible role's
-// templates under roles/apt/templates/etc/apt/. They must stay byte-exact so
-// this bundle can be applied on top of hosts already provisioned by the
-// ansible playbook.
-//
-// Skipped vs the legacy role:
-//  * /var/cache/apt and /var/lib/apt/lists wipes — those are run-time cache
-//    state, not desired-state config. Re-deleting them on every converge
-//    would force apt-get update to redownload package indexes.
-
-// Body length is data, not logic — the apt config files and Ubuntu archive
-// list templates are inlined verbatim per project convention.
 #[allow(clippy::too_many_lines)]
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let mode_644 = || Some(Permissions::from_mode(0o644));
@@ -62,9 +50,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             mode: mode_644(),
             ..Default::default()
         }),
-        // 00release is fully commented out — the role's template warns
-        // against uncommenting APT::Default-Release. Kept byte-identical to
-        // the legacy template, including the codename in the example line.
         ctx.plan.add(File {
             path: PathBuf::from("/etc/apt/apt.conf.d/00release"),
             content: format!(
@@ -75,8 +60,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
             mode: mode_644(),
             ..Default::default()
         }),
-        // 99debug is a stash of commented Debug::* keys — exists so an
-        // operator can uncomment to debug. Kept byte-identical.
         ctx.plan.add(File {
             path: PathBuf::from("/etc/apt/apt.conf.d/99debug"),
             content: "#Debug::Acquire::cdrom \"yes\";\n\
@@ -113,19 +96,14 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         }),
     ];
 
-    // Notifier / motd cleanups the role removes so apt updates don't trigger
-    // unattended-upgrades, MOTD scrapes, or daily/weekly cron noise.
     let cleanup_files: Vec<ResourceId> = [
         "/etc/update-motd.d/90-updates-available",
         "/etc/apt/apt.conf.d/99update-notifier",
         "/etc/cron.daily/update-notifier-common",
         "/etc/cron.weekly/update-notifier-common",
-        // Ubuntu 24.04 ships sources in deb822 ubuntu.sources; the role
-        // wipes it because we drive sources via /etc/apt/sources.list.d/*.list.
+        // Ubuntu 24.04+ ships the archive list here as well; leaving it
+        // would duplicate every repo written to sources.list.d.
         "/etc/apt/sources.list.d/ubuntu.sources",
-        // Superseded by /etc/apt/keyrings/ppa-pv-safronov-backports.asc. The
-        // role removes it unconditionally, so it goes even on hosts that
-        // never enabled the PPA.
         "/etc/apt/trusted.gpg.d/ppa-pv-safronov-backports.gpg",
     ]
     .iter()
@@ -137,8 +115,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     })
     .collect();
 
-    // /etc/apt/sources.list — kept as a placeholder pointing operators at
-    // sources.list.d, byte-identical to the role's template.
     let sources_list = ctx.plan.add(File {
         path: PathBuf::from("/etc/apt/sources.list"),
         content: "# This file must be empty.\n\
@@ -162,8 +138,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    // Mirror selection: arm hosts use ports.ubuntu.com (no archive.ubuntu.com
-    // builds), everything else uses archive.ubuntu.com / security.ubuntu.com.
+    // archive.ubuntu.com carries no arm builds; those live on ports.ubuntu.com.
     let (archive_base, security_base) = if ctx.env.is_arm() {
         (
             "http://ports.ubuntu.com/ubuntu-ports",
@@ -176,9 +151,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         )
     };
 
-    // Render one (pin, list) pair per entry in ctx.config.apt_repos. Mirrors
-    // the legacy role's `with_items: "{{ apt_repos }}"` loop over the same
-    // template names.
     let mut repo_resources: Vec<ResourceId> = vec![sources_list, ppa_pin];
     let mut ppa_safronov_enabled = false;
     for repo in &ctx.config.apt_repos {
@@ -203,9 +175,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         }
     }
 
-    // Only emitted when the user opted into the PPA via apt_repos; the role
-    // fetches it unconditionally, but a signing key for a repo this host does
-    // not carry buys nothing.
     if ppa_safronov_enabled {
         let key = ctx.plan.add(Download {
             url: "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr\
@@ -218,12 +187,8 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         repo_resources.push(key);
     }
 
-    // Bootstrap packages match roles/apt/tasks/packages.yml verbatim. Several
-    // (python3-apt, python3-pycurl, software-properties-common, aptitude) are
-    // only relevant when ansible itself drives apt; kept for now so the
-    // framework can be applied to ansible-managed hosts without diverging.
-    // apt-get update is run by the AptPackage batcher itself before any
-    // install, so no explicit Command is needed in this bundle.
+    // apt-get update runs inside the AptPackage batcher before any install,
+    // so this bundle needs no explicit Command for it.
     let mut deps_for_pkgs: Vec<ResourceId> = confd_files.clone();
     deps_for_pkgs.extend(repo_resources.iter().copied());
     deps_for_pkgs.extend(cleanup_files.iter().copied());
@@ -257,9 +222,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     })
 }
 
-// Render the (pin body, list body) pair for one apt_repos entry. Bodies are
-// byte-identical to the corresponding j2 templates under
-// roles/apt/templates/etc/apt/{preferences.d,sources.list.d}/.
+// Returns the (pin body, list body) pair for one apt_repos entry.
 fn render_repo_entry(
     repo: AptRepo,
     codename: &str,
@@ -295,8 +258,6 @@ fn render_repo_entry(
                  deb-src {archive_base}/ {codename}-backports main restricted universe multiverse\n",
             ),
         ),
-        // ubuntu-proposed uses archive.ubuntu.com (or ports.ubuntu.com on
-        // arm), never security.ubuntu.com, per the legacy template.
         AptRepo::UbuntuProposed => (
             format!("Package: *\nPin: release a={codename}-proposed\nPin-Priority: 990\n"),
             format!(

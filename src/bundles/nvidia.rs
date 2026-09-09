@@ -12,16 +12,8 @@ use crate::resource::ResourceId;
 
 use super::Context;
 
-// Mirrors roles/nvidia/. Gated on `config.nvidia` — when false the marker is
-// emitted with no deps so downstream bundles can depend on `nvidia:ready`
-// unconditionally.
-//
-// Skipped vs the legacy role: the post-install handlers
-// (`nvidia-ctk runtime configure`, `nvidia-ctk cdi generate`,
-// `nvidia-ctk user runtime configure`) wire docker into the GPU runtime and
-// therefore belong in the docker bundle (which already has TODOs about
-// nvidia). Keeping them out of this bundle avoids a circular ctx.docker() ->
-// ctx.nvidia() dependency.
+// The nvidia-ctk oneshot units live in the docker bundle: defining them
+// here would make ctx.docker() and ctx.nvidia() mutually recursive.
 
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     if !ctx.config.nvidia {
@@ -61,8 +53,6 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
 
     let repo = ctx.plan.add(AptRepo {
         name: "nvidia".to_string(),
-        // `$(ARCH)` is an apt-time substitution performed by apt itself, not
-        // by ansible, so it stays literal in the .list body.
         list_content: "deb [signed-by=/etc/apt/keyrings/nvidia-container-toolkit.asc] \
                        https://nvidia.github.io/libnvidia-container/stable/deb/$(ARCH) /\n\
                        #deb [signed-by=/etc/apt/keyrings/nvidia-container-toolkit.asc] \
