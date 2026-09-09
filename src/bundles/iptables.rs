@@ -90,25 +90,6 @@ fn render_remote_tcp(ports: &[u16]) -> String {
     out
 }
 
-fn render_local_tcp(ports: &[u16]) -> String {
-    let mut out = String::new();
-    for port in ports {
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/16 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 172.16.0.0/12 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 10.0.0.0/8 --dport {port} -j ACCEPT",
-        );
-    }
-    out
-}
-
 fn render_remote_udp(ports: &[u16]) -> String {
     let mut out = String::new();
     for port in ports {
@@ -120,20 +101,12 @@ fn render_remote_udp(ports: &[u16]) -> String {
     out
 }
 
-fn render_local_udp(ports: &[u16]) -> String {
+fn render_trusted_ports(ports: &[u16], protocol: &str) -> String {
     let mut out = String::new();
     for port in ports {
         let _ = writeln!(
             out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/16 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 172.16.0.0/12 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {port} -j ACCEPT",
+            "-A NF_PERSIST_INPUT -i tailscale+ -m {protocol} -p {protocol} --dport {port} -j ACCEPT",
         );
     }
     out
@@ -150,16 +123,13 @@ fn render_rules_v4(ports: &IptablesPorts) -> String {
 COMMIT
 *nat
 :NF_PERSIST_POSTROUTING - [0:0]
-# Do not forward locally generated packets
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
-
-# Do not forward packets to internal networks (for security reasons)
 -A NF_PERSIST_POSTROUTING -o lo -j RETURN
 -A NF_PERSIST_POSTROUTING -o docker+ -j RETURN
+-A NF_PERSIST_POSTROUTING -o podman+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o lxcbr+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o virbr+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o br-+ -j RETURN
-
 -A NF_PERSIST_POSTROUTING -j MASQUERADE
 :PREROUTING ACCEPT [0:0]
 :INPUT ACCEPT [0:0]
@@ -173,8 +143,9 @@ COMMIT
 -A NF_PERSIST_INPUT -i lo -j ACCEPT
 -A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-{remote_tcp}{local_tcp}{remote_udp}{local_udp}-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -j ACCEPT
+{remote_tcp}{trusted_tcp}{remote_udp}{trusted_udp}-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -j ACCEPT
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
+-A NF_PERSIST_INPUT -i podman+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i br-+ -j ACCEPT
@@ -204,9 +175,9 @@ COMMIT
 
 ",
         remote_tcp = render_remote_tcp(&ports.remote.tcp),
-        local_tcp = render_local_tcp(&ports.local.tcp),
+        trusted_tcp = render_trusted_ports(&ports.local.tcp, "tcp"),
         remote_udp = render_remote_udp(&ports.remote.udp),
-        local_udp = render_local_udp(&ports.local.udp),
+        trusted_udp = render_trusted_ports(&ports.local.udp, "udp"),
     )
 }
 
@@ -221,16 +192,13 @@ fn render_rules_v6(ports: &IptablesPorts) -> String {
 COMMIT
 *nat
 :NF_PERSIST_POSTROUTING - [0:0]
-# Do not forward locally generated packets
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
-
-# Do not forward packets to internal networks (for security reasons)
 -A NF_PERSIST_POSTROUTING -o lo -j RETURN
 -A NF_PERSIST_POSTROUTING -o docker+ -j RETURN
+-A NF_PERSIST_POSTROUTING -o podman+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o lxcbr+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o virbr+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o br-+ -j RETURN
-
 -A NF_PERSIST_POSTROUTING -j MASQUERADE
 :PREROUTING ACCEPT [0:0]
 :INPUT ACCEPT [0:0]
@@ -254,8 +222,9 @@ COMMIT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type redirect -m hl --hl-eq 255 -j ACCEPT
 -A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-{remote_tcp}{local_tcp}{remote_udp}{local_udp}
+{remote_tcp}{trusted_tcp}{remote_udp}{trusted_udp}
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
+-A NF_PERSIST_INPUT -i podman+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i br-+ -j ACCEPT
@@ -282,8 +251,8 @@ COMMIT
 COMMIT
 ",
         remote_tcp = render_remote_tcp(&ports.remote.tcp),
-        local_tcp = render_local_tcp(&ports.local.tcp),
+        trusted_tcp = render_trusted_ports(&ports.local.tcp, "tcp"),
         remote_udp = render_remote_udp(&ports.remote.udp),
-        local_udp = render_local_udp(&ports.local.udp),
+        trusted_udp = render_trusted_ports(&ports.local.udp, "udp"),
     )
 }

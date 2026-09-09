@@ -7,16 +7,13 @@
 COMMIT
 *nat
 :NF_PERSIST_POSTROUTING - [0:0]
-# Do not forward locally generated packets
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
-
-# Do not forward packets to internal networks (for security reasons)
 -A NF_PERSIST_POSTROUTING -o lo -j RETURN
 -A NF_PERSIST_POSTROUTING -o docker+ -j RETURN
+-A NF_PERSIST_POSTROUTING -o podman+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o lxcbr+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o virbr+ -j RETURN
 -A NF_PERSIST_POSTROUTING -o br-+ -j RETURN
-
 -A NF_PERSIST_POSTROUTING -j MASQUERADE
 :PREROUTING ACCEPT [0:0]
 :INPUT ACCEPT [0:0]
@@ -34,20 +31,17 @@ COMMIT
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -j ACCEPT
 {% endfor %}
 {% for port in iptables_open_ports.get("local", {}).get("tcp", []) %}
--A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/16 --dport {{ port }} -j ACCEPT
--A NF_PERSIST_INPUT -m tcp -p tcp -s 172.16.0.0/12 --dport {{ port }} -j ACCEPT
--A NF_PERSIST_INPUT -m tcp -p tcp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
+-A NF_PERSIST_INPUT -i tailscale+ -m tcp -p tcp --dport {{ port }} -j ACCEPT
 {% endfor %}
 {% for port in iptables_open_ports.get("remote", {}).get("udp", []) %}
 -A NF_PERSIST_INPUT -m udp -p udp --dport {{ port }} -j ACCEPT
 {% endfor %}
 {% for port in iptables_open_ports.get("local", {}).get("udp", []) %}
--A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/16 --dport {{ port }} -j ACCEPT
--A NF_PERSIST_INPUT -m udp -p udp -s 172.16.0.0/12 --dport {{ port }} -j ACCEPT
--A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
+-A NF_PERSIST_INPUT -i tailscale+ -m udp -p udp --dport {{ port }} -j ACCEPT
 {% endfor %}
 -A NF_PERSIST_INPUT -p icmp --icmp-type 8 -j ACCEPT
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
+-A NF_PERSIST_INPUT -i podman+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i br-+ -j ACCEPT
