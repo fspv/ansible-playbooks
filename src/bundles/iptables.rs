@@ -210,9 +210,6 @@ COMMIT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i br-+ -j ACCEPT
--A NF_PERSIST_INPUT -s 192.168.0.0/8 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
--A NF_PERSIST_INPUT -s 10.0.0.0/8 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
--A NF_PERSIST_INPUT -s 172.16.0.0/12 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
 :NF_PERSIST_FORWARD - [0:0]
 # Do not forward packets from interfaces not identified as local
@@ -414,6 +411,16 @@ mod tests {
             !v6.contains("--dport 22"),
             "port 22 accepted on IPv6 despite not being configured:\n{v6}"
         );
+    }
+
+    #[test]
+    fn ephemeral_udp_range_is_never_opened() {
+        for ruleset in render_both(&ansible_default_config()) {
+            assert!(
+                !ruleset.contains("32768:61000"),
+                "ephemeral UDP range opened in:\n{ruleset}"
+            );
+        }
     }
 
     #[test]
