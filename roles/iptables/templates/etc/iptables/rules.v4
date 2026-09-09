@@ -28,6 +28,7 @@ COMMIT
 :NF_PERSIST_INPUT - [0:0]
 -A NF_PERSIST_INPUT ! -i lo -s 127.0.0.0/8 -j DROP
 -A NF_PERSIST_INPUT -i lo -j ACCEPT
+-A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 {% for port in iptables_open_ports.get("remote", {}).get("tcp", []) %}
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -j ACCEPT
@@ -55,6 +56,7 @@ COMMIT
 -A NF_PERSIST_INPUT -s 172.16.0.0/12 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment "Allow Chromecast UDP data (inbound)" -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
 :NF_PERSIST_FORWARD - [0:0]
+-A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
 # Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
 -A NF_PERSIST_FORWARD -o lo -j ACCEPT
