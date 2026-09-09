@@ -26,7 +26,8 @@ COMMIT
 COMMIT
 *filter
 :NF_PERSIST_INPUT - [0:0]
--A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d 127.0.0.0/24 -j ACCEPT
+-A NF_PERSIST_INPUT ! -i lo -s 127.0.0.0/8 -j DROP
+-A NF_PERSIST_INPUT -i lo -j ACCEPT
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 {% for port in iptables_open_ports.get("remote", {}).get("tcp", []) %}
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -j ACCEPT
@@ -45,7 +46,6 @@ COMMIT
 -A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
 {% endfor %}
 -A NF_PERSIST_INPUT -p icmp --icmp-type 8 -j ACCEPT
--A NF_PERSIST_INPUT -i lo -j ACCEPT
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT

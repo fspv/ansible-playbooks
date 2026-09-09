@@ -169,10 +169,10 @@ COMMIT
 COMMIT
 *filter
 :NF_PERSIST_INPUT - [0:0]
--A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d 127.0.0.0/24 -j ACCEPT
+-A NF_PERSIST_INPUT ! -i lo -s 127.0.0.0/8 -j DROP
+-A NF_PERSIST_INPUT -i lo -j ACCEPT
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 {remote_tcp}{local_tcp}{remote_udp}{local_udp}-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -j ACCEPT
--A NF_PERSIST_INPUT -i lo -j ACCEPT
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
@@ -241,7 +241,8 @@ COMMIT
 COMMIT
 *filter
 :NF_PERSIST_INPUT - [0:0]
--A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d ::1/128 -j ACCEPT
+-A NF_PERSIST_INPUT ! -i lo -s ::1/128 -j DROP
+-A NF_PERSIST_INPUT -i lo -j ACCEPT
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport 22 -j ACCEPT
 {remote_tcp}{local_tcp}{remote_udp}{local_udp}
@@ -264,7 +265,6 @@ COMMIT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type neighbor-advertisement -m hl --hl-eq 255 -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type redirect -m hl --hl-eq 255 -j ACCEPT
 
--A NF_PERSIST_INPUT -i lo -j ACCEPT
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
