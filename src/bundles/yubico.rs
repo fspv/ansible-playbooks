@@ -3,7 +3,6 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
 use crate::backends::apt_package::AptPackage;
-use crate::backends::apt_repo::AptRepo;
 use crate::backends::command::Command;
 use crate::backends::file::File;
 use crate::backends::marker::Marker;
@@ -11,76 +10,22 @@ use crate::resource::ResourceId;
 
 use super::Context;
 
-// Mirrors roles/yubico. The legacy `apt_key` task fetched
-// 3653E21064B19D134466702E43D5C49532CBA1A9 from keyserver.ubuntu.com into
-// /etc/apt/trusted.gpg.d/ppa-yubico.gpg; we replicate that with a `gpg
-// --recv-keys` Command (same pattern as bundles/et.rs). Ubuntu codename in
-// the deb URL comes from `ctx.env.ubuntu_codename()`. After the udev rule
-// changes, a single shell Command runs `udevadm control --reload-rules &&
-// udevadm trigger` so newly-plugged keys pick up the rule immediately.
+// Mirrors roles/yubico. After the udev rule changes, a single shell Command
+// runs `udevadm control --reload-rules && udevadm trigger` so newly-plugged
+// keys pick up the rule immediately.
 
 // Body length is data, not logic — the inlined u2f udev rule is ~200 lines
 // of vendor-product entries copied verbatim from the legacy template.
 #[allow(clippy::too_many_lines)]
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();
-    let codename = ctx.env.ubuntu_codename();
-
-    let pin = ctx.plan.add(File {
-        path: PathBuf::from("/etc/apt/preferences.d/ppa-yubico.pref"),
-        content: "Package: yubikey-manager\n\
-                  Pin: origin ppa.launchpad.net\n\
-                  Pin-Priority: 995\n\
-                  \n\
-                  Package: yubikey-personalization-gui\n\
-                  Pin: origin ppa.launchpad.net\n\
-                  Pin-Priority: 995\n\
-                  \n\
-                  Package: libpam-yubico\n\
-                  Pin: origin ppa.launchpad.net\n\
-                  Pin-Priority: 995\n\
-                  \n\
-                  Package: libpam-u2f\n\
-                  Pin: origin ppa.launchpad.net\n\
-                  Pin-Priority: 995\n"
-            .to_string(),
-        mode: Some(Permissions::from_mode(0o644)),
-        deps: vec![apt_ready],
-        ..Default::default()
-    });
-
-    let key = ctx.plan.add(Command {
-        name: "fetch ppa-yubico signing key".to_string(),
-        argv: vec![
-            "gpg".to_string(),
-            "--no-default-keyring".to_string(),
-            "--keyring".to_string(),
-            "/etc/apt/trusted.gpg.d/ppa-yubico.gpg".to_string(),
-            "--keyserver".to_string(),
-            "keyserver.ubuntu.com".to_string(),
-            "--recv-keys".to_string(),
-            "3653E21064B19D134466702E43D5C49532CBA1A9".to_string(),
-        ],
-        deps: vec![apt_ready],
-        ..Default::default()
-    });
-
-    let repo = ctx.plan.add(AptRepo {
-        name: "ppa-yubico".to_string(),
-        list_content: format!(
-            "deb http://ppa.launchpad.net/yubico/stable/ubuntu {codename} main\n\
-             deb-src http://ppa.launchpad.net/yubico/stable/ubuntu {codename} main\n",
-        ),
-        deps: vec![apt_ready, pin, key],
-        ..Default::default()
-    });
 
     let package_ids: Vec<_> = ["yubikey-manager", "libpam-yubico", "libpam-u2f"]
         .iter()
         .map(|name| {
             ctx.plan.add(AptPackage {
                 name: (*name).to_string(),
-                deps: vec![apt_ready, repo],
+                deps: vec![apt_ready],
                 ..Default::default()
             })
         })
@@ -353,8 +298,7 @@ LABEL="fido_end"
         ..Default::default()
     });
 
-    let mut all = vec![pin, key, repo];
-    all.extend(package_ids);
+    let mut all = package_ids;
     all.push(udev_rule);
     all.push(udev_reload);
 
