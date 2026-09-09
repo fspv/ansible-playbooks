@@ -265,6 +265,7 @@ existing legacy configs parse without modification.
 
 Currently modelled per-host fields: users (map), nvidia (bool),
 system_vendor, ca_cert (map), iptables_open_ports (nested map),
+iptables_rate_limited_tcp_ports (list),
 apt_repos (list — closed enum of recognised archive components, defaults
 to ubuntu/security/updates/backports; opt into ubuntu-proposed or
 ppa-pv-safronov-backports by listing them). New fields go here as more
