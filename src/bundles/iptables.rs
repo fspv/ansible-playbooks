@@ -79,6 +79,52 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     })
 }
 
+fn render_local_tcp_v4(ports: &[u16]) -> String {
+    ports.iter().fold(String::new(), |mut rules, port| {
+        let _ = write!(
+            rules,
+            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/16 --dport {port} -j ACCEPT\n\
+             -A NF_PERSIST_INPUT -m tcp -p tcp -s 172.16.0.0/12 --dport {port} -j ACCEPT\n\
+             -A NF_PERSIST_INPUT -m tcp -p tcp -s 10.0.0.0/8 --dport {port} -j ACCEPT\n"
+        );
+        rules
+    })
+}
+
+fn render_local_udp_v4(ports: &[u16]) -> String {
+    ports.iter().fold(String::new(), |mut rules, port| {
+        let _ = write!(
+            rules,
+            "-A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/16 --dport {port} -j ACCEPT\n\
+             -A NF_PERSIST_INPUT -m udp -p udp -s 172.16.0.0/12 --dport {port} -j ACCEPT\n\
+             -A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {port} -j ACCEPT\n"
+        );
+        rules
+    })
+}
+
+fn render_local_tcp_v6(ports: &[u16]) -> String {
+    ports.iter().fold(String::new(), |mut rules, port| {
+        let _ = write!(
+            rules,
+            "-A NF_PERSIST_INPUT -m tcp -p tcp -s fd00::/8 --dport {port} -j ACCEPT\n\
+             -A NF_PERSIST_INPUT -m tcp -p tcp -s fe80::/10 --dport {port} -j ACCEPT\n"
+        );
+        rules
+    })
+}
+
+fn render_local_udp_v6(ports: &[u16]) -> String {
+    ports.iter().fold(String::new(), |mut rules, port| {
+        let _ = write!(
+            rules,
+            "-A NF_PERSIST_INPUT -m udp -p udp -s fd00::/8 --dport {port} -j ACCEPT\n\
+             -A NF_PERSIST_INPUT -m udp -p udp -s fe80::/10 --dport {port} -j ACCEPT\n"
+        );
+        rules
+    })
+}
+
 fn render_remote_tcp(ports: &[u16]) -> String {
     let mut out = String::new();
     for port in ports {
@@ -90,50 +136,12 @@ fn render_remote_tcp(ports: &[u16]) -> String {
     out
 }
 
-fn render_local_tcp(ports: &[u16]) -> String {
-    let mut out = String::new();
-    for port in ports {
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 192.168.0.0/16 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 172.16.0.0/12 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m tcp -p tcp -s 10.0.0.0/8 --dport {port} -j ACCEPT",
-        );
-    }
-    out
-}
-
 fn render_remote_udp(ports: &[u16]) -> String {
     let mut out = String::new();
     for port in ports {
         let _ = writeln!(
             out,
             "-A NF_PERSIST_INPUT -m udp -p udp --dport {port} -j ACCEPT",
-        );
-    }
-    out
-}
-
-fn render_local_udp(ports: &[u16]) -> String {
-    let mut out = String::new();
-    for port in ports {
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 192.168.0.0/16 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 172.16.0.0/12 --dport {port} -j ACCEPT",
-        );
-        let _ = writeln!(
-            out,
-            "-A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {port} -j ACCEPT",
         );
     }
     out
@@ -204,9 +212,9 @@ COMMIT
 
 ",
         remote_tcp = render_remote_tcp(&ports.remote.tcp),
-        local_tcp = render_local_tcp(&ports.local.tcp),
+        local_tcp = render_local_tcp_v4(&ports.local.tcp),
         remote_udp = render_remote_udp(&ports.remote.udp),
-        local_udp = render_local_udp(&ports.local.udp),
+        local_udp = render_local_udp_v4(&ports.local.udp),
     )
 }
 
@@ -282,8 +290,8 @@ COMMIT
 COMMIT
 ",
         remote_tcp = render_remote_tcp(&ports.remote.tcp),
-        local_tcp = render_local_tcp(&ports.local.tcp),
+        local_tcp = render_local_tcp_v6(&ports.local.tcp),
         remote_udp = render_remote_udp(&ports.remote.udp),
-        local_udp = render_local_udp(&ports.local.udp),
+        local_udp = render_local_udp_v6(&ports.local.udp),
     )
 }
