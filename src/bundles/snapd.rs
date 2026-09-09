@@ -7,20 +7,15 @@ use super::Context;
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();
 
-    let pkg_ids: Vec<_> = ["snapd", "snapd-xdg-open"]
-        .iter()
-        .map(|name| {
-            ctx.plan.add(AptPackage {
-                name: (*name).to_string(),
-                deps: vec![apt_ready],
-                ..Default::default()
-            })
-        })
-        .collect();
+    let pkg = ctx.plan.add(AptPackage {
+        name: "snapd".to_string(),
+        deps: vec![apt_ready],
+        ..Default::default()
+    });
 
     ctx.plan.add(Marker {
         name: "snapd:ready".to_string(),
-        deps: pkg_ids,
+        deps: vec![pkg],
         ..Default::default()
     })
 }
