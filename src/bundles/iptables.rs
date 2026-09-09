@@ -12,25 +12,6 @@ use crate::resource::{ResourceId, Skip};
 
 use super::Context;
 
-// Mirrors roles/iptables/. Disabled in containers — netfilter-persistent's
-// systemd unit is not usable inside a container and the legacy role gates
-// the service start with `ignore_errors: ansible_virtualization_type ==
-// 'docker'`. We translate that to "skip the whole bundle in containers".
-//
-// `rules.v4` / `rules.v6` are templated from `ctx.config.iptables_open_ports`
-// matching the legacy Jinja exactly: a hardcoded `--dport 22` accept line in
-// v6 only, plus loops over `remote.tcp`, `local.tcp`, `remote.udp`,
-// `local.udp` that emit ACCEPT lines per port. With an empty
-// `iptables_open_ports`, the loops contribute nothing and only the static
-// frame remains; with the legacy default `{ remote: { tcp: [22, 2022] } }`
-// the v6 file ends up with port 22 listed twice (hardcoded + first loop
-// iteration) followed by 2022, byte-identical to what the ansible role
-// would produce.
-//
-// Bundle dep: legacy `roles/iptables/meta/main.yml` requires the tailscale
-// role first so the tailscale package (and any apt repo it brings) is
-// installed before netfilter-persistent comes up.
-
 #[allow(clippy::too_many_lines)]
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     if ctx.env.is_container() {
@@ -168,7 +149,7 @@ fn render_rules_v4(ports: &IptablesPorts) -> String {
 :POSTROUTING ACCEPT [0:0]
 COMMIT
 *nat
-:NF_PERSIST_POSTROUTING [0:0]
+:NF_PERSIST_POSTROUTING - [0:0]
 # Do not forward locally generated packets
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
 
@@ -187,7 +168,7 @@ COMMIT
 -A POSTROUTING -j NF_PERSIST_POSTROUTING
 COMMIT
 *filter
-:NF_PERSIST_INPUT [0:0]
+:NF_PERSIST_INPUT - [0:0]
 -A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d 127.0.0.0/24 -j ACCEPT
 -A NF_PERSIST_INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 {remote_tcp}{local_tcp}{remote_udp}{local_udp}-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -j ACCEPT
@@ -200,7 +181,7 @@ COMMIT
 -A NF_PERSIST_INPUT -s 10.0.0.0/8 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
 -A NF_PERSIST_INPUT -s 172.16.0.0/12 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
-:NF_PERSIST_FORWARD [0:0]
+:NF_PERSIST_FORWARD - [0:0]
 # Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
 -A NF_PERSIST_FORWARD -o lo -j ACCEPT
@@ -215,9 +196,9 @@ COMMIT
 -A NF_PERSIST_FORWARD -i veth+ -j ACCEPT
 -A NF_PERSIST_FORWARD -o veth+ -j ACCEPT
 -A NF_PERSIST_FORWARD -j DROP
-:INPUT ACCEPT [0:0]
+:INPUT DROP [0:0]
 -A INPUT -j NF_PERSIST_INPUT
-:FORWARD ACCEPT [0:0]
+:FORWARD DROP [0:0]
 -A FORWARD -j NF_PERSIST_FORWARD
 :OUTPUT ACCEPT [0:0]
 COMMIT
@@ -240,7 +221,7 @@ fn render_rules_v6(ports: &IptablesPorts) -> String {
 :POSTROUTING ACCEPT [0:0]
 COMMIT
 *nat
-:NF_PERSIST_POSTROUTING [0:0]
+:NF_PERSIST_POSTROUTING - [0:0]
 # Do not forward locally generated packets
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
 
@@ -259,7 +240,7 @@ COMMIT
 -A POSTROUTING -j NF_PERSIST_POSTROUTING
 COMMIT
 *filter
-:NF_PERSIST_INPUT [0:0]
+:NF_PERSIST_INPUT - [0:0]
 -A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d ::1/128 -j ACCEPT
 -A NF_PERSIST_INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport 22 -j ACCEPT
@@ -289,7 +270,7 @@ COMMIT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i br-+ -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
-:NF_PERSIST_FORWARD [0:0]
+:NF_PERSIST_FORWARD - [0:0]
 # Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
 -A NF_PERSIST_FORWARD -o lo -j ACCEPT
@@ -302,9 +283,9 @@ COMMIT
 -A NF_PERSIST_FORWARD -i br-+ -j ACCEPT
 -A NF_PERSIST_FORWARD -o br-+ -j ACCEPT
 -A NF_PERSIST_FORWARD -j DROP
-:INPUT ACCEPT [0:0]
+:INPUT DROP [0:0]
 -A INPUT -j NF_PERSIST_INPUT
-:FORWARD ACCEPT [0:0]
+:FORWARD DROP [0:0]
 -A FORWARD -j NF_PERSIST_FORWARD
 :OUTPUT ACCEPT [0:0]
 COMMIT
@@ -314,4 +295,49 @@ COMMIT
         remote_udp = render_remote_udp(&ports.remote.udp),
         local_udp = render_local_udp(&ports.local.udp),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::IptablesPortsBySection;
+
+    fn ansible_default_ports() -> IptablesPorts {
+        IptablesPorts {
+            remote: IptablesPortsBySection {
+                tcp: vec![22, 2022],
+                udp: vec![],
+            },
+            local: IptablesPortsBySection::default(),
+        }
+    }
+
+    fn render_both(ports: &IptablesPorts) -> [String; 2] {
+        [render_rules_v4(ports), render_rules_v6(ports)]
+    }
+
+    #[test]
+    fn builtin_input_and_forward_policies_are_drop() {
+        for ruleset in render_both(&ansible_default_ports()) {
+            for policy in [":INPUT DROP [0:0]", ":FORWARD DROP [0:0]"] {
+                assert!(ruleset.contains(policy), "missing {policy} in:\n{ruleset}");
+            }
+        }
+    }
+
+    #[test]
+    fn user_chains_use_legacy_compatible_declaration_syntax() {
+        for ruleset in render_both(&ansible_default_ports()) {
+            for chain in [
+                "NF_PERSIST_INPUT",
+                "NF_PERSIST_FORWARD",
+                "NF_PERSIST_POSTROUTING",
+            ] {
+                assert!(
+                    ruleset.contains(&format!(":{chain} - [0:0]")),
+                    "chain {chain} not declared as `:{chain} - [0:0]` in:\n{ruleset}"
+                );
+            }
+        }
+    }
 }

@@ -6,7 +6,7 @@
 :POSTROUTING ACCEPT [0:0]
 COMMIT
 *nat
-:NF_PERSIST_POSTROUTING [0:0]
+:NF_PERSIST_POSTROUTING - [0:0]
 # Do not forward locally generated packets
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
 
@@ -25,7 +25,7 @@ COMMIT
 -A POSTROUTING -j NF_PERSIST_POSTROUTING
 COMMIT
 *filter
-:NF_PERSIST_INPUT [0:0]
+:NF_PERSIST_INPUT - [0:0]
 -A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d 127.0.0.0/24 -j ACCEPT
 -A NF_PERSIST_INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 {% for port in iptables_open_ports.get("remote", {}).get("tcp", []) %}
@@ -54,7 +54,7 @@ COMMIT
 -A NF_PERSIST_INPUT -s 10.0.0.0/8 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment "Allow Chromecast UDP data (inbound)" -j ACCEPT
 -A NF_PERSIST_INPUT -s 172.16.0.0/12 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment "Allow Chromecast UDP data (inbound)" -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
-:NF_PERSIST_FORWARD [0:0]
+:NF_PERSIST_FORWARD - [0:0]
 # Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
 -A NF_PERSIST_FORWARD -o lo -j ACCEPT
@@ -69,9 +69,9 @@ COMMIT
 -A NF_PERSIST_FORWARD -i veth+ -j ACCEPT
 -A NF_PERSIST_FORWARD -o veth+ -j ACCEPT
 -A NF_PERSIST_FORWARD -j DROP
-:INPUT ACCEPT [0:0]
+:INPUT DROP [0:0]
 -A INPUT -j NF_PERSIST_INPUT
-:FORWARD ACCEPT [0:0]
+:FORWARD DROP [0:0]
 -A FORWARD -j NF_PERSIST_FORWARD
 :OUTPUT ACCEPT [0:0]
 COMMIT
