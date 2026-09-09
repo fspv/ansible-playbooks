@@ -171,6 +171,7 @@ COMMIT
 :NF_PERSIST_INPUT - [0:0]
 -A NF_PERSIST_INPUT ! -i lo -s 127.0.0.0/8 -j DROP
 -A NF_PERSIST_INPUT -i lo -j ACCEPT
+-A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 {remote_tcp}{local_tcp}{remote_udp}{local_udp}-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -j ACCEPT
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
@@ -182,6 +183,7 @@ COMMIT
 -A NF_PERSIST_INPUT -s 172.16.0.0/12 -p udp -m multiport --sports 32768:61000 -m multiport --dports 32768:61000 -m comment --comment \"Allow Chromecast UDP data (inbound)\" -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
 :NF_PERSIST_FORWARD - [0:0]
+-A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
 # Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
 -A NF_PERSIST_FORWARD -o lo -j ACCEPT
@@ -243,34 +245,27 @@ COMMIT
 :NF_PERSIST_INPUT - [0:0]
 -A NF_PERSIST_INPUT ! -i lo -s ::1/128 -j DROP
 -A NF_PERSIST_INPUT -i lo -j ACCEPT
--A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
--A NF_PERSIST_INPUT -m tcp -p tcp --dport 22 -j ACCEPT
-{remote_tcp}{local_tcp}{remote_udp}{local_udp}
-# Allow some ICMPv6 types in the INPUT chain
-# Using ICMPv6 type names to be clear.
-
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type destination-unreachable -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type packet-too-big -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type time-exceeded -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type parameter-problem -j ACCEPT
-
-# Allow some other types in the INPUT chain
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type echo-request -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type echo-reply -j ACCEPT
-
-# Allow others ICMPv6 types but only if the hop limit field is 255.
-
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type router-advertisement -m hl --hl-eq 255 -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type neighbor-solicitation -m hl --hl-eq 255 -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type neighbor-advertisement -m hl --hl-eq 255 -j ACCEPT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type redirect -m hl --hl-eq 255 -j ACCEPT
-
+-A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
+-A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A NF_PERSIST_INPUT -m tcp -p tcp --dport 22 -j ACCEPT
+{remote_tcp}{local_tcp}{remote_udp}{local_udp}
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i br-+ -j ACCEPT
 -A NF_PERSIST_INPUT -j DROP
 :NF_PERSIST_FORWARD - [0:0]
+-A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
 # Do not forward packets from interfaces not identified as local
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
 -A NF_PERSIST_FORWARD -o lo -j ACCEPT
