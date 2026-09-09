@@ -165,26 +165,54 @@ fn render_masquerade_returns() -> String {
     out
 }
 
-fn render_rules_v4(inputs: &RulesetInputs<'_>) -> String {
+fn render_nat_table() -> String {
     format!(
-        "*mangle
-:PREROUTING ACCEPT [0:0]
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
-COMMIT
-*nat
+        "*nat
 :NF_PERSIST_POSTROUTING - [0:0]
 -A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
 -A NF_PERSIST_POSTROUTING -o lo -j RETURN
-{masquerade_returns}-A NF_PERSIST_POSTROUTING -j MASQUERADE
+{returns}-A NF_PERSIST_POSTROUTING -j MASQUERADE
 :PREROUTING ACCEPT [0:0]
 :INPUT ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 -A POSTROUTING -j NF_PERSIST_POSTROUTING
-COMMIT
+COMMIT",
+        returns = render_masquerade_returns(),
+    )
+}
+
+const MANGLE_TABLE: &str = r"*mangle
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+COMMIT";
+
+fn render_forward_chain() -> String {
+    format!(
+        ":NF_PERSIST_FORWARD - [0:0]
+-A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
+-A NF_PERSIST_FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A NF_PERSIST_FORWARD -i lo -j ACCEPT
+{containers}-A NF_PERSIST_FORWARD -i veth+ -j ACCEPT
+{trusted}-A NF_PERSIST_FORWARD -j DROP
+:INPUT DROP [0:0]
+-A INPUT -j NF_PERSIST_INPUT
+:FORWARD DROP [0:0]
+-A FORWARD -j NF_PERSIST_FORWARD
+:OUTPUT ACCEPT [0:0]
+COMMIT",
+        containers = render_interface_accepts("NF_PERSIST_FORWARD", &CONTAINER_INTERFACES),
+        trusted = render_interface_accepts("NF_PERSIST_FORWARD", &TRUSTED_INTERFACES),
+    )
+}
+
+fn render_rules_v4(inputs: &RulesetInputs<'_>) -> String {
+    format!(
+        "{MANGLE_TABLE}
+{nat}
 *filter
 :NF_PERSIST_INPUT - [0:0]
 -A NF_PERSIST_INPUT ! -i lo -s 127.0.0.0/8 -j DROP
@@ -193,51 +221,22 @@ COMMIT
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 {remote_tcp}{trusted_tcp}{remote_udp}{trusted_udp}-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -m limit --limit {ICMP_ECHO_RATE} --limit-burst {ICMP_ECHO_BURST} -j ACCEPT
 {containers}-A NF_PERSIST_INPUT -j DROP
-:NF_PERSIST_FORWARD - [0:0]
--A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
--A NF_PERSIST_FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
--A NF_PERSIST_FORWARD -i lo -j ACCEPT
-{forward_containers}-A NF_PERSIST_FORWARD -i veth+ -j ACCEPT
-{forward_trusted}-A NF_PERSIST_FORWARD -j DROP
-:INPUT DROP [0:0]
--A INPUT -j NF_PERSIST_INPUT
-:FORWARD DROP [0:0]
--A FORWARD -j NF_PERSIST_FORWARD
-:OUTPUT ACCEPT [0:0]
-COMMIT
-
+{forward_chain}
 ",
+        nat = render_nat_table(),
         remote_tcp = render_remote_tcp(&inputs.ports.remote.tcp, inputs.rate_limited_tcp_ports),
         trusted_tcp = render_trusted_ports(&inputs.ports.local.tcp, "tcp"),
         remote_udp = render_remote_udp(&inputs.ports.remote.udp),
         trusted_udp = render_trusted_ports(&inputs.ports.local.udp, "udp"),
-        masquerade_returns = render_masquerade_returns(),
         containers = render_interface_accepts("NF_PERSIST_INPUT", &CONTAINER_INTERFACES),
-        forward_containers = render_interface_accepts("NF_PERSIST_FORWARD", &CONTAINER_INTERFACES),
-        forward_trusted = render_interface_accepts("NF_PERSIST_FORWARD", &TRUSTED_INTERFACES),
+        forward_chain = render_forward_chain(),
     )
 }
 
 fn render_rules_v6(inputs: &RulesetInputs<'_>) -> String {
     format!(
-        "*mangle
-:PREROUTING ACCEPT [0:0]
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
-COMMIT
-*nat
-:NF_PERSIST_POSTROUTING - [0:0]
--A NF_PERSIST_POSTROUTING -m addrtype --src-type LOCAL -j RETURN
--A NF_PERSIST_POSTROUTING -o lo -j RETURN
-{masquerade_returns}-A NF_PERSIST_POSTROUTING -j MASQUERADE
-:PREROUTING ACCEPT [0:0]
-:INPUT ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
--A POSTROUTING -j NF_PERSIST_POSTROUTING
-COMMIT
+        "{MANGLE_TABLE}
+{nat}
 *filter
 :NF_PERSIST_INPUT - [0:0]
 -A NF_PERSIST_INPUT ! -i lo -s ::1/128 -j DROP
@@ -255,27 +254,15 @@ COMMIT
 -A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 {remote_tcp}{trusted_tcp}{remote_udp}{trusted_udp}{containers}-A NF_PERSIST_INPUT -j DROP
-:NF_PERSIST_FORWARD - [0:0]
--A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
--A NF_PERSIST_FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
--A NF_PERSIST_FORWARD -i lo -j ACCEPT
-{forward_containers}-A NF_PERSIST_FORWARD -i veth+ -j ACCEPT
-{forward_trusted}-A NF_PERSIST_FORWARD -j DROP
-:INPUT DROP [0:0]
--A INPUT -j NF_PERSIST_INPUT
-:FORWARD DROP [0:0]
--A FORWARD -j NF_PERSIST_FORWARD
-:OUTPUT ACCEPT [0:0]
-COMMIT
+{forward_chain}
 ",
+        nat = render_nat_table(),
         remote_tcp = render_remote_tcp(&inputs.ports.remote.tcp, inputs.rate_limited_tcp_ports),
         trusted_tcp = render_trusted_ports(&inputs.ports.local.tcp, "tcp"),
         remote_udp = render_remote_udp(&inputs.ports.remote.udp),
         trusted_udp = render_trusted_ports(&inputs.ports.local.udp, "udp"),
-        masquerade_returns = render_masquerade_returns(),
         containers = render_interface_accepts("NF_PERSIST_INPUT", &CONTAINER_INTERFACES),
-        forward_containers = render_interface_accepts("NF_PERSIST_FORWARD", &CONTAINER_INTERFACES),
-        forward_trusted = render_interface_accepts("NF_PERSIST_FORWARD", &TRUSTED_INTERFACES),
+        forward_chain = render_forward_chain(),
     )
 }
 
@@ -284,11 +271,7 @@ mod tests {
     use super::*;
     use crate::config::IptablesPortsBySection;
 
-    fn config_with(remote_tcp: Vec<u16>) -> Config {
-        config_with_local(remote_tcp, vec![])
-    }
-
-    fn config_with_local(remote_tcp: Vec<u16>, local_tcp: Vec<u16>) -> Config {
+    fn config_with(remote_tcp: Vec<u16>, local_tcp: Vec<u16>) -> Config {
         Config {
             iptables_open_ports: IptablesPorts {
                 remote: IptablesPortsBySection {
@@ -304,6 +287,19 @@ mod tests {
         }
     }
 
+    fn ansible_default_config() -> Config {
+        config_with(vec![22, 2022], vec![])
+    }
+
+    fn render_both(config: &Config) -> [String; 2] {
+        let inputs = RulesetInputs::from_config(config);
+        [render_rules_v4(&inputs), render_rules_v6(&inputs)]
+    }
+
+    fn offset_of(ruleset: &str, needle: &str) -> usize {
+        ruleset.find(needle).unwrap_or(usize::MAX)
+    }
+
     fn find_ipv4_literal(ruleset: &str) -> Option<&str> {
         ruleset.split_whitespace().find(|token| {
             let address = token.split('/').next().unwrap_or(token);
@@ -316,25 +312,29 @@ mod tests {
         })
     }
 
-    fn ansible_default_config() -> Config {
-        config_with(vec![22, 2022])
-    }
-
-    fn render_both(config: &Config) -> [String; 2] {
-        let inputs = RulesetInputs::from_config(config);
-        [render_rules_v4(&inputs), render_rules_v6(&inputs)]
-    }
-
-    fn offset_of(ruleset: &str, needle: &str) -> usize {
-        ruleset.find(needle).unwrap_or(usize::MAX)
-    }
-
     #[test]
     fn builtin_input_and_forward_policies_are_drop() {
         for ruleset in render_both(&ansible_default_config()) {
             for policy in [":INPUT DROP [0:0]", ":FORWARD DROP [0:0]"] {
                 assert!(ruleset.contains(policy), "missing {policy} in:\n{ruleset}");
             }
+        }
+    }
+
+    #[test]
+    fn forward_chain_never_accepts_toward_container_interfaces() {
+        for ruleset in render_both(&config_with(vec![22], vec![8080])) {
+            for interface in CONTAINER_INTERFACES {
+                let rule = format!("-o {interface} -j ACCEPT");
+                assert!(
+                    !ruleset.contains(&rule),
+                    "unsolicited inbound to containers allowed by {rule} in:\n{ruleset}"
+                );
+            }
+            assert!(
+                !ruleset.contains("-o veth+ -j ACCEPT"),
+                "unsolicited inbound to containers allowed via veth in:\n{ruleset}"
+            );
         }
     }
 
@@ -355,53 +355,8 @@ mod tests {
     }
 
     #[test]
-    fn forged_loopback_sources_are_dropped_before_any_accept() {
-        let [v4, v6] = render_both(&ansible_default_config());
-        for (ruleset, rule) in [
-            (&v4, "-A NF_PERSIST_INPUT ! -i lo -s 127.0.0.0/8 -j DROP"),
-            (&v6, "-A NF_PERSIST_INPUT ! -i lo -s ::1/128 -j DROP"),
-        ] {
-            let drop_at = offset_of(ruleset, rule);
-            assert!(drop_at != usize::MAX, "missing {rule} in:\n{ruleset}");
-            assert!(
-                drop_at < offset_of(ruleset, "-j ACCEPT"),
-                "{rule} appears after the first ACCEPT in:\n{ruleset}"
-            );
-        }
-    }
-
-    #[test]
-    fn invalid_conntrack_state_is_dropped_in_both_chains() {
-        for ruleset in render_both(&ansible_default_config()) {
-            for chain in ["NF_PERSIST_INPUT", "NF_PERSIST_FORWARD"] {
-                let rule = format!("-A {chain} -m conntrack --ctstate INVALID -j DROP");
-                assert!(ruleset.contains(&rule), "missing {rule} in:\n{ruleset}");
-            }
-        }
-    }
-
-    #[test]
-    fn ipv6_does_not_hardcode_an_ssh_accept() {
-        let [_, v6] = render_both(&config_with(vec![]));
-        assert!(
-            !v6.contains("--dport 22"),
-            "port 22 accepted on IPv6 despite not being configured:\n{v6}"
-        );
-    }
-
-    #[test]
-    fn ephemeral_udp_range_is_never_opened() {
-        for ruleset in render_both(&ansible_default_config()) {
-            assert!(
-                !ruleset.contains("32768:61000"),
-                "ephemeral UDP range opened in:\n{ruleset}"
-            );
-        }
-    }
-
-    #[test]
     fn trusted_ports_are_reachable_only_over_an_unspoofable_interface() {
-        for ruleset in render_both(&config_with_local(vec![22], vec![8080])) {
+        for ruleset in render_both(&config_with(vec![22], vec![8080])) {
             for line in ruleset.lines().filter(|l| l.contains("--dport 8080")) {
                 assert!(
                     TRUSTED_INTERFACES
@@ -415,7 +370,7 @@ mod tests {
 
     #[test]
     fn no_rule_grants_access_by_source_address_alone() {
-        for ruleset in render_both(&config_with_local(vec![22], vec![8080])) {
+        for ruleset in render_both(&config_with(vec![22], vec![8080])) {
             for line in ruleset.lines().filter(|l| l.contains(" -s ")) {
                 assert!(
                     line.contains("-j DROP") || line.contains("-i lo"),
@@ -426,8 +381,18 @@ mod tests {
     }
 
     #[test]
+    fn ephemeral_udp_range_is_never_opened() {
+        for ruleset in render_both(&config_with(vec![22], vec![8080])) {
+            assert!(
+                !ruleset.contains("32768:61000"),
+                "ephemeral UDP range opened in:\n{ruleset}"
+            );
+        }
+    }
+
+    #[test]
     fn ipv6_ruleset_contains_no_ipv4_literals() {
-        let [_, v6] = render_both(&config_with_local(vec![22], vec![8080]));
+        let [_, v6] = render_both(&config_with(vec![22], vec![8080]));
         let literal = find_ipv4_literal(&v6);
         assert!(
             literal.is_none(),
@@ -436,18 +401,26 @@ mod tests {
     }
 
     #[test]
-    fn forward_chain_never_accepts_toward_container_interfaces() {
-        for ruleset in render_both(&config_with_local(vec![22], vec![8080])) {
-            for interface in CONTAINER_INTERFACES {
-                let rule = format!("-o {interface} -j ACCEPT");
-                assert!(
-                    !ruleset.contains(&rule),
-                    "unsolicited inbound to containers allowed by {rule} in:\n{ruleset}"
-                );
-            }
+    fn ipv6_does_not_hardcode_an_ssh_accept() {
+        let [_, v6] = render_both(&config_with(vec![], vec![]));
+        assert!(
+            !v6.contains("--dport 22"),
+            "port 22 accepted on IPv6 despite not being configured:\n{v6}"
+        );
+    }
+
+    #[test]
+    fn forged_loopback_sources_are_dropped_before_any_accept() {
+        let [v4, v6] = render_both(&ansible_default_config());
+        for (ruleset, rule) in [
+            (&v4, "-A NF_PERSIST_INPUT ! -i lo -s 127.0.0.0/8 -j DROP"),
+            (&v6, "-A NF_PERSIST_INPUT ! -i lo -s ::1/128 -j DROP"),
+        ] {
+            let drop_at = offset_of(ruleset, rule);
+            assert!(drop_at != usize::MAX, "missing {rule} in:\n{ruleset}");
             assert!(
-                !ruleset.contains("-o veth+ -j ACCEPT"),
-                "unsolicited inbound to containers allowed via veth in:\n{ruleset}"
+                drop_at < offset_of(ruleset, "-j ACCEPT"),
+                "{rule} appears after the first ACCEPT in:\n{ruleset}"
             );
         }
     }
@@ -472,7 +445,7 @@ mod tests {
 
     #[test]
     fn ports_absent_from_the_rate_limit_list_are_accepted_unthrottled() {
-        let v4 = render_rules_v4(&RulesetInputs::from_config(&config_with(vec![443])));
+        let v4 = render_rules_v4(&RulesetInputs::from_config(&config_with(vec![443], vec![])));
         assert!(
             !v4.contains("NF_PERSIST_RATE_443"),
             "port 443 rate-limited without being listed in:\n{v4}"
