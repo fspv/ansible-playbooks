@@ -40,7 +40,6 @@ COMMIT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type redirect -m hl --hl-eq 255 -j ACCEPT
 -A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
--A NF_PERSIST_INPUT -m tcp -p tcp --dport 22 -j ACCEPT
 {% for port in iptables_open_ports.get("remote", {}).get("tcp", []) %}
 {% if port in iptables_rate_limited_tcp_ports %}
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -m conntrack --ctstate NEW -m recent --name NF_PERSIST_RATE_{{ port }} --set

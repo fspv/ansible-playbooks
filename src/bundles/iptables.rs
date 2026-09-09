@@ -290,7 +290,6 @@ COMMIT
 -A NF_PERSIST_INPUT -p icmpv6 --icmpv6-type redirect -m hl --hl-eq 255 -j ACCEPT
 -A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
 -A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
--A NF_PERSIST_INPUT -m tcp -p tcp --dport 22 -j ACCEPT
 {remote_tcp}{local_tcp}{remote_udp}{local_udp}
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
@@ -406,6 +405,15 @@ mod tests {
                 assert!(ruleset.contains(&rule), "missing {rule} in:\n{ruleset}");
             }
         }
+    }
+
+    #[test]
+    fn ipv6_does_not_hardcode_an_ssh_accept() {
+        let [_, v6] = render_both(&config_with(vec![]));
+        assert!(
+            !v6.contains("--dport 22"),
+            "port 22 accepted on IPv6 despite not being configured:\n{v6}"
+        );
     }
 
     #[test]
