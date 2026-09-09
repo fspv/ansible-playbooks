@@ -2,21 +2,15 @@ use std::fs::Permissions;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
+use crate::backends::absent_file::AbsentFile;
 use crate::backends::apt_package::AptPackage;
 use crate::backends::apt_repo::AptRepo;
-use crate::backends::command::Command;
+use crate::backends::download::Download;
 use crate::backends::file::File;
 use crate::backends::marker::Marker;
 use crate::resource::ResourceId;
 
 use super::Context;
-
-// Mirrors roles/tuxedo/. Active only on hosts whose ansible_system_vendor is
-// "TUXEDO" — for everyone else the marker is empty so downstream bundles can
-// depend on `tuxedo:ready` unconditionally.
-//
-// Ubuntu codename comes from `ctx.env.ubuntu_codename()` (read from
-// /etc/os-release).
 
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     if ctx.config.system_vendor.as_deref() != Some("TUXEDO") {
@@ -69,22 +63,26 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    let key = ctx.plan.add(Command {
-        name: "fetch tuxedo signing key".to_string(),
-        argv: vec![
-            "sh".to_string(),
-            "-c".to_string(),
-            "curl -fsSL https://deb.tuxedocomputers.com/0x54840598.pub.asc \
-             | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/tuxedo.gpg"
-                .to_string(),
-        ],
+    let legacy_key = ctx.plan.add(AbsentFile {
+        path: PathBuf::from("/etc/apt/trusted.gpg.d/tuxedo.gpg"),
+        deps: vec![apt_ready],
+        ..Default::default()
+    });
+
+    let key = ctx.plan.add(Download {
+        url: "https://deb.tuxedocomputers.com/0x54840598.pub.asc".to_string(),
+        path: PathBuf::from("/etc/apt/keyrings/tuxedo.asc"),
+        mode: Some(Permissions::from_mode(0o644)),
         deps: vec![apt_ready],
         ..Default::default()
     });
 
     let repo = ctx.plan.add(AptRepo {
         name: "tuxedo-computers".to_string(),
-        list_content: format!("deb https://deb.tuxedocomputers.com/ubuntu {codename} main\n"),
+        list_content: format!(
+            "deb [signed-by=/etc/apt/keyrings/tuxedo.asc] \
+             https://deb.tuxedocomputers.com/ubuntu {codename} main\n"
+        ),
         deps: vec![apt_ready, pins, key],
         ..Default::default()
     });
@@ -107,7 +105,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     })
     .collect();
 
-    let mut all = vec![pins, key, repo];
+    let mut all = vec![pins, legacy_key, key, repo];
     all.extend(package_ids);
 
     ctx.plan.add(Marker {

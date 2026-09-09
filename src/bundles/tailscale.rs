@@ -2,21 +2,18 @@ use std::fs::Permissions;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
+use crate::backends::absent_file::AbsentFile;
 use crate::backends::apt_package::AptPackage;
 use crate::backends::apt_repo::AptRepo;
-use crate::backends::command::Command;
+use crate::backends::download::Download;
 use crate::backends::file::File;
 use crate::backends::marker::Marker;
 use crate::resource::ResourceId;
 
 use super::Context;
 
-// Mirrors roles/tailscale/. The legacy `apt_key` task fetched
-// https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg into
-// /usr/share/keyrings/tailscale-archive-keyring.gpg; we replicate that with
-// curl + tee. The keyring is shared across releases (tailscale signs all
-// suites with the same key), so the URL stays pinned to `jammy.noarmor.gpg`
-// regardless of the host's codename.
+// Tailscale signs every suite with the same key, so the key URL stays
+// pinned to the jammy path while the repo tracks the host's codename.
 
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let apt_ready = ctx.apt();
@@ -33,15 +30,16 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    let key = ctx.plan.add(Command {
-        name: "fetch tailscale signing key".to_string(),
-        argv: vec![
-            "sh".to_string(),
-            "-c".to_string(),
-            "curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg \
-             -o /usr/share/keyrings/tailscale-archive-keyring.gpg"
-                .to_string(),
-        ],
+    let legacy_key = ctx.plan.add(AbsentFile {
+        path: PathBuf::from("/usr/share/keyrings/tailscale-archive-keyring.gpg"),
+        deps: vec![apt_ready],
+        ..Default::default()
+    });
+
+    let key = ctx.plan.add(Download {
+        url: "https://pkgs.tailscale.com/stable/ubuntu/jammy.asc".to_string(),
+        path: PathBuf::from("/etc/apt/keyrings/tailscale.asc"),
+        mode: Some(Permissions::from_mode(0o644)),
         deps: vec![apt_ready],
         ..Default::default()
     });
@@ -49,7 +47,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let repo = ctx.plan.add(AptRepo {
         name: "tailscale".to_string(),
         list_content: format!(
-            "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] \
+            "deb [signed-by=/etc/apt/keyrings/tailscale.asc] \
              https://pkgs.tailscale.com/stable/ubuntu {codename} main\n",
         ),
         deps: vec![apt_ready, pin, key],
@@ -64,7 +62,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
 
     ctx.plan.add(Marker {
         name: "tailscale:ready".to_string(),
-        deps: vec![pin, key, repo, pkg],
+        deps: vec![pin, legacy_key, key, repo, pkg],
         ..Default::default()
     })
 }
