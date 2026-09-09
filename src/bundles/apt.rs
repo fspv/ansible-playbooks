@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use crate::backends::absent_file::AbsentFile;
 use crate::backends::apt_package::AptPackage;
-use crate::backends::command::Command;
+use crate::backends::download::Download;
 use crate::backends::file::File;
 use crate::backends::marker::Marker;
 use crate::config::AptRepo;
@@ -123,6 +123,10 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         // Ubuntu 24.04 ships sources in deb822 ubuntu.sources; the role
         // wipes it because we drive sources via /etc/apt/sources.list.d/*.list.
         "/etc/apt/sources.list.d/ubuntu.sources",
+        // Superseded by /etc/apt/keyrings/ppa-pv-safronov-backports.asc. The
+        // role removes it unconditionally, so it goes even on hosts that
+        // never enabled the PPA.
+        "/etc/apt/trusted.gpg.d/ppa-pv-safronov-backports.gpg",
     ]
     .iter()
     .map(|p| {
@@ -199,22 +203,16 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         }
     }
 
-    // Per the legacy role's `apt_key` task: fetch the PPA signing key into
-    // its own keyring file under /etc/apt/trusted.gpg.d/. Only emitted when
-    // the user opted into the PPA via apt_repos.
+    // Only emitted when the user opted into the PPA via apt_repos; the role
+    // fetches it unconditionally, but a signing key for a repo this host does
+    // not carry buys nothing.
     if ppa_safronov_enabled {
-        let key = ctx.plan.add(Command {
-            name: "fetch ppa-pv-safronov-backports signing key".to_string(),
-            argv: vec![
-                "gpg".to_string(),
-                "--no-default-keyring".to_string(),
-                "--keyring".to_string(),
-                "/etc/apt/trusted.gpg.d/ppa-pv-safronov-backports.gpg".to_string(),
-                "--keyserver".to_string(),
-                "keyserver.ubuntu.com".to_string(),
-                "--recv-keys".to_string(),
-                "FED902047AF1397755144CF6B47BBF2062DDDB70".to_string(),
-            ],
+        let key = ctx.plan.add(Download {
+            url: "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr\
+                  &search=0xFED902047AF1397755144CF6B47BBF2062DDDB70"
+                .to_string(),
+            path: PathBuf::from("/etc/apt/keyrings/ppa-pv-safronov-backports.asc"),
+            mode: mode_644(),
             ..Default::default()
         });
         repo_resources.push(key);
@@ -312,8 +310,10 @@ fn render_repo_entry(
              Pin-Priority: 990\n"
                 .to_string(),
             format!(
-                "deb https://ppa.launchpadcontent.net/pv-safronov/backports/ubuntu {codename} main\n\
-                 deb-src https://ppa.launchpadcontent.net/pv-safronov/backports/ubuntu {codename} main\n",
+                "deb [signed-by=/etc/apt/keyrings/ppa-pv-safronov-backports.asc] \
+                 https://ppa.launchpadcontent.net/pv-safronov/backports/ubuntu {codename} main\n\
+                 deb-src [signed-by=/etc/apt/keyrings/ppa-pv-safronov-backports.asc] \
+                 https://ppa.launchpadcontent.net/pv-safronov/backports/ubuntu {codename} main\n",
             ),
         ),
     }

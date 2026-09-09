@@ -2,9 +2,10 @@ use std::fs::Permissions;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
+use crate::backends::absent_file::AbsentFile;
 use crate::backends::apt_package::AptPackage;
 use crate::backends::apt_repo::AptRepo;
-use crate::backends::command::Command;
+use crate::backends::download::Download;
 use crate::backends::file::File;
 use crate::backends::marker::Marker;
 use crate::resource::ResourceId;
@@ -44,30 +45,27 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    // The legacy template references `$(ARCH)` — an apt-time substitution
-    // performed by apt itself, not by ansible — so it stays literal in the
-    // .list body.
-    let key = ctx.plan.add(Command {
-        name: "fetch nvidia-container-toolkit signing key".to_string(),
-        argv: vec![
-            "gpg".to_string(),
-            "--no-default-keyring".to_string(),
-            "--keyring".to_string(),
-            "/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg".to_string(),
-            "--keyserver".to_string(),
-            "keyserver.ubuntu.com".to_string(),
-            "--recv-keys".to_string(),
-            "DDCAE044F796ECB0".to_string(),
-        ],
+    let legacy_key = ctx.plan.add(AbsentFile {
+        path: PathBuf::from("/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg"),
+        deps: vec![apt_ready],
+        ..Default::default()
+    });
+
+    let key = ctx.plan.add(Download {
+        url: "https://nvidia.github.io/libnvidia-container/gpgkey".to_string(),
+        path: PathBuf::from("/etc/apt/keyrings/nvidia-container-toolkit.asc"),
+        mode: Some(Permissions::from_mode(0o644)),
         deps: vec![apt_ready],
         ..Default::default()
     });
 
     let repo = ctx.plan.add(AptRepo {
         name: "nvidia".to_string(),
-        list_content: "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] \
+        // `$(ARCH)` is an apt-time substitution performed by apt itself, not
+        // by ansible, so it stays literal in the .list body.
+        list_content: "deb [signed-by=/etc/apt/keyrings/nvidia-container-toolkit.asc] \
                        https://nvidia.github.io/libnvidia-container/stable/deb/$(ARCH) /\n\
-                       #deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] \
+                       #deb [signed-by=/etc/apt/keyrings/nvidia-container-toolkit.asc] \
                        https://nvidia.github.io/libnvidia-container/experimental/deb/$(ARCH) /\n"
             .to_string(),
         deps: vec![apt_ready, pin, key],
@@ -101,7 +99,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
 
     ctx.plan.add(Marker {
         name: "nvidia:ready".to_string(),
-        deps: vec![pin, key, repo, unattended_blacklist, toolkit],
+        deps: vec![pin, legacy_key, key, repo, unattended_blacklist, toolkit],
         ..Default::default()
     })
 }

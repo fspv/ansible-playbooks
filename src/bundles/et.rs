@@ -2,9 +2,10 @@ use std::fs::Permissions;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
+use crate::backends::absent_file::AbsentFile;
 use crate::backends::apt_package::AptPackage;
 use crate::backends::apt_repo::AptRepo;
-use crate::backends::command::Command;
+use crate::backends::download::Download;
 use crate::backends::file::File;
 use crate::backends::marker::Marker;
 use crate::backends::service::Service;
@@ -12,12 +13,7 @@ use crate::resource::{ResourceId, Skip};
 
 use super::Context;
 
-// Mirrors roles/et. The original `apt_key` task fetched
-// D3614CB0B3C2D154356BD436CB4ADEA5B72A07A1 from keyserver.ubuntu.com into
-// /etc/apt/trusted.gpg.d/ppa-et.gpg; we replicate that with a `gpg --recv-keys`
-// Command. `Command` always reports Changed::Yes, so this re-fetches on every
-// run — acceptable here, the keyring file content stabilises after the first
-// run. The Ubuntu codename in the deb URL comes from
+// Mirrors roles/et. The Ubuntu codename in the deb URL comes from
 // `ctx.env.ubuntu_codename()`, which reads `/etc/os-release` at startup.
 
 pub fn build(ctx: &mut Context<'_>) -> ResourceId {
@@ -35,18 +31,18 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
         ..Default::default()
     });
 
-    let key = ctx.plan.add(Command {
-        name: "fetch ppa-et signing key".to_string(),
-        argv: vec![
-            "gpg".to_string(),
-            "--no-default-keyring".to_string(),
-            "--keyring".to_string(),
-            "/etc/apt/trusted.gpg.d/ppa-et.gpg".to_string(),
-            "--keyserver".to_string(),
-            "keyserver.ubuntu.com".to_string(),
-            "--recv-keys".to_string(),
-            "D3614CB0B3C2D154356BD436CB4ADEA5B72A07A1".to_string(),
-        ],
+    let legacy_key = ctx.plan.add(AbsentFile {
+        path: PathBuf::from("/etc/apt/trusted.gpg.d/ppa-et.gpg"),
+        deps: vec![apt_ready],
+        ..Default::default()
+    });
+
+    let key = ctx.plan.add(Download {
+        url: "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr\
+              &search=0xD3614CB0B3C2D154356BD436CB4ADEA5B72A07A1"
+            .to_string(),
+        path: PathBuf::from("/etc/apt/keyrings/ppa-et.asc"),
+        mode: Some(Permissions::from_mode(0o644)),
         deps: vec![apt_ready],
         ..Default::default()
     });
@@ -54,8 +50,10 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
     let repo = ctx.plan.add(AptRepo {
         name: "ppa-et".to_string(),
         list_content: format!(
-            "deb http://ppa.launchpad.net/jgmath2000/et/ubuntu {codename} main\n\
-             deb-src http://ppa.launchpad.net/jgmath2000/et/ubuntu {codename} main\n",
+            "deb [signed-by=/etc/apt/keyrings/ppa-et.asc] \
+             http://ppa.launchpad.net/jgmath2000/et/ubuntu {codename} main\n\
+             deb-src [signed-by=/etc/apt/keyrings/ppa-et.asc] \
+             http://ppa.launchpad.net/jgmath2000/et/ubuntu {codename} main\n",
         ),
         deps: vec![apt_ready, pin, key],
         ..Default::default()
@@ -99,7 +97,7 @@ pub fn build(ctx: &mut Context<'_>) -> ResourceId {
 
     ctx.plan.add(Marker {
         name: "et:ready".to_string(),
-        deps: vec![pin, key, repo, pkg, cfg, service],
+        deps: vec![pin, legacy_key, key, repo, pkg, cfg, service],
         ..Default::default()
     })
 }
