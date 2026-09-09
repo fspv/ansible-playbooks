@@ -1,3 +1,4 @@
+---
 iptables: true
 
 iptables_open_ports:
@@ -5,3 +6,7 @@ iptables_open_ports:
     tcp:
       - 22
       - 2022
+
+iptables_rate_limited_tcp_ports:
+  - 22
+  - 2022

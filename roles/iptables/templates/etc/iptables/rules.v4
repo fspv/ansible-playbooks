@@ -26,9 +26,15 @@ COMMIT
 COMMIT
 *filter
 :NF_PERSIST_INPUT - [0:0]
--A NF_PERSIST_INPUT -m addrtype --src-type LOCAL -d 127.0.0.0/24 -j ACCEPT
--A NF_PERSIST_INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A NF_PERSIST_INPUT ! -i lo -s 127.0.0.0/8 -j DROP
+-A NF_PERSIST_INPUT -i lo -j ACCEPT
+-A NF_PERSIST_INPUT -m conntrack --ctstate INVALID -j DROP
+-A NF_PERSIST_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 {% for port in iptables_open_ports.get("remote", {}).get("tcp", []) %}
+{% if port in iptables_rate_limited_tcp_ports %}
+-A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -m conntrack --ctstate NEW -m recent --name NF_PERSIST_RATE_{{ port }} --set
+-A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -m conntrack --ctstate NEW -m recent --name NF_PERSIST_RATE_{{ port }} --update --seconds 60 --hitcount 10 -j DROP
+{% endif %}
 -A NF_PERSIST_INPUT -m tcp -p tcp --dport {{ port }} -j ACCEPT
 {% endfor %}
 {% for port in iptables_open_ports.get("local", {}).get("tcp", []) %}
@@ -44,8 +50,7 @@ COMMIT
 -A NF_PERSIST_INPUT -m udp -p udp -s 172.16.0.0/12 --dport {{ port }} -j ACCEPT
 -A NF_PERSIST_INPUT -m udp -p udp -s 10.0.0.0/8 --dport {{ port }} -j ACCEPT
 {% endfor %}
--A NF_PERSIST_INPUT -p icmp --icmp-type 8 -j ACCEPT
--A NF_PERSIST_INPUT -i lo -j ACCEPT
+-A NF_PERSIST_INPUT -p icmp --icmp-type 8 -m limit --limit 5/second --limit-burst 10 -j ACCEPT
 -A NF_PERSIST_INPUT -i docker+ -j ACCEPT
 -A NF_PERSIST_INPUT -i lxcbr+ -j ACCEPT
 -A NF_PERSIST_INPUT -i virbr+ -j ACCEPT
@@ -56,6 +61,8 @@ COMMIT
 -A NF_PERSIST_INPUT -j DROP
 :NF_PERSIST_FORWARD - [0:0]
 # Do not forward packets from interfaces not identified as local
+-A NF_PERSIST_FORWARD -m conntrack --ctstate INVALID -j DROP
+-A NF_PERSIST_FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 -A NF_PERSIST_FORWARD -i lo -j ACCEPT
 -A NF_PERSIST_FORWARD -o lo -j ACCEPT
 -A NF_PERSIST_FORWARD -i docker+ -j ACCEPT

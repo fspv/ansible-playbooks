@@ -19,6 +19,7 @@ pub struct Config {
     pub system_vendor: Option<String>,
     pub ca_cert: BTreeMap<String, String>,
     pub iptables_open_ports: IptablesPorts,
+    pub iptables_rate_limited_tcp_ports: Vec<u16>,
     /// Ubuntu archive components to enable. Mirrors
     /// `roles/apt/defaults/main.yml: apt_repos`. Each entry maps to a pin
     /// file under `/etc/apt/preferences.d/<name>.pref` and a sources file
